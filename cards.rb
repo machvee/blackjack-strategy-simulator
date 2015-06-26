@@ -159,7 +159,7 @@ module Cards
     end
 
     def self.make(*cards)
-      # usage Cards.make(%w{JC AS 4H 3D 2D})
+      # usage Cards.make(*%w{JC AS 4H 3D 2D})
       h = []
       cards.each do |fs|
         f=fs[0..-2]

@@ -1,5 +1,8 @@
+require 'cards'
+
 module Blackjack
-  class Evaluator
+  class HandEvaluator
+    include Cards
 
     ACE_HIGH = 11
     ACE_LOW =  1
@@ -13,7 +16,7 @@ module Blackjack
     end
 
     def is_blackjack?
-      hand.count == 2 && high_sum == TWENTYONE
+      hand.count == 2 && high_val == TWENTYONE
     end
 
     def has_ace?
@@ -24,18 +27,16 @@ module Blackjack
       has_ace?
     end
 
-    def split?
-      hand.count == 2 && hand[0].face == hand[1].face
+    def splitable?
+      hand.count == 2 && (face_val(hand[0]) == face_val(hand[1]))
     end
 
-    private
-
-    def high_sum
+    def high_val
       #
       # Only one Card::ACE counts as ACE_HIGH, the rest as ACE_LOW
       #
       first_ace = true
-      hand.inject(0) do |c, t|
+      hand.inject(0) do |t, c|
         t += if c.face == Card::ACE && first_ace
           first_ace = false
           high_face_val(c)
@@ -45,9 +46,11 @@ module Blackjack
       end
     end
 
-    def low_sum
-      hand.inject(0) {|c, t| t += low_face_val(c)}
+    def low_val
+      hand.inject(0) {|t, c| t += low_face_val(c)}
     end
+
+    private
 
     def ace_count
       @_acnt ||= hand.count {|c| c.face == Card::ACE}
