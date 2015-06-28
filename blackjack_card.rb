@@ -34,7 +34,6 @@ module Blackjack
   end
 
   class Cards::Cards
-
     #
     # monkey patch Cards to have builtin knowledge of blackjack
     # hands sums and states
