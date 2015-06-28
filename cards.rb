@@ -83,7 +83,7 @@ module Cards
     end
 
     def face_value
-      FACES.index(face) + 2
+      face_to_value(face)
     end
 
     def suit_value
@@ -91,6 +91,8 @@ module Cards
     end
 
     def facing(direction)
+      #
+      # change a cards orientation to FACE_UP or FACE_DOWN (direction)
       @faces = direction
     end
 
@@ -107,12 +109,12 @@ module Cards
     end
 
     def up
-      @faces = FACE_UP
+      facing(FACE_UP)
       self
     end
 
     def down
-      @faces = FACE_DOWN
+      facing(FACE_DOWN)
       self
     end
 
@@ -168,6 +170,10 @@ module Cards
     end
 
     private
+
+    def face_to_value(face)
+      FACES.index(face) + 2
+    end
 
     def valid?(suit, face)
       raise "#{suit} is not a valid suit (use one of #{SUITS})" unless SUITS.include?(suit)
