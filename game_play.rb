@@ -8,12 +8,12 @@ module Blackjack
     # 4. If not a blackjack, he takes the insurance bets
     # 5. He asks each player in sequence if:
     # 6. If player has a 2 card hand:
-    #   a. Player indicates they want a Hit
+    #   a. Player can indicate they want a Hit
     #      Dealer deals them a card from the deck
-    #   b. Player indicates if they want Double
+    #   b. Player can indicate if they want to Double Down
     #      Player must have legal 2-card hand and funds.
     #      He adds up to 100% of the bet, and Dealer deals one card
-    #   c. Player indicates if they want to Split a pair
+    #   c. Player can indicate they want to Split a pair
     #      Player places additional bet equal to current bet.
     #      Dealer divides cards and if Aces, deals one card to each
     #      If non-Ace split, Dealer plays each hand as starting from 5.
@@ -29,6 +29,9 @@ module Blackjack
     attr_reader   :players
 
     def initialize(table, dealer, players)
+      @table =  table
+      @dealer = dealer
+      @players = players
     end
 
   end

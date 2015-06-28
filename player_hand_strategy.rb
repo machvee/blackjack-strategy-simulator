@@ -18,13 +18,16 @@ module Blackjack
 
     attr_reader  :player
     attr_reader  :player_hand
+    attr_reader  :e
 
-    def initialize(player, player_hand, deal_up_card, other_hands=[])
+    def initialize(player, player_hand, dealer_up_card=nil, other_hands=[])
       @player = player
       @player_hand = player_hand
+      @dealer_up_card = dealer_up_card
+      @other_hands = other_hand
     end
 
-    def player_decision
+    def decision
       #
       # override in subclass to decide what to do
       #
@@ -37,7 +40,7 @@ module Blackjack
   end
 
   class PromptPlayerHandStrategy < PlayerHandStrategy
-    def player_decision
+    def decision
       show_other_hands
       show_dealer_up_card
       show_player_hand

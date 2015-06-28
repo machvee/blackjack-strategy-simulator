@@ -60,25 +60,38 @@ module Cards
     KING  = 'K'
 
     SUITS=[CLUBS, HEARTS, DIAMONDS, SPADES]
-    FACES=[TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
-           TEN, JACK, QUEEN, KING, ACE]
-
+    FACES=[TWO, THREE, FOUR,
+           FIVE, SIX, SEVEN,
+           EIGHT, NINE, TEN,
+           JACK, QUEEN, KING,
+           ACE]
+    FACE_CARDS=[JACK, QUEEN, KING]
 
     attr_reader   :face
     attr_reader   :suit
 
     FACE_DOWN=false
     FACE_UP=true
-    attr_reader :facing  # FACE_UP, FACE_DOWN
+
+    attr_reader :faces  # FACE_UP, FACE_DOWN
 
     def initialize(face, suit, direction=FACE_DOWN)
+      valid?(suit, face)
       @face = face
       @suit = suit
-      @facing = direction
+      @faces = direction
+    end
+
+    def face_value
+      FACES.index(face) + 2
+    end
+
+    def suit_value
+      SUITS.index(suit)
     end
 
     def facing(direction)
-      @facing = direction
+      @faces = direction
     end
 
     def self.for(face_index, suit_index, direction=FACE_DOWN)
@@ -86,7 +99,7 @@ module Cards
     end
 
     def to_s
-      @face + @suit
+      face + suit
     end
 
     def inspect
@@ -94,13 +107,29 @@ module Cards
     end
 
     def up
-      @facing = FACE_UP
+      @faces = FACE_UP
       self
     end
 
     def down
-      @facing = FACE_DOWN
+      @faces = FACE_DOWN
       self
+    end
+
+    def face_up?
+      faces == FACE_UP
+    end
+
+    def face_down?
+      faces == FACE_DOWN
+    end
+
+    def ace?
+      face == ACE
+    end
+
+    def face_card?
+      FACES.include?(face)
     end
 
     def print_row(n)
@@ -108,9 +137,9 @@ module Cards
         when 0
           CARD_TOP
         when 1,4
-          @facing == FACE_UP ? SUIT_PATTERNS[@suit][n-1] % @face : "| x   x |"
+          face_up? ? SUIT_PATTERNS[suit][n-1] % face : "| x   x |"
         when 2,3
-          @facing == FACE_UP ? SUIT_PATTERNS[@suit][n-1] : "|   x   |"
+          face_up? ? SUIT_PATTERNS[suit][n-1] : "|   x   |"
         when 5
           CARD_BOTTOM
       end
@@ -124,8 +153,8 @@ module Cards
     end
 
     def <=>(anOther)
-      cmp = SUITS.index(@suit) <=> SUITS.index(anOther.suit)
-      cmp.zero? ? FACES.index(@face) <=> FACES.index(anOther.face) : cmp
+      cmp = suit_value <=> anOther.suit_value
+      cmp.zero? ? face_value <=> anOther.face_value : cmp
     end
 
     def self.all(direction=FACE_DOWN)
@@ -136,6 +165,13 @@ module Cards
         end
       end
       a
+    end
+
+    private
+
+    def valid?(suit, face)
+      raise "#{suit} is not a valid suit (use one of #{SUITS})" unless SUITS.include?(suit)
+      raise "#{face} is not a valid face (use one of #{FACES})" unless FACES.include?(face)
     end
   end
 
@@ -252,7 +288,7 @@ module Cards
     end
 
     def face_sort
-      @cards.sort {|a,b| Card::FACES.index(a.face) <=> Card::FACES.index(b.face)}
+      @cards.sort {|a,b| FACES.index(a.face) <=> FACES.index(b.face)}
     end
 
     def length

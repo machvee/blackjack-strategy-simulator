@@ -10,13 +10,19 @@ module Blackjack
     TWENTYONE = (TEN+ACE_HIGH)
 
     attr_reader  :hand
+    attr_reader  :count
 
     def initialize(hand)
       @hand = hand.order
+      @count = hand.count
     end
 
-    def is_blackjack?
-      hand.count == 2 && high_val == TWENTYONE
+    def blackjack?
+      count == 2 && high_val == TWENTYONE
+    end
+
+    def bust?
+      low_val > TWENTYONE 
     end
 
     def has_ace?
@@ -27,8 +33,8 @@ module Blackjack
       has_ace?
     end
 
-    def splitable?
-      hand.count == 2 && (face_val(hand[0]) == face_val(hand[1]))
+    def pair?
+      count == 2 && (face_val(hand[0]) == face_val(hand[1]))
     end
 
     def high_val
