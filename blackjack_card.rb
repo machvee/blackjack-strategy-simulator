@@ -61,6 +61,8 @@ module Blackjack
     end
 
     def hard_sum
+      return soft_sum if bust?
+
       #
       # Only one Card::ACE uses the soft value, the rest are taken as hard_value
       #

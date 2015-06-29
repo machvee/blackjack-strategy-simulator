@@ -122,7 +122,7 @@ describe Cards::Cards, "A Hand of 8 8" do
     @eight_eight.soft_sum.must_equal 16
   end
 
-  it "should should not be busted" do
+  it "should not be busted" do
     @eight_eight.bust?.must_equal false
   end
 end
@@ -140,8 +140,12 @@ describe Cards::Cards, "A Hand of 8 9" do
     @eight_nine.soft_sum.must_equal 17
   end
 
-  it "should should not be busted" do
+  it "should not be busted" do
     @eight_nine.bust?.must_equal false
+  end
+
+  it "should not has_ace?" do
+    @eight_nine.has_ace?.must_equal false
   end
 end
 
@@ -159,8 +163,12 @@ describe Cards::Cards, "A Hand of J Q" do
     @jack_q.hard_sum.must_equal 20
   end
 
-  it "should should not be busted" do
+  it "should not be busted" do
     @jack_q.bust?.must_equal false
+  end
+
+  it "should not has_ace?" do
+    @jack_q.has_ace?.must_equal false
   end
 end
 
@@ -178,12 +186,16 @@ describe Cards::Cards, "A Hand of K 10" do
     @k_10.hard_sum.must_equal 20
   end
 
-  it "should should not be busted" do
+  it "should not be busted" do
     @k_10.bust?.must_equal false
   end
 
   it "should not be blackjack?" do
     @k_10.blackjack?.must_equal false
+  end
+
+  it "should not has_ace?" do
+    @k_10.has_ace?.must_equal false
   end
 end
 
@@ -204,12 +216,125 @@ describe Cards::Cards, "A Hand of A Q" do
     @blackjack.soft_sum.must_equal 11
   end
 
-  it "should should not be busted" do
+  it "should not be busted" do
     @blackjack.bust?.must_equal false
   end
 
   it "should be blackjack?" do
     @blackjack.blackjack?.must_equal true
+  end
+
+  it "should respond true to has_ace?" do
+    @blackjack.has_ace?.must_equal true
+  end
+
+  it "should be soft?" do
+    @blackjack.soft?.must_equal true
+  end
+end
+
+
+describe Cards::Cards, "A hand that has multiple aces" do
+  before do
+    @hand = Cards::Cards.make('AD', 'AC', '4S', '3D')
+  end
+
+  it "should not respond to pair" do
+    @hand.pair?.must_equal false
+  end
+
+  it "should have a hard value of 19" do
+    @hand.hard_sum.must_equal 19
+  end
+
+  it "should have a soft value of 9" do
+    @hand.soft_sum.must_equal 9
+  end
+
+  it "should not be busted" do
+    @hand.bust?.must_equal false
+  end
+
+  it "should not be blackjack?" do
+    @hand.blackjack?.must_equal false
+  end
+
+  it "should respond true to has_ace?" do
+    @hand.has_ace?.must_equal true
+  end
+
+  it "should be soft?" do
+    @hand.soft?.must_equal true
+  end
+end
+
+
+describe Cards::Cards, "A hand that has an aces and is more than 21" do
+  before do
+    @hand = Cards::Cards.make('AD', '4C', '9S', 'QD')
+  end
+
+  it "should not respond to pair" do
+    @hand.pair?.must_equal false
+  end
+
+  it "should have a hard value of 24" do
+    @hand.hard_sum.must_equal 24
+  end
+
+  it "should have a soft value of hard value when the soft_value is a bust" do
+    @hand.soft_sum.must_equal 24
+  end
+
+  it "should be busted" do
+    @hand.bust?.must_equal true
+  end
+
+  it "should not be blackjack?" do
+    @hand.blackjack?.must_equal false
+  end
+
+  it "should respond true to has_ace?" do
+    @hand.has_ace?.must_equal true
+  end
+
+  it "should be soft?" do
+    @hand.soft?.must_equal true
+  end
+end
+
+
+describe Cards::Cards, "A hand that has an no aces and is more than 21" do
+  before do
+    @hand = Cards::Cards.make('4D', '5C', '6S', 'QD')
+  end
+
+  it "should not respond to pair" do
+    @hand.pair?.must_equal false
+  end
+
+  it "should have a hard value of 25" do
+    @hand.hard_sum.must_equal 25
+  end
+
+  it "should have a soft value of hard value when the soft_value is a bust" do
+    @hand.soft_sum.must_equal 25
+  end
+
+  it "should be busted" do
+    @hand.bust?.must_equal true
+  end
+
+  it "should not be blackjack?" do
+    @hand.blackjack?.must_equal false
+  end
+
+  it "should not respond true to has_ace?" do
+    @hand.has_ace?.must_equal false
+  end
+
+  it "should not be soft?" do
+    @hand.soft?.must_equal false
   end
 end
 
