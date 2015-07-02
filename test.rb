@@ -338,3 +338,50 @@ describe Cards::Cards, "A hand that has an no aces and is more than 21" do
   end
 end
 
+describe Cards::Deck, "a deck can be created face up" do
+  before do
+    @deck = Cards::Deck.new(1, Cards::Card::FACE_UP)
+  end
+
+  it "should have a deck with cards face up" do
+    @deck.all? {|c| c.face_up?}.must_equal true
+  end
+
+  it "should have 52 cards" do
+    @deck.length.must_equal 52
+  end
+end
+
+describe Cards::Deck, "a default deck of one set of cards" do
+  before do
+    @deck = Cards::Deck.new(1)
+  end
+
+  it "should have a deck with cards face down by default" do
+    @deck.all? {|c| c.face_down?}.must_equal true
+  end
+
+  it "should be able to deal hands" do
+    hands = @deck.deal_hands(4, 2)
+    hands.length.must_equal 4
+    hands.first.length.must_equal 2
+  end
+end
+
+describe Cards::Deck, "a default deck of one set of cards" do
+  before do
+    @deck = Cards::Deck.new(1)
+  end
+
+  it "should have a deck with cards face down by default" do
+    @deck.all? {|c| c.face_down?}.must_equal true
+  end
+
+  it "should be able to deal hands" do
+    hands = @deck.deal_hands(4, 2)
+    hands.length.must_equal 4
+    hands.first.length.must_equal 2
+  end
+end
+
+

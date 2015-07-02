@@ -83,7 +83,7 @@ module Cards
     end
 
     def face_value
-      face_to_value(face)
+      Card.face_to_value(face)
     end
 
     def suit_value
@@ -159,6 +159,11 @@ module Cards
       cmp.zero? ? face_value <=> anOther.face_value : cmp
     end
 
+    def ==(anOther)
+      suit_value == anOther.suit_value &&
+      face_value == anOther.face_value 
+    end
+
     def self.all(direction=FACE_DOWN)
       a = []
       SUITS.each do |s|
@@ -169,11 +174,11 @@ module Cards
       a
     end
 
-    private
-
-    def face_to_value(face)
+    def self.face_to_value(face)
       FACES.index(face) + 2
     end
+
+    private
 
     def valid?(suit, face)
       raise "#{suit} is not a valid suit (use one of #{SUITS})" unless SUITS.include?(suit)

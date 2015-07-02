@@ -6,8 +6,10 @@ module Blackjack
     include Cards
 
     attr_accessor   :hand
+    attr_reader     :table
 
     def initialize(table)
+      @table = table
     end
 
     def upcard
