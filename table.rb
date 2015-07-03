@@ -5,6 +5,7 @@ module Blackjack
 
     attr_reader   :name
     attr_reader   :shoe
+    attr_reader   :discard
     attr_reader   :dealer
     attr_reader   :players
 

@@ -3,13 +3,23 @@ module Blackjack
 
     include Cards
 
-    NUM_SPLIT_AND_SHUFFLES=25
-
     attr_reader  :decks
     attr_reader  :cutoff
+    attr_reader  :options
+    attr_reader  :discard_pile
 
-    def initialize(num_decks)
-      @decks = Deck.new(num_decks)
+    DEFAULT_OPTIONS = {
+      cut_card_segment: 0.25,
+      cut_card_offset:  0.05,
+      split_and_shuffles: 25,
+      num_decks_in_shoe:   1
+    }
+
+    def initialize(table, options={})
+      @table = table
+      @options = DEFAULT_OPTIONS.merge(options)
+      @decks = Deck.new(@options[:num_decks_in_shoe])
+      @discard_pile = Cards.new(@decks)
       shuffle
     end
 
@@ -31,8 +41,13 @@ module Blackjack
     end
 
     def shuffle
+      discard_pile.fold
       remove_cut_card
-      decks.shuffle_up(NUM_SPLIT_AND_SHUFFLES)
+      decks.shuffle_up(options[:split_and_shuffles])
+    end
+
+    def discard(cards)
+      discard_pile.add(cards)
     end
 
     private
@@ -46,30 +61,27 @@ module Blackjack
     end
 
     def random_cut_offset
-      #
-      # put the cut card near the back 25% of the deck +/- 10% (15-35%)
-      #
       num_cards = decks.length
-      ten_percent = (num_cards * 0.10).floor
-      (num_cards * 0.25).floor + rand(-ten_percent..ten_percent)
+      offset_percentage = (num_cards * options[:cut_card_offset]).floor
+      (num_cards * options[:cut_card_segment]).floor + rand(-offset_percentage..offset_percentage)
     end
   end
 
   class SingleDeckShoe < Shoe
-    def initialize
-      super(6)
+    def initialize(table, options={})
+      super(table, options.merge(num_decks_in_shoe: 1))
     end
   end
 
-  class TwoDecksShoe < Shoe
-    def initialize
-      super(6)
+  class TwoDeckShoe < Shoe
+    def initialize(table, options={})
+      super(table, options.merge(num_decks_in_shoe: 2))
     end
   end
 
   class SixDeckShoe < Shoe
-    def initialize
-      super(6)
+    def initialize(table, options={})
+      super(table, options.merge(num_decks_in_shoe: 6))
     end
   end
 end

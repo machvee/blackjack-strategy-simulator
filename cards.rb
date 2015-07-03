@@ -282,7 +282,7 @@ module Cards
     end
 
     def add(cards)
-      @cards += cards
+      @cards += cards.flatten
     end
 
     def remove(how_many, direction)

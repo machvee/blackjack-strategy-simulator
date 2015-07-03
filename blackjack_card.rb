@@ -13,7 +13,7 @@ module Blackjack
     end
 
     def soft_value
-      Card.custom_value_of_face(face)
+      Cards::Card.custom_value_of_face(face)
     end
 
     def hard_value
@@ -30,9 +30,9 @@ module Blackjack
         when ACE
           ACE_SOFT_VALUE
         when *FACE_CARDS
-          Card.face_to_value(TEN)
+          Cards::Card.face_to_value(TEN)
         else
-          Card.face_to_value(card_face)
+          Cards::Card.face_to_value(card_face)
       end
     end
   end
@@ -89,7 +89,7 @@ module Blackjack
       #
       # return [[face, count_in_deck, face_val, count_in_deck]]
       #
-      freq = Hash[Card::FACES.map{|f| Card.custom_value_of_face(f)}.uniq.zip([0]*Card::FACES.length)]
+      freq = Hash[Card::FACES.map{|f| Cards::Card.custom_value_of_face(f)}.uniq.zip([0]*Card::FACES.length)]
       map {|c| freq[c.face_value] += 1}
       freq.to_a
     end

@@ -1,5 +1,6 @@
 require 'minitest/autorun'
 require 'blackjack_card'
+require 'shoe.rb'
 
 describe Cards::Card, "A Card" do 
   before do
@@ -384,4 +385,108 @@ describe Cards::Deck, "a default deck of one set of cards" do
   end
 end
 
+describe Blackjack::Shoe, "shoes come in a variety of sizes" do
+  before do
+    @table = MiniTest::Mock.new
+  end
 
+  it "should have the correct number of cards" do
+    @shoe = Blackjack::Shoe.new(@table)
+    @shoe.decks.length.must_equal (1*52)
+
+    @shoe = Blackjack::SingleDeckShoe.new(@table)
+    @shoe.decks.length.must_equal (1*52)
+
+    @shoe = Blackjack::TwoDeckShoe.new(@table)
+    @shoe.decks.length.must_equal (2*52)
+
+    @shoe = Blackjack::SixDeckShoe.new(@table)
+    @shoe.decks.length.must_equal (6*52)
+  end
+end
+
+describe Blackjack::Shoe, "a 6 deck shoe" do
+  before do
+    @table = MiniTest::Mock.new
+    @shoe = Blackjack::SixDeckShoe.new(@table)
+  end
+
+  it "should have a functioning random cut card somewhere past half the deck" do
+    @shoe.place_cut_card
+    @shoe.cutoff.must_be :<, @shoe.decks.length/3
+  end
+
+  it "should not need shuffle upon initial cut card placement" do
+    @shoe.place_cut_card
+    @shoe.needs_shuffle?.must_equal false
+  end
+
+  it "should support options for cut card" do
+    @num_decks = 10
+    opts = {
+      cut_card_segment: 0.10,
+      cut_card_offset:  0.05,
+      split_and_shuffles: 5,
+      num_decks_in_shoe: @num_decks
+    }
+    @custom_shoe = Blackjack::Shoe.new(@table, opts)
+    @custom_shoe.shuffle
+    100.times {
+      @custom_shoe.place_cut_card
+      @custom_shoe.cutoff.must_be :<=, @shoe.decks.length/4
+    }
+    @custom_shoe.decks.length.must_equal (@num_decks*52)
+  end
+
+  it "should let the cut card be placed at a specific offset" do
+    @my_offset = 84
+    @shoe.place_cut_card(@my_offset)
+    @shoe.cutoff.must_equal @my_offset
+  end
+
+  it "shuffle up should set cutoff to nil" do
+    @shoe.place_cut_card
+    @shoe.cutoff.must_be :>, 0
+    @shoe.shuffle
+    @shoe.cutoff.must_equal nil
+  end
+
+  it "should deal cards to hands one at a time face up" do
+    num_cards = @shoe.decks.length
+    @destination = MiniTest::Mock.new
+    top_card = @shoe.decks.first
+    @destination.expect(:add, nil, [[top_card]])
+    @shoe.deal_one_up(@destination)
+    @destination.verify
+    @shoe.decks.length.must_equal num_cards-1
+  end
+
+  it "should deal cards to hands one at a time face down" do
+    num_cards = @shoe.decks.length
+    @destination = MiniTest::Mock.new
+    top_card = @shoe.decks.first
+    @destination.expect(:add, nil, [[top_card]])
+    @shoe.deal_one_down(@destination)
+    @destination.verify
+    @shoe.decks.length.must_equal num_cards-1
+  end
+
+  it "should deal cards and report needs_shuffle? true when reached cut card" do
+    @shoe.place_cut_card
+    deal_this_many = @shoe.decks.length - @shoe.cutoff
+    deal_this_many.times do
+      @destination = MiniTest::Mock.new
+      top_card = @shoe.decks.first
+      @destination.expect(:add, nil, [[top_card]])
+      @shoe.deal_one_up(@destination)
+      @destination.verify
+      @shoe.needs_shuffle?.wont_equal true
+    end
+    @destination = MiniTest::Mock.new
+    top_card = @shoe.decks.first
+    @destination.expect(:add, nil, [[top_card]])
+    @shoe.deal_one_up(@destination)
+    @destination.verify
+    @shoe.needs_shuffle?.must_equal true
+  end
+end
