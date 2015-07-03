@@ -1,6 +1,82 @@
 require 'minitest/autorun'
 require 'blackjack_card'
 require 'shoe.rb'
+require 'counters'
+
+describe  Counters, "A counter DSL" do
+  before do
+    class Foo
+      include Counters
+      counters :a, :b, :c
+    end
+    @f = Foo.new
+  end
+
+  it "should allow named counter access" do
+    assert @f.counter_value(:a).must_equal 0
+    assert @f.counter_value(:b).must_equal 0
+    assert @f.counter_value(:c).must_equal 0
+  end
+
+  it "should validate against invalid counter names" do
+    proc {@f.counter_value(:x)}.must_raise RuntimeError
+  end
+
+  it "should allow increment function" do
+    @inc = 5
+    [:a, :b, :c].each do |c|
+      @inc.times {@f.incr_counter(c)}
+      @f.counter_value(c).must_equal @inc
+    end
+  end
+
+  it "should allow decrement function" do
+    @inc = 10
+    [:a, :b, :c].each do |c|
+      @inc.times {@f.incr_counter(c)}
+      @f.counter_value(c).must_equal @inc
+    end
+    @dec = 2
+    @dec.times { @f.decr_counter(:b) }
+    @f.counter_value(:b).must_equal @inc - @dec
+  end
+
+  it "should support a reset for one counter" do 
+    @inc = 10
+    @inc.times {@f.incr_counter(:a)}
+    @f.counter_value(:a).must_equal @inc
+    @f.reset_counter(:a)
+    @f.counter_value(:a).must_equal 0
+  end
+
+  it "should support a reset for all counters" do 
+    @inc = 5
+    [:a, :b, :c].each do |c|
+      @inc.times {@f.incr_counter(c)}
+      @f.counter_value(c).must_equal @inc
+    end
+    @f.reset_counters
+    [:a, :b, :c].each do |c|
+      @f.counter_value(c).must_equal 0
+    end
+  end
+
+  it "should allow access to all counters as a copied hash" do
+    @inc = 9
+    [:a, :b, :c].each do |c|
+      @inc.times {@f.incr_counter(c)}
+      @f.counter_value(c).must_equal @inc
+    end
+    c = @f.counters
+    c[:a].must_equal @inc
+    c[:b].must_equal @inc
+    c[:c].must_equal @inc
+
+    c[:c] += 1
+    c[:c].must_equal @inc+1
+    @f.counter_value(:c).must_equal @inc
+  end
+end
 
 describe Cards::Card, "A Card" do 
   before do
@@ -488,5 +564,49 @@ describe Blackjack::Shoe, "a 6 deck shoe" do
     @shoe.deal_one_up(@destination)
     @destination.verify
     @shoe.needs_shuffle?.must_equal true
+  end
+
+  it "should deal cards to hands one at a time face up and keep counter" do
+    num_cards = @shoe.decks.length
+    @destination = MiniTest::Mock.new
+    top_card = @shoe.decks.first
+    @destination.expect(:add, nil, [[top_card]])
+    @shoe.counter_value(:cards_dealt).must_equal 0
+    @shoe.deal_one_up(@destination)
+    @shoe.counter_value(:cards_dealt).must_equal 1
+    @destination.verify
+    @shoe.shuffle
+    @destination = MiniTest::Mock.new
+    top_card = @shoe.decks.first
+    @destination.expect(:add, nil, [[top_card]])
+    @shoe.deal_one_up(@destination)
+    @destination.verify
+    @shoe.counter_value(:cards_dealt).must_equal 2
+  end
+
+  it "shuffle up shoudl incr counter" do
+    @shoe.counter_value(:num_shuffles).must_equal 1
+    @shuffs = 4
+    @shuffs.times { @shoe.shuffle }
+    @shoe.counter_value(:num_shuffles).must_equal 1 + @shuffs
+  end
+
+  it "should allow resetting of all counters" do 
+    @shoe.counter_value(:num_shuffles).must_equal 1
+    @shuffs = 4
+    @shuffs.times { @shoe.shuffle }
+    @shoe.counter_value(:num_shuffles).must_equal 1 + @shuffs
+    num_cards = @shoe.decks.length
+    @destination = MiniTest::Mock.new
+    top_card = @shoe.decks.first
+    @destination.expect(:add, nil, [[top_card]])
+    @shoe.counter_value(:cards_dealt).must_equal 0
+    @shoe.deal_one_up(@destination)
+    @shoe.counter_value(:cards_dealt).must_equal 1
+    @destination.verify
+
+    @shoe.reset_counters
+    @shoe.counter_value(:cards_dealt).must_equal 0
+    @shoe.counter_value(:num_shuffles).must_equal 0
   end
 end

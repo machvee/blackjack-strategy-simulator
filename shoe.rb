@@ -1,12 +1,17 @@
 module Blackjack
   class Shoe
+    require 'blackjack_card'
+    require 'counters'
 
     include Cards
+    include Counters
 
     attr_reader  :decks
     attr_reader  :cutoff
     attr_reader  :options
     attr_reader  :discard_pile
+
+    counters  :num_shuffles, :cards_dealt
 
     DEFAULT_OPTIONS = {
       cut_card_segment: 0.25,
@@ -33,17 +38,18 @@ module Blackjack
     end
 
     def deal_one_up(destination)
-      decks.deal(destination, 1, Card::FACE_UP)
+      deal_one(destination, Card::FACE_UP)
     end
 
     def deal_one_down(destination)
-      decks.deal(destination, 1, Card::FACE_DOWN)
+      deal_one(destination, Card::FACE_DOWN)
     end
 
     def shuffle
       discard_pile.fold
       remove_cut_card
       decks.shuffle_up(options[:split_and_shuffles])
+      incr_counter :num_shuffles
     end
 
     def discard(cards)
@@ -65,6 +71,12 @@ module Blackjack
       offset_percentage = (num_cards * options[:cut_card_offset]).floor
       (num_cards * options[:cut_card_segment]).floor + rand(-offset_percentage..offset_percentage)
     end
+
+    def deal_one(destination, orientation)
+      decks.deal(destination, 1, orientation)
+      incr_counter :cards_dealt
+    end
+
   end
 
   class SingleDeckShoe < Shoe
