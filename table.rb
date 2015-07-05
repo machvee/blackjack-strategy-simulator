@@ -39,6 +39,13 @@ module Blackjack
 
     def join(player, desired_seat_position=nil)
       seat_position = find_empty_seat_position(desired_seat_position)
+      if seat_position.nil?
+        if desired_seat_position.nil?
+          raise "Sorry this table is full"
+        else
+          raise "Sorry that seat is taken by #{players[desired_seat_position].name}"
+        end
+      end
       players[seat_position] = player
       seat_position
     end
@@ -48,6 +55,10 @@ module Blackjack
       raise "player #{player.name} isn't at table #{name}" if ind.nil?
       players[ind] = nil
       player.leave_table
+    end
+
+    def seat_available?(desired_seat_position=nil)
+      !find_empty_seat_position(desired_seat_position).nil?
     end
 
     def seat_position(player)
@@ -66,14 +77,11 @@ module Blackjack
 
     def find_empty_seat_position(desired_seat_position=nil)
       if desired_seat_position.nil?
-        seat_position = players.index(nil)
-        raise "Sorry this table is full" if seat_position.nil?
+        # find first available empty seat index, or nil of none
+        players.index(nil) 
       else
-        raise "Sorry that seat is taken by #{players[desired_seat_position].name}" \
-          unless players[desired_seat_position].nil?
-        seat_position = desired_seat_position
+        players[desired_seat_position].nil? ? desired_seat_position : nil
       end
-      seat_position
     end
   end
 end

@@ -186,6 +186,31 @@ describe Blackjack::Table, "A Blackjack Table" do
     @player = Blackjack::Player.new("machvee")
     proc {@table.join(@player, @bubbas_fav_seat)}.must_raise RuntimeError
   end
+
+  it "should allow people to ask if a specific seat is available, and return true if it is" do
+    @table.seat_available?(2).must_equal true
+  end
+
+  it "should allow people to ask if ANY seat is available, and return true if it is" do
+    @table.seat_available?.must_equal true
+  end
+
+  it "should allow people to ask if ANY seat is available, and return false when all taken" do
+    (0..(@table.config[:num_seats]-1)).each do |i|
+      player = Blackjack::Player.new("player_#{i}")
+      seat_position = @table.join(player)
+      seat_position.must_equal i
+    end
+    @table.seat_available?.must_equal false
+  end
+
+  it "should allow people to ask if a specific seat is available, and return false if not" do
+    @player = Blackjack::Player.new("bubba")
+    @bubbas_fav_seat = @table.config[:num_seats]-1
+    seat_position = @table.join(@player, @bubbas_fav_seat)
+    seat_position.must_equal @bubbas_fav_seat
+    @table.seat_available?(@bubbas_fav_seat).must_equal false
+  end
 end
 
 describe Cards::Card, "A Card" do 
