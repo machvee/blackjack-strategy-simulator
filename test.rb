@@ -1,8 +1,11 @@
 require 'minitest/autorun'
-require 'blackjack_card'
-require 'shoe.rb'
-require 'counters'
 
+require 'table'
+
+#################################################
+#
+#  C O U N T E R S
+#
 describe  Counters, "A counter DSL" do
   before do
     class Foo
@@ -75,6 +78,60 @@ describe  Counters, "A counter DSL" do
     c[:c] += 1
     c[:c].must_equal @inc+1
     @f.counter_value(:c).must_equal @inc
+  end
+end
+
+
+
+#################################################
+#
+#  T A B L E
+#
+describe Blackjack::Table, "A Blackjack Table" do
+  before do
+    @table_name = 'table_1'
+    @table = Blackjack::Table.new('table_1')
+  end
+
+  it "should have a name" do
+    @table.name.must_equal @table_name  
+  end
+
+  it "should have players" do
+    @table.players.wont_equal nil
+  end
+
+  it "should have a dealer" do
+    @table.dealer.wont_equal nil
+  end
+
+  it "should default to a SixDeckShoe if none is passed in" do
+    @table.shoe.class.name.must_equal "Blackjack::SixDeckShoe"
+  end
+
+  it "should support default configuration" do 
+    @table.config[:blackjack_payout].must_equal [3,2]
+    @table.config[:dealer_hits_soft_17].must_equal false
+    @table.config[:num_seats].must_equal 6
+  end
+
+  it "should support options for configuration" do
+    @new_payout = [6,5],
+    @new_dealer_hit_rule = true
+    @single_deck_shoe = Blackjack::SingleDeckShoe.new
+    @four_seats = 4
+
+    @configuration = {
+      blackjack_payout: @new_payout,
+      dealer_hits_soft_17: @new_dealer_hit_rule,
+      shoe: @single_deck_shoe,
+      num_seats: @four_seats
+    }
+    @configured_table = Blackjack::Table.new("configured_table", @configuration)
+    @configured_table.config[:blackjack_payout].must_equal @new_payout
+    @configured_table.config[:dealer_hits_soft_17].must_equal @new_dealer_hit_rule
+    @configured_table.config[:num_seats].must_equal @four_seats
+    @configured_table.shoe.class.name.must_equal "Blackjack::SingleDeckShoe"
   end
 end
 
@@ -462,29 +519,24 @@ describe Cards::Deck, "a default deck of one set of cards" do
 end
 
 describe Blackjack::Shoe, "shoes come in a variety of sizes" do
-  before do
-    @table = MiniTest::Mock.new
-  end
-
   it "should have the correct number of cards" do
-    @shoe = Blackjack::Shoe.new(@table)
+    @shoe = Blackjack::Shoe.new
     @shoe.decks.length.must_equal (1*52)
 
-    @shoe = Blackjack::SingleDeckShoe.new(@table)
+    @shoe = Blackjack::SingleDeckShoe.new
     @shoe.decks.length.must_equal (1*52)
 
-    @shoe = Blackjack::TwoDeckShoe.new(@table)
+    @shoe = Blackjack::TwoDeckShoe.new
     @shoe.decks.length.must_equal (2*52)
 
-    @shoe = Blackjack::SixDeckShoe.new(@table)
+    @shoe = Blackjack::SixDeckShoe.new
     @shoe.decks.length.must_equal (6*52)
   end
 end
 
 describe Blackjack::Shoe, "a 6 deck shoe" do
   before do
-    @table = MiniTest::Mock.new
-    @shoe = Blackjack::SixDeckShoe.new(@table)
+    @shoe = Blackjack::SixDeckShoe.new
   end
 
   it "should have a functioning random cut card somewhere past half the deck" do
@@ -505,7 +557,7 @@ describe Blackjack::Shoe, "a 6 deck shoe" do
       split_and_shuffles: 5,
       num_decks_in_shoe: @num_decks
     }
-    @custom_shoe = Blackjack::Shoe.new(@table, opts)
+    @custom_shoe = Blackjack::Shoe.new(opts)
     @custom_shoe.shuffle
     100.times {
       @custom_shoe.place_cut_card

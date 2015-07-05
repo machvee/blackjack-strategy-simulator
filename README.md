@@ -11,3 +11,24 @@ Goals:
 6. A DSL will allow a player to build a strategy using natural language that can
    reference card counts, dealer up card, current player hand, shoe varieties and game stats
 7. Strategies can be tested and compared in runs, dealing 1000's of hands and storing player outcomes
+]
+
+
+
+Design
+
+  Table
+    Config (limits, payouts)
+    Dealer 
+    Bank
+    Shoe
+    Seats
+    Players
+
+
+  Dealer
+    Hand
+    DealerStrategy
+      - operates the shoe
+      - 
+

@@ -11,7 +11,7 @@ module Blackjack
     attr_reader  :options
     attr_reader  :discard_pile
 
-    counters  :num_shuffles, :cards_dealt
+    counters  :num_shuffles, :hands_dealt, :cards_dealt
 
     DEFAULT_OPTIONS = {
       cut_card_segment: 0.25,
@@ -20,8 +20,7 @@ module Blackjack
       num_decks_in_shoe:   1
     }
 
-    def initialize(table, options={})
-      @table = table
+    def initialize(options={})
       @options = DEFAULT_OPTIONS.merge(options)
       @decks = Deck.new(@options[:num_decks_in_shoe])
       @discard_pile = Cards.new(@decks)
@@ -54,6 +53,7 @@ module Blackjack
 
     def discard(cards)
       discard_pile.add(cards)
+      incr_counter :hands_dealt
     end
 
     private
@@ -76,24 +76,23 @@ module Blackjack
       decks.deal(destination, 1, orientation)
       incr_counter :cards_dealt
     end
-
   end
 
   class SingleDeckShoe < Shoe
-    def initialize(table, options={})
-      super(table, options.merge(num_decks_in_shoe: 1))
+    def initialize(options={})
+      super(options.merge(num_decks_in_shoe: 1))
     end
   end
 
   class TwoDeckShoe < Shoe
-    def initialize(table, options={})
-      super(table, options.merge(num_decks_in_shoe: 2))
+    def initialize(options={})
+      super(options.merge(num_decks_in_shoe: 2))
     end
   end
 
   class SixDeckShoe < Shoe
-    def initialize(table, options={})
-      super(table, options.merge(num_decks_in_shoe: 6))
+    def initialize(options={})
+      super(options.merge(num_decks_in_shoe: 6))
     end
   end
 end

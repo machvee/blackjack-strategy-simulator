@@ -1,19 +1,35 @@
+require 'counters'
+require 'blackjack_card'
+require 'shoe'
+require 'dealer'
+require 'player'
+require 'player_hand'
+
 module Blackjack
   class Table
 
-    MAX_SEATS = 6
+    DEFAULT_MAX_SEATS = 6
+    DEFAULT_BLACKJACK_PAYS = [3,2]
+
+    DEFAULT_CONFIG = {
+      blackjack_payout:    DEFAULT_BLACKJACK_PAYS,
+      dealer_hits_soft_17: false,
+      num_seats:           DEFAULT_MAX_SEATS
+    }
 
     attr_reader   :name
     attr_reader   :shoe
-    attr_reader   :discard
     attr_reader   :dealer
     attr_reader   :players
+    attr_reader   :config
 
-    def initialize(name, shoe)
+    def initialize(name, options={})
       @name = name
+      @config = DEFAULT_CONFIG.merge(options)
+
       @dealer = Dealer.new(self)
-      @shoe = shoe
-      @players = Array.new(MAX_SEATS) {nil}
+      @shoe = new_shoe
+      @players = Array.new(num_seats) {nil}
     end
 
     def join(player_name, desired_seat_position=nil)
@@ -22,6 +38,14 @@ module Blackjack
     end
 
     private
+
+    def new_shoe
+      config[:shoe] || SixDeckShoe.new
+    end
+
+    def num_seats
+      config[:num_seats] || DEFAULT_MAX_SEATS
+    end
 
     def find_empty_seat_position(desired_seat_position=nil)
       if desired_seat_position.nil?
