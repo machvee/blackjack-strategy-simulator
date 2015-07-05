@@ -116,22 +116,75 @@ describe Blackjack::Table, "A Blackjack Table" do
   end
 
   it "should support options for configuration" do
-    @new_payout = [6,5],
-    @new_dealer_hit_rule = true
-    @single_deck_shoe = Blackjack::SingleDeckShoe.new
-    @four_seats = 4
 
     @configuration = {
-      blackjack_payout: @new_payout,
-      dealer_hits_soft_17: @new_dealer_hit_rule,
-      shoe: @single_deck_shoe,
-      num_seats: @four_seats
+      blackjack_payout: [6,5],
+      dealer_hits_soft_17: true,
+      shoe: Blackjack::SingleDeckShoe.new,
+      num_seats: 4
     }
+
     @configured_table = Blackjack::Table.new("configured_table", @configuration)
-    @configured_table.config[:blackjack_payout].must_equal @new_payout
-    @configured_table.config[:dealer_hits_soft_17].must_equal @new_dealer_hit_rule
-    @configured_table.config[:num_seats].must_equal @four_seats
-    @configured_table.shoe.class.name.must_equal "Blackjack::SingleDeckShoe"
+    [:blackjack_payout, :dealer_hits_soft_17, :shoe, :num_seats].each do |item|
+      @configured_table.config[:item].must_equal @configuration[:item]
+    end
+  end
+
+  it "should allow a player to join the table and find them an open seat" do
+    @player = MiniTest::Mock.new
+    seat_position = @table.join(@player)
+    seat_position.must_be :>=, 0
+    seat_position.must_be :<, @table.config[:num_seats]
+  end
+
+  it "should auto-fill the table right to left" do
+    (0..(@table.config[:num_seats]-1)).each do |i|
+      player = Blackjack::Player.new("player_#{i}")
+      seat_position = @table.join(player)
+      seat_position.must_equal i
+    end
+  end
+
+  it "should allow a player to join the table at the empty seat of the players choice" do
+    @player = MiniTest::Mock.new
+    @fav_seat = @table.config[:num_seats]-1
+    seat_position = @table.join(@player, @fav_seat)
+    seat_position.must_equal @fav_seat
+  end
+
+  it "should allow a player to leave the table" do
+    @player = Blackjack::Player.new('ted2')
+    seat_position = @table.join(@player)
+    seat_position.must_be :>=, 0
+    seat_position.must_be :<, @table.config[:num_seats]
+    @table.leave(@player)
+    @player.table.must_equal nil
+    @table.players.all?(&:nil?).must_equal true
+  end
+
+  it "should allow a player to inquire his/her seat position at the table" do
+    @player = Blackjack::Player.new('ted2')
+    seat_position = @table.join(@player, 0)
+    @table.seat_position(@player).must_equal 0
+  end
+
+  it "should not assign a seat to a player when all the seats are full" do
+    (0..(@table.config[:num_seats]-1)).each do |i|
+      player = Blackjack::Player.new("player_#{i}")
+      seat_position = @table.join(player)
+      seat_position.must_equal i
+    end
+    @player = Blackjack::Player.new('machvee')
+    proc {@table.join(@player)}.must_raise RuntimeError
+  end
+
+  it "should not allow a player to take a specified seat if that seat is filled" do
+    @player = Blackjack::Player.new("bubba")
+    @bubbas_fav_seat = @table.config[:num_seats]-1
+    seat_position = @table.join(@player, @bubbas_fav_seat)
+    seat_position.must_equal @bubbas_fav_seat
+    @player = Blackjack::Player.new("machvee")
+    proc {@table.join(@player, @bubbas_fav_seat)}.must_raise RuntimeError
   end
 end
 

@@ -29,12 +29,29 @@ module Blackjack
 
       @dealer = Dealer.new(self)
       @shoe = new_shoe
+      #
+      # players array 0 to (num_seats-1) are positions right to left
+      # on the table.  Dealer deals to position 0 first and (num_seats-1)
+      # last
+      #
       @players = Array.new(num_seats) {nil}
     end
 
-    def join(player_name, desired_seat_position=nil)
+    def join(player, desired_seat_position=nil)
       seat_position = find_empty_seat_position(desired_seat_position)
-      @player[seat_position] = Player.new(player_name)
+      players[seat_position] = player
+      seat_position
+    end
+
+    def leave(player)
+      ind = players.index(player)
+      raise "player #{player.name} isn't at table #{name}" if ind.nil?
+      players[ind] = nil
+      player.leave_table
+    end
+
+    def seat_position(player)
+      players.index(player)
     end
 
     private
@@ -49,12 +66,11 @@ module Blackjack
 
     def find_empty_seat_position(desired_seat_position=nil)
       if desired_seat_position.nil?
-        seat_position = @players.index(nil)
-        raise "Sorry #{player_name}, but this table is full" \
-          if seat_position.nil?
+        seat_position = players.index(nil)
+        raise "Sorry this table is full" if seat_position.nil?
       else
-        raise "Sorry #{player_name}, that seat is taken by #{@players[desired_seat_position].name}" \
-          unless @players[desired_seat_position].blank?
+        raise "Sorry that seat is taken by #{players[desired_seat_position].name}" \
+          unless players[desired_seat_position].nil?
         seat_position = desired_seat_position
       end
       seat_position
