@@ -1,7 +1,8 @@
+require 'blackjack_card'
+require 'counters'
+
 module Blackjack
   class Shoe
-    require 'blackjack_card'
-    require 'counters'
 
     include Cards
     include Counters
@@ -48,12 +49,12 @@ module Blackjack
       discard_pile.fold
       remove_cut_card
       decks.shuffle_up(options[:split_and_shuffles])
-      incr_counter :num_shuffles
+      num_shuffles.incr
     end
 
     def discard(cards)
       discard_pile.add(cards)
-      incr_counter :hands_dealt
+      hands_dealt.incr
     end
 
     private
@@ -74,7 +75,7 @@ module Blackjack
 
     def deal_one(destination, orientation)
       decks.deal(destination, 1, orientation)
-      incr_counter :cards_dealt
+      cards_dealt.incr
     end
   end
 
