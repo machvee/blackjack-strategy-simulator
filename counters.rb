@@ -40,12 +40,12 @@ module Counters
 
   class AllCounters
     def initialize(*counter_symbols)
-      @counter_hash = Hash.new {|h,k| h[k] = Counter.new(k)}
-      counter_symbols.each {|s| @counter_hash[s]}
+      @counter_hash = Hash.new
+      counter_symbols.each {|s| @counter_hash[s] = Counter.new(s)}
     end
 
     def to_hash
-      Hash[@counter_hash.map {|k, v| [k, v.count]}]
+      Hash[@counter_hash.map {|k, v| [k, v.count]}].freeze
     end
 
     def reset

@@ -59,7 +59,7 @@ module Blackjack
       @f.c.count.must_equal 0
     end
 
-    it "should allow access to all counters as a copied hash" do
+    it "should allow access to all counters as a copied hash but frozen" do
       @inc = 9
       @inc.times {@f.a.incr; @f.b.incr; @f.c.incr}
       @f.a.count.must_equal @inc
@@ -70,9 +70,7 @@ module Blackjack
       c[:b].must_equal @inc
       c[:c].must_equal @inc
 
-      c[:c] += 1
-      c[:c].must_equal @inc+1
-      @f.c.count.must_equal @inc
+      proc {c[:c] += 1}.must_raise RuntimeError
     end
   end
 
