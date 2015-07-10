@@ -14,15 +14,23 @@ module Counters
     end
 
     def decr
-      add(-1)
+      sub(1)
     end
 
     def add(n)
       @count += n
     end
 
+    def sub(n)
+      @count -= n
+    end
+
+    def set(n)
+      @count = n
+    end
+
     def reset
-      @count = 0
+      set(0)
     end
 
     def inspect
@@ -30,46 +38,52 @@ module Counters
     end
   end
 
-  def self.included(base)
-    base.extend ClassMethods
-    base.class_eval do
-      self.counter_names = []
+  class AllCounters
+    def initialize(*counter_symbols)
+      @counter_hash = Hash.new {|h,k| h[k] = Counter.new(k)}
+      counter_symbols.each {|s| @counter_hash[s]}
+    end
+
+    def to_hash
+      Hash[@counter_hash.map {|k, v| [k, v.count]}]
+    end
+
+    def reset
+      @counter_hash.values.each {|c| c.reset}
+    end
+
+    def [](sym)
+      @counter_hash[sym]
     end
   end
 
-  def self.inherited(base)
-    base.instance_variable_set(:@counter_names, self.counter_names)
+  def self.included(base)
+    base.extend ClassMethods
   end
 
   module ClassMethods
     def counters(*counter_symbols)
-      @@counter_names += counter_symbols
-      counter_symbols.each do |counter_name|
+      counter_symbols.each do |s|
         class_eval %Q{
-          def #{counter_name}
-            @__#{counter_name} ||= Counter.new(:#{counter_name})
+          def #{s}
+            @_#{s}_counter ||= counters_[:#{s}]
           end
         }
       end
-    end
-
-    def counter_names=(value)
-      @@counter_names = value
-    end
-
-    def counter_names
-      @@counter_names
-    end
-  end
-
-  def reset_counters
-    self.class.counter_names.each do |counter_name|
-      instance_eval("#{counter_name}.reset")
+      class_eval %Q{
+        def counters_
+          @__counters ||= AllCounters.new(*#{counter_symbols})
+        end
+      }
     end
   end
 
   def counters
-    Hash[self.class.counter_names.map{|counter_name| [counter_name, instance_eval("#{counter_name}.count")]}]
+    counters_.to_hash
+  end
+
+  def reset_counters
+    counters_.reset
   end
 
 end

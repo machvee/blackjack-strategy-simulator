@@ -8,6 +8,10 @@ require 'player_hand'
 module Blackjack
   class Table
 
+    include Counters
+
+    counters :players_seated
+
     DEFAULT_MAX_SEATS = 6
     DEFAULT_BLACKJACK_PAYS = [3,2]
 
@@ -47,6 +51,7 @@ module Blackjack
         end
       end
       players[seat_position] = player
+      players_seated.incr
       seat_position
     end
 
