@@ -1,11 +1,11 @@
 require 'blackjack_card'
-require 'counters'
+require 'counter_measures'
 
 module Blackjack
   class Shoe
 
     include Cards
-    include Counters
+    include CounterMeasures
 
     attr_reader  :decks
     attr_reader  :cutoff

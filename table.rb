@@ -1,4 +1,4 @@
-require 'counters'
+require 'counter_measures'
 require 'blackjack_card'
 require 'shoe'
 require 'dealer'
@@ -8,7 +8,7 @@ require 'bet_box'
 module Blackjack
   class Table
 
-    include Counters
+    include CounterMeasures
 
     counters :players_seated
 

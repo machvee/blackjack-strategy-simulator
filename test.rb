@@ -6,11 +6,11 @@ require 'table'
 #  C O U N T E R S
 #
 module Blackjack
-  describe Counters, "A counter/measurement DSL" do
-    describe Counters::Counter, "A counter DSL" do
+  describe CounterMeasures, "A counter/measurement DSL" do
+    describe CounterMeasures::Counter, "A counter DSL" do
       before do
         class Foo
-          include Counters
+          include CounterMeasures
           counters :a, :b, :c
         end
         @f = Foo.new
@@ -75,10 +75,10 @@ module Blackjack
       end
     end
 
-    describe Counters::Measure, "A Measurement DSL" do
+    describe CounterMeasures::Measure, "A Measurement DSL" do
       before do
         class Weather
-          include Counters
+          include CounterMeasures
           counters :rainy_days, :sunny_days
           measures :rainfall, :temperature
         end

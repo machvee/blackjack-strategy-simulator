@@ -1,4 +1,4 @@
-module Counters
+module CounterMeasures
 
   ################################################
   #
