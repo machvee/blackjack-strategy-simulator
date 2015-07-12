@@ -99,8 +99,10 @@ module Blackjack
           @w.rainfall.incr(inches_of_rain)
         end
         @w.rainfall.commit
-        @w.rainfall.add(4,2,0)
-        @w.rainfall.total.must_be :==, (readings.inject(0) {|i,t| t += i} + 6)
+        readings2 = [4,2,0]
+        @w.rainfall.add(*readings2)
+        @w.rainfall.total.must_be :==, 
+          (readings.inject(0) {|i,t| t += i} + readings2.inject(0) {|i,t| t += i})
         @w.rainfall.count.must_equal 4
       end
     end
