@@ -104,6 +104,8 @@ module Blackjack
         @w.rainfall.total.must_be :==, 
           (readings.inject(0) {|i,t| t += i} + readings2.inject(0) {|i,t| t += i})
         @w.rainfall.count.must_equal 4
+        @w.reset_measures
+        @w.rainfall.count.must_equal 0
       end
     end
   end
