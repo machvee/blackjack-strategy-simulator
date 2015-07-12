@@ -12,6 +12,15 @@ module Blackjack
       @table = table
     end
 
+    def deal_hands_to_bet_boxes
+      table.bet_boxes.each do |bet_box|
+        next unless bet_box.has_bet?
+        #
+        # take a card from the shoe and put it in the bet_box
+        #
+      end
+    end
+
     def upcard
       hand[0]
     end

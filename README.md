@@ -24,6 +24,7 @@ Design
     Shoe
     Seats
     Players
+    BetBoxes
 
 
   Dealer

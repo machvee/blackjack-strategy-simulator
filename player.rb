@@ -27,7 +27,7 @@ module Blackjack
     end
 
     def make_bet(amount)
-      hand << PlayerHand.new(self, amount)
+      hands << Hand.new(self, amount)
     end
   end
 end

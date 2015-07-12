@@ -6,74 +6,127 @@ require 'table'
 #  C O U N T E R S
 #
 module Blackjack
-  describe Counters, "A counter DSL" do
-    before do
-      class Foo
-        include Counters
-        counters :a, :b, :c
+  describe Counters, "A counter/measurement DSL" do
+    describe Counters::Counter, "A counter DSL" do
+      before do
+        class Foo
+          include Counters
+          counters :a, :b, :c
+        end
+        @f = Foo.new
       end
-      @f = Foo.new
+
+      it "should allow named counter access" do
+        assert @f.a.count.must_equal 0
+        assert @f.b.count.must_equal 0
+        assert @f.c.count.must_equal 0
+      end
+
+      it "should allow increment function" do
+        @inc = 5
+        @inc.times {@f.a.incr}
+        @f.a.count.must_equal @inc
+      end
+
+      it "should allow decrement function" do
+        @inc = 10
+        @inc.times {@f.c.incr}
+        @f.c.count.must_equal @inc
+        @dec = 2
+        @dec.times { @f.c.decr}
+        @f.c.count.must_equal @inc - @dec
+      end
+
+      it "should support a reset for one counter" do 
+        @inc = 10
+        @inc.times {@f.b.incr}
+        @f.a.incr
+        @f.a.count.must_equal 1
+        @f.b.count.must_equal @inc
+        @f.b.reset
+        @f.b.count.must_equal 0
+        @f.a.count.must_equal 1
+      end
+
+      it "should support a reset for all counters" do 
+        @inc = 5
+        @inc.times {@f.a.incr; @f.b.incr; @f.c.incr}
+        @f.a.count.must_equal @inc
+        @f.b.count.must_equal @inc
+        @f.c.count.must_equal @inc
+        @f.reset_counters
+        @f.a.count.must_equal 0
+        @f.b.count.must_equal 0
+        @f.c.count.must_equal 0
+      end
+
+      it "should allow access to all counters as a copied hash but frozen" do
+        @inc = 9
+        @inc.times {@f.a.incr; @f.b.incr; @f.c.incr}
+        @f.a.count.must_equal @inc
+        @f.b.count.must_equal @inc
+        @f.c.count.must_equal @inc
+        c = @f.counters
+        c[:a].must_equal @inc
+        c[:b].must_equal @inc
+        c[:c].must_equal @inc
+
+        proc {c[:c] += 1}.must_raise RuntimeError
+      end
     end
 
-    it "should allow named counter access" do
-      assert @f.a.count.must_equal 0
-      assert @f.b.count.must_equal 0
-      assert @f.c.count.must_equal 0
-    end
+    describe Counters::Measure, "A Measurement DSL" do
+      before do
+        class Weather
+          include Counters
+          counters :rainy_days, :sunny_days
+          measures :rainfall, :temperature
+        end
+        @w = Weather.new
+      end
 
-    it "should allow increment function" do
-      @inc = 5
-      @inc.times {@f.a.incr}
-      @f.a.count.must_equal @inc
-    end
+      it "should allow both counters and measure to be accessed" do
+        @w.rainy_days.incr
+        @w.rainy_days.incr
+        @w.rainy_days.incr
+        @w.rainy_days.incr
+        @w.sunny_days.incr
+        @w.rainy_days.count.must_equal 4
+        @w.sunny_days.count.must_equal 1
 
-    it "should allow decrement function" do
-      @inc = 10
-      @inc.times {@f.c.incr}
-      @f.c.count.must_equal @inc
-      @dec = 2
-      @dec.times { @f.c.decr}
-      @f.c.count.must_equal @inc - @dec
-    end
-
-    it "should support a reset for one counter" do 
-      @inc = 10
-      @inc.times {@f.b.incr}
-      @f.a.incr
-      @f.a.count.must_equal 1
-      @f.b.count.must_equal @inc
-      @f.b.reset
-      @f.b.count.must_equal 0
-      @f.a.count.must_equal 1
-    end
-
-    it "should support a reset for all counters" do 
-      @inc = 5
-      @inc.times {@f.a.incr; @f.b.incr; @f.c.incr}
-      @f.a.count.must_equal @inc
-      @f.b.count.must_equal @inc
-      @f.c.count.must_equal @inc
-      @f.reset_counters
-      @f.a.count.must_equal 0
-      @f.b.count.must_equal 0
-      @f.c.count.must_equal 0
-    end
-
-    it "should allow access to all counters as a copied hash but frozen" do
-      @inc = 9
-      @inc.times {@f.a.incr; @f.b.incr; @f.c.incr}
-      @f.a.count.must_equal @inc
-      @f.b.count.must_equal @inc
-      @f.c.count.must_equal @inc
-      c = @f.counters
-      c[:a].must_equal @inc
-      c[:b].must_equal @inc
-      c[:c].must_equal @inc
-
-      proc {c[:c] += 1}.must_raise RuntimeError
+        readings = [2,1,3,1]
+        readings.each do |inches_of_rain|
+          @w.rainfall.incr(inches_of_rain)
+        end
+        @w.rainfall.commit
+        @w.rainfall.add(4,2,0)
+        @w.rainfall.total.must_be :==, (readings.inject(0) {|i,t| t += i} + 6)
+        @w.rainfall.count.must_equal 4
+      end
     end
   end
 
+
+
+  #################################################
+  #
+  #  D E A L E R
+  #
+  describe Dealer, "A Blackjack Dealer" do
+    before do
+      @table = MiniTest::Mock.new
+      @player = []
+      3.times {
+        player = MiniTest::Mock.new
+        @players << player
+      }
+      @table.stub(:players, @players)
+      @dealer = Dealer.new(@table)
+    end
+
+    it "should deal hands to players with bets made" do
+    end
+  end
 
 
   #################################################
@@ -92,6 +145,10 @@ module Blackjack
 
     it "should have players" do
       @table.players.wont_equal nil
+    end
+
+    it "should have bet boxes" do
+      @table.bet_boxes.wont_equal nil
     end
 
     it "should have a dealer" do
@@ -163,9 +220,10 @@ module Blackjack
     end
 
     it "should allow a player to inquire his/her seat position at the table" do
+      @fav_seat = 4
       @player = Player.new('ted2')
-      seat_position = @table.join(@player, 0)
-      @table.seat_position(@player).must_equal 0
+      seat_position = @table.join(@player, @fav_seat)
+      @table.seat_position(@player).must_equal @fav_seat
     end
 
     it "should not assign a seat to a player when all the seats are full" do

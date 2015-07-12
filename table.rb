@@ -3,7 +3,7 @@ require 'blackjack_card'
 require 'shoe'
 require 'dealer'
 require 'player'
-require 'player_hand'
+require 'bet_box'
 
 module Blackjack
   class Table
@@ -25,6 +25,7 @@ module Blackjack
     attr_reader   :shoe
     attr_reader   :dealer
     attr_reader   :players
+    attr_reader   :bet_boxes
     attr_reader   :config
 
     def initialize(name, options={})
@@ -33,12 +34,15 @@ module Blackjack
 
       @dealer = Dealer.new(self)
       @shoe = new_shoe
+
+      @players = Array.new(num_seats) {nil}
+
       #
-      # players array 0 to (num_seats-1) are positions right to left
+      # bet_boxes array 0 to (num_seats-1) are positions right to left
       # on the table.  Dealer deals to position 0 first and (num_seats-1)
       # last
       #
-      @players = Array.new(num_seats) {nil}
+      @bet_boxes = Array.new(num_seats) {BetBox.new(self)}
     end
 
     def join(player, desired_seat_position=nil)
