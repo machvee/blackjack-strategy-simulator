@@ -119,12 +119,11 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @table = MiniTest::Mock.new
-      @player = []
+      @players = []
       3.times {
         player = MiniTest::Mock.new
         @players << player
       }
-      @table.stub(:players, @players)
       @dealer = Dealer.new(@table)
     end
 
@@ -147,8 +146,8 @@ module Blackjack
       @table.name.must_equal @table_name  
     end
 
-    it "should have players" do
-      @table.players.wont_equal nil
+    it "should have seats where players join" do
+      @table.seated_players.wont_equal nil
     end
 
     it "should have bet boxes" do
@@ -220,7 +219,7 @@ module Blackjack
       seat_position.must_be :<, @table.config[:num_seats]
       @table.leave(@player)
       @player.table.must_equal nil
-      @table.players.all?(&:nil?).must_equal true
+      @table.seated_players.all?(&:nil?).must_equal true
     end
 
     it "should allow a player to inquire his/her seat position at the table" do
@@ -228,6 +227,27 @@ module Blackjack
       @player = Player.new('ted2')
       seat_position = @table.join(@player, @fav_seat)
       @table.seat_position(@player).must_equal @fav_seat
+    end
+
+    it "should provide the player way to reach their designated bet_box" do
+      @fav_seat = 4
+      @player = Player.new('ted4')
+      seat_position = @table.join(@player, @fav_seat)
+      @table.bet_box_for(@player).must_equal(@table.bet_boxes[@fav_seat])
+    end
+
+    it "should provide a mid-table player way to reach adjacent, available bet_boxes for multi-bet play" do
+      @fav_seat = 2
+      @player = Player.new('ted2')
+      seat_position = @table.join(@player, @fav_seat)
+      expected_results = [
+        @table.bet_boxes[@fav_seat-1],
+        @table.bet_boxes[@fav_seat],
+        @table.bet_boxes[@fav_seat+1]
+      ].each
+      @table.available_bet_boxes_for(@player) do |bet_box|
+        bet_box.must_equal(expected_results.next)
+      end
     end
 
     it "should not assign a seat to a player when all the seats are full" do

@@ -12,6 +12,10 @@ module Blackjack
       reset
     end
 
+    def available?
+      player.nil?
+    end
+
     def bet(player, bet_amount)
       @player = player
       @bet_amount = bet_amount

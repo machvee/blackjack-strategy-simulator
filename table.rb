@@ -24,7 +24,7 @@ module Blackjack
     attr_reader   :name
     attr_reader   :shoe
     attr_reader   :dealer
-    attr_reader   :players
+    attr_reader   :seated_players
     attr_reader   :bet_boxes
     attr_reader   :config
 
@@ -35,7 +35,7 @@ module Blackjack
       @dealer = Dealer.new(self)
       @shoe = new_shoe
 
-      @players = Array.new(num_seats) {nil}
+      @seated_players = Array.new(num_seats) {nil}
 
       #
       # bet_boxes array 0 to (num_seats-1) are positions right to left
@@ -51,18 +51,18 @@ module Blackjack
         if desired_seat_position.nil?
           raise "Sorry this table is full"
         else
-          raise "Sorry that seat is taken by #{players[desired_seat_position].name}"
+          raise "Sorry that seat is taken by #{seated_players[desired_seat_position].name}"
         end
       end
-      players[seat_position] = player
+      seated_players[seat_position] = player
       players_seated.incr
       seat_position
     end
 
     def leave(player)
-      ind = players.index(player)
+      ind = seated_players.index(player)
       raise "player #{player.name} isn't at table #{name}" if ind.nil?
-      players[ind] = nil
+      seated_players[ind] = nil
       player.leave_table
     end
 
@@ -71,7 +71,32 @@ module Blackjack
     end
 
     def seat_position(player)
-      players.index(player)
+      seated_players.index(player)
+    end
+
+    def bet_box_for(player)
+      bet_box = bet_boxes[seat_position(player)]
+      bet_box.available? ? bet_box : nil
+    end
+
+    def available_bet_boxes_for(player)
+      player_seat_position = seat_position(player)
+      raise "that player is not seated" if player_seat_position.nil?
+
+      max_pos = config[:num_seats]-1
+      best_adjacent_box_positions = case player_seat_position
+        when 0
+          [0, 1, 2]
+        when max_pos
+          [max_pos, max_pos-1, max_pos-2]
+        else
+          [player_seat_position-1, player_seat_position, player_seat_position+1] 
+      end
+
+      best_adjacent_box_positions.each do |try_it|
+        bet_box = bet_boxes[try_it]
+        yield bet_box if bet_box.available?
+      end
     end
 
     private
@@ -87,9 +112,9 @@ module Blackjack
     def find_empty_seat_position(desired_seat_position=nil)
       if desired_seat_position.nil?
         # find first available empty seat index, or nil of none
-        players.index(nil) 
+        seated_players.index(nil) 
       else
-        players[desired_seat_position].nil? ? desired_seat_position : nil
+        seated_players[desired_seat_position].nil? ? desired_seat_position : nil
       end
     end
   end
