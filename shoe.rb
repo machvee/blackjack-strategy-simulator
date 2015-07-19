@@ -34,7 +34,7 @@ module Blackjack
     end
 
     def needs_shuffle?
-      beyond_cut?
+      @force_shuffle || beyond_cut?
     end
 
     def deal_one_up(destination)
@@ -50,11 +50,16 @@ module Blackjack
       remove_cut_card
       decks.shuffle_up(options[:split_and_shuffles])
       num_shuffles.incr
+      @force_shuffle = false
     end
 
     def discard(cards)
       discard_pile.add(cards)
       hands_dealt.incr
+    end
+
+    def force_shuffle
+      @force_shuffle = true
     end
 
     private
@@ -74,6 +79,8 @@ module Blackjack
     end
 
     def deal_one(destination, orientation)
+      raise "needs cut card placed" if @cutoff.nil?
+      raise "needs shuffle" if needs_shuffle?
       decks.deal(destination, 1, orientation)
       cards_dealt.incr
     end

@@ -4,6 +4,7 @@ require 'shoe'
 require 'dealer'
 require 'player'
 require 'bet_box'
+require 'bank'
 
 module Blackjack
   class Table
@@ -11,6 +12,8 @@ module Blackjack
     include CounterMeasures
 
     counters :players_seated
+
+    DEFAULT_HOUSE_BANK_AMOUNT=250_000
 
     DEFAULT_MAX_SEATS = 6
     DEFAULT_BLACKJACK_PAYS = [3,2]
@@ -27,11 +30,12 @@ module Blackjack
     attr_reader   :seated_players
     attr_reader   :bet_boxes
     attr_reader   :config
+    attr_reader   :bank
 
     def initialize(name, options={})
       @name = name
       @config = DEFAULT_CONFIG.merge(options)
-
+      @bank = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
       @dealer = Dealer.new(self)
       @shoe = new_shoe
 

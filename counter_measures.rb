@@ -5,9 +5,8 @@ module CounterMeasures
   #  C O U N T E R
   #
   class Counter
-
     #
-    #  keep incremental counts of a quantity
+    #  keep incremental counts of a quantity, and maintain high and low watermarks
     #
     #  Usage:
     #
@@ -30,6 +29,8 @@ module CounterMeasures
     #
 
     attr_reader :count
+    attr_reader :high
+    attr_reader :low
 
     def initialize(name)
       @name = name
@@ -45,19 +46,23 @@ module CounterMeasures
     end
 
     def add(n)
-      @count += n
+      set(count + n)
     end
 
     def sub(n)
-      @count -= n
+      set(count - n)
     end
 
     def set(n)
       @count = n
+      @high = count if count > high
+      @low = count if count < low
     end
 
     def reset
-      set(0)
+      @count = 0
+      @high = -9999999999
+      @low = -high
     end
 
     def inspect

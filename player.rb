@@ -1,18 +1,20 @@
 module Blackjack
   class Player
 
-    attr_reader   :name
-    attr_reader   :hands
-    attr_reader   :table
-    attr_reader   :current_hand
-    attr_accessor :strategy
+    DEFAULT_START_BANK=500
 
-    def initialize(name)
+    attr_reader   :name
+    attr_reader   :table
+    attr_accessor :strategy
+    attr_reader   :bank
+
+    def initialize(name, start_bank=DEFAULT_START_BANK)
       @name = name
       @hands = []
       @current_hand = nil
       @table = nil
       @strategy = nil
+      @bank = Bank.new(start_bank)
     end
 
     def join(table, desired_seat_position=nil)
@@ -26,8 +28,14 @@ module Blackjack
       @table = nil
     end
 
-    def make_bet(amount)
-      hands << Hand.new(self, amount)
+    def make_bet
+      bet_box.bet(self, strategy.bet_amount)
+    end
+
+    private
+
+    def bet_box
+      table.bet_box_for(self)
     end
   end
 end

@@ -73,6 +73,18 @@ module Blackjack
 
         proc {c[:c] += 1}.must_raise RuntimeError
       end
+
+      it "should act like a rising and falling quantity, with high and low watermarks" do
+        @f.a.set(10000)
+        @f.a.add(50)
+        @f.a.add(50)
+        @f.a.add(100)
+        @f.a.add(1000)
+        @f.a.sub(5000)
+        @f.a.count.must_equal(10000+50+50+100+1000-5000)
+        @f.a.high.must_equal(10000+50+50+100+1000)
+        @f.a.low.must_equal(10000+50+50+100+1000-5000)
+      end
     end
 
     describe CounterMeasures::Measure, "A Measurement DSL" do
@@ -99,11 +111,15 @@ module Blackjack
           @w.rainfall.incr(inches_of_rain)
         end
         @w.rainfall.commit
+        first_reading = @w.rainfall.total
         readings2 = [4,2,0]
         @w.rainfall.add(*readings2)
         @w.rainfall.total.must_be :==, 
           (readings.inject(0) {|i,t| t += i} + readings2.inject(0) {|i,t| t += i})
         @w.rainfall.count.must_equal 4
+        @w.rainfall.last.must_equal(0)
+        @w.rainfall.last(3).must_equal(readings2)
+        @w.rainfall.last(4).must_equal([first_reading] + readings2)
         @w.reset_measures
         @w.rainfall.count.must_equal 0
       end
@@ -739,17 +755,29 @@ module Blackjack
       @shoe.cutoff.must_equal nil
     end
 
+    it "should allow a force_shuffle to be invoked, causing needs_shuffle? to be true" do
+      @shoe.place_cut_card
+      @shoe.needs_shuffle?.must_equal(false)
+      @shoe.force_shuffle
+      @shoe.needs_shuffle?.must_equal(true)
+      @shoe.shuffle
+      @shoe.place_cut_card
+      @shoe.needs_shuffle?.must_equal(false)
+    end
+
     it "should deal cards to hands one at a time face up" do
       num_cards = @shoe.decks.length
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
       @destination.expect(:add, nil, [[top_card]])
+      @shoe.place_cut_card
       @shoe.deal_one_up(@destination)
       @destination.verify
       @shoe.decks.length.must_equal num_cards-1
     end
 
     it "should deal cards to hands one at a time face down" do
+      @shoe.place_cut_card
       num_cards = @shoe.decks.length
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
@@ -779,6 +807,7 @@ module Blackjack
     end
 
     it "should deal cards to hands one at a time face up and keep counter" do
+      @shoe.place_cut_card
       num_cards = @shoe.decks.length
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
@@ -788,6 +817,7 @@ module Blackjack
       @shoe.cards_dealt.count.must_equal 1
       @destination.verify
       @shoe.shuffle
+      @shoe.place_cut_card
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
       @destination.expect(:add, nil, [[top_card]])
@@ -800,6 +830,7 @@ module Blackjack
       @shoe.num_shuffles.count.must_equal 1
       @shuffs = 4
       @shuffs.times { @shoe.shuffle }
+      @shoe.place_cut_card
       @shoe.num_shuffles.count.must_equal 1 + @shuffs
     end
 
@@ -807,6 +838,7 @@ module Blackjack
       @shoe.num_shuffles.count.must_equal 1
       @shuffs = 4
       @shuffs.times { @shoe.shuffle }
+      @shoe.place_cut_card
       @shoe.num_shuffles.count.must_equal 1 + @shuffs
       num_cards = @shoe.decks.length
       @destination = MiniTest::Mock.new
