@@ -12,25 +12,32 @@ module Blackjack
       @table = table
     end
 
-    def deal_hands_to_bet_boxes
+    def deal_one_card_face_up_to_bet_active_bet_boxes
       table.bet_boxes.each do |bet_box|
-        next unless bet_box.has_bet?
-        #
-        # take a card from the shoe and put it in the bet_box
-        #
+        next unless bet_box.active?
+        table.shoe.deal_one_up(bet_box.hand)
       end
     end
 
-    def upcard
+    def deal_up_card
+      @hand = Cards.new(table.shoe.decks)
+      table.shoe.deal_one_up(hand)
+    end
+
+    def deal_hole_card
+      table.shoe.deal_one_down(hand)
+    end
+
+    def up_card
       hand[0]
     end
 
-    def downcard
+    def hole_card
       hand[1]
     end
 
-    def flip_down_card
-      downcard.up if downcard.face_down?
+    def flip_hole_card
+      hole_card.up if hole_card.face_down?
     end
 
   end

@@ -38,6 +38,7 @@ module Blackjack
       @bank = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
       @dealer = Dealer.new(self)
       @shoe = new_shoe
+      @shoe.force_shuffle
 
       @seated_players = Array.new(num_seats) {nil}
 

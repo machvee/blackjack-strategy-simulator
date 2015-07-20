@@ -19,6 +19,10 @@ module Blackjack
       # 4. dealer from his left to right, deals one additional card face up to each active bet_box
       # 5. dealer deals himself one card face down (hole-card)
       #
+      dealer.deal_one_card_face_up_to_bet_active_bet_boxes
+      dealer.deal_up_card
+      dealer.deal_one_card_face_up_to_bet_active_bet_boxes
+      dealer.deal_hole_card
     end
 
     def blackjack_check
