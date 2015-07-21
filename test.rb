@@ -6,6 +6,7 @@ require 'table'
 #  C O U N T E R S
 #
 module Blackjack
+
   describe CounterMeasures, "A counter/measurement DSL" do
     describe CounterMeasures::Counter, "A counter DSL" do
       before do
@@ -308,6 +309,32 @@ module Blackjack
       seat_position = @table.join(@player, @bubbas_fav_seat)
       seat_position.must_equal @bubbas_fav_seat
       @table.seat_available?(@bubbas_fav_seat).must_equal false
+    end
+
+    it "should allow use of the game play class with many players" do
+      class TestStrategy
+        def initialize(player)
+        end
+        def bet_amount
+          5
+        end
+      end
+      names = %w{dave davey katie vader cass}
+      players = names.map {|n| Player.new(n)}
+      players.each {|p| p.strategy = TestStrategy.new(p); p.join(@table)}
+      @table.num_players.must_equal(names.length)
+      players.each {|p| p.make_bet}
+      gp = GamePlay.new(@table)
+      gp.shuffle_check
+      gp.opening_sequence
+      @table.each_active_bet_box do |bb|
+        bb.box.current_balance.must_equal(5)
+        bb.hand.length.must_equal(2)
+        bb.hand[0].face_up?.must_equal(true)
+        bb.hand[1].face_up?.must_equal(true)
+      end
+      @table.dealer.up_card.face_up?.must_equal(true)
+      @table.dealer.hole_card.face_down?.must_equal(true)
     end
   end
 

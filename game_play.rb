@@ -4,10 +4,10 @@ module Blackjack
     attr_reader   :dealer
     attr_reader   :players
 
-    def initialize(table, dealer, players)
+    def initialize(table)
       @table =  table
-      @dealer = dealer
-      @players = players
+      @dealer = table.dealer
+      @players = table.seated_players
     end
 
     def opening_sequence
@@ -94,8 +94,12 @@ module Blackjack
     def shuffle_check
       #
       # Does the shoe report, needs_shuffle?
-      # If so, shuffle the shoe
+      # If so, shuffle the shoe and place card
       # 
+      if table.shoe.needs_shuffle?
+        table.shoe.shuffle
+        table.shoe.place_cut_card
+      end
     end
 
     def run

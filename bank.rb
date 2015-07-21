@@ -8,7 +8,7 @@ module Blackjack
     counters   :balance
 
     def initialize(initial_deposit)
-      balance.set 0
+      balance.set initial_deposit
     end
 
     def transfer_from(from_bank, amount)
@@ -28,7 +28,8 @@ module Blackjack
     end
 
     def debit(amount)
-      raise "insufficient funds" if balance.count - amount < 0
+      raise "insufficient funds to transfer #{amount}. current balance = #{current_balance}" \
+        if current_balance - amount < 0
       balance.sub(amount)
     end
 

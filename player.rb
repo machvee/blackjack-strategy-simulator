@@ -18,9 +18,8 @@ module Blackjack
     end
 
     def join(table, desired_seat_position=nil)
-      table.join(self, desired_seat_position)
       @table = table
-      hands.clear
+      table.join(self, desired_seat_position)
       self
     end
 

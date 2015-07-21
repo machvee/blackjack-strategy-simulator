@@ -5,6 +5,7 @@ require 'dealer'
 require 'player'
 require 'bet_box'
 require 'bank'
+require 'game_play'
 
 module Blackjack
   class Table
@@ -102,6 +103,16 @@ module Blackjack
         bet_box = bet_boxes[try_it]
         yield bet_box if bet_box.available?
       end
+    end
+
+    def each_active_bet_box
+      bet_boxes.each do |bet_box|
+        yield bet_box if bet_box.active?
+      end
+    end
+
+    def num_players
+      seated_players.count {|sp| !sp.nil?}
     end
 
     private

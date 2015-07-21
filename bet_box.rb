@@ -19,14 +19,13 @@ module Blackjack
     end
 
     def active?
-      !available
+      !available?
     end
 
     def bet(player, bet_amount)
-      raise "this bet_box is occupied" unless player.nil?
       @player = player
 
-      player.bank.transfer_to(box, amount)
+      player.bank.transfer_to(box, bet_amount)
 
       @hand = Cards.new(table.shoe.decks)
     end
