@@ -13,8 +13,7 @@ module Blackjack
     end
 
     def deal_one_card_face_up_to_bet_active_bet_boxes
-      table.bet_boxes.each do |bet_box|
-        next unless bet_box.active?
+      table.each_active_bet_box do |bet_box|
         table.shoe.deal_one_up(bet_box.hand)
       end
     end

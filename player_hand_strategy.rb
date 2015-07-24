@@ -20,11 +20,11 @@ module Blackjack
     attr_reader  :player_hand
     attr_reader  :e
 
-    def initialize(player, player_hand, dealer_up_card=nil, other_hands=[])
+    def initialize(player, dealer_up_card=nil, other_hands=[])
       @player = player
-      @player_hand = player_hand
+      @player_hand = player.bet_box.hand
       @dealer_up_card = dealer_up_card
-      @other_hands = other_hand
+      @other_hands = other_hands
     end
 
     def decision
@@ -40,12 +40,41 @@ module Blackjack
   end
 
   class PromptPlayerHandStrategy < PlayerHandStrategy
+    def initialize(player, dealer_up_card=nil, other_hands=[])
+      @get_user_decision = Prompt.new("Hit", "Stand", "Double", "sPlit")
+      @map = {
+        'h' => Action::HIT,
+        's' => Action::STAND,
+        'd' => Action::DOUBLE_DOWN
+        'p' => Action::SPLIT
+      }
+    end
+
     def decision
       show_other_hands
       show_dealer_up_card
       show_player_hand
-      action = prompt_for_action
-      action
+      prompt_for_action
+    end
+
+    private
+
+    def show_other_hands
+      puts other_hands.inspect unless other_hands.empty?
+    end
+
+    def show_dealer_up_card
+      puts "Dealer's showing:"
+      dealer_up_card.print
+    end
+
+    def show_player_hand
+      player_hand.print
+    end
+
+    def prompt_for_action
+      cmd = @get_user_decision.prompt
+      @map[cmd]
     end
   end
 end

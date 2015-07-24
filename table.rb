@@ -37,7 +37,6 @@ module Blackjack
       @name = name
       @config = DEFAULT_CONFIG.merge(options)
       @bank = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
-      @dealer = Dealer.new(self)
       @shoe = new_shoe
       @shoe.force_shuffle
 
@@ -49,6 +48,8 @@ module Blackjack
       # last
       #
       @bet_boxes = Array.new(num_seats) {BetBox.new(self)}
+
+      @dealer = Dealer.new(self)
     end
 
     def join(player, desired_seat_position=nil)

@@ -135,7 +135,7 @@ module Blackjack
   #
   describe Dealer, "A Blackjack Dealer" do
     before do
-      @table = MiniTest::Mock.new
+      @table = Table.new('table_1')
       @players = []
       3.times {
         player = MiniTest::Mock.new
@@ -145,6 +145,7 @@ module Blackjack
     end
 
     it "should deal hands to players with bets made" do
+      @dealer.deal_one_card_face_up_to_bet_active_bet_boxes
     end
   end
 
@@ -313,15 +314,17 @@ module Blackjack
 
     it "should allow use of the game play class with many players" do
       class TestStrategy
-        def initialize(player)
+        def initialize(player, dealer_up_card=nil, other_hands=[])
         end
         def bet_amount
           5
         end
+        def decision
+        end
       end
       names = %w{dave davey katie vader cass}
       players = names.map {|n| Player.new(n)}
-      players.each {|p| p.strategy = TestStrategy.new(p); p.join(@table)}
+      players.each {|p| p.strategy = TestStrategy.new(p, ); p.join(@table)}
       @table.num_players.must_equal(names.length)
       players.each {|p| p.make_bet}
       gp = GamePlay.new(@table)

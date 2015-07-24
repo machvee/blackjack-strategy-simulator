@@ -31,8 +31,6 @@ module Blackjack
       bet_box.bet(self, strategy.bet_amount)
     end
 
-    private
-
     def bet_box
       table.bet_box_for(self)
     end
