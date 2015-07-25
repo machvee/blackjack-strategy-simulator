@@ -11,6 +11,7 @@ module Blackjack
     def initialize(table)
       @table = table
       @box = Bank.new(0)
+      @hand = table.new_hand
       reset
     end
 
@@ -27,7 +28,6 @@ module Blackjack
 
       player.bank.transfer_to(box, bet_amount)
 
-      @hand = Cards.new(table.shoe.decks)
     end
 
     def take_winnings
@@ -45,14 +45,13 @@ module Blackjack
 
     def discard
       split_bet_box.discard unless split_bet_box.nil?
-      hand.discard
+      hand.fold
       reset
     end
 
     def reset
       @player = nil
       @amount = 0
-      @hand = nil
       @split_bet_box = nil
     end
   end

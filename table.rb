@@ -82,6 +82,10 @@ module Blackjack
       seated_players.index(player)
     end
 
+    def new_hand
+      shoe.new_hand
+    end
+
     def bet_box_for(player)
       bet_box = bet_boxes[seat_position(player)]
       bet_box.available? ? bet_box : nil

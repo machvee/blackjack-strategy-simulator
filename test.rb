@@ -727,16 +727,16 @@ module Blackjack
   describe Shoe, "shoes come in a variety of sizes" do
     it "should have the correct number of cards" do
       @shoe = Shoe.new
-      @shoe.decks.length.must_equal (1*52)
+      @shoe.remaining.must_equal (1*52)
 
       @shoe = SingleDeckShoe.new
-      @shoe.decks.length.must_equal (1*52)
+      @shoe.remaining.must_equal (1*52)
 
       @shoe = TwoDeckShoe.new
-      @shoe.decks.length.must_equal (2*52)
+      @shoe.remaining.must_equal (2*52)
 
       @shoe = SixDeckShoe.new
-      @shoe.decks.length.must_equal (6*52)
+      @shoe.remaining.must_equal (6*52)
     end
   end
 
@@ -747,7 +747,7 @@ module Blackjack
 
     it "should have a functioning random cut card somewhere past half the deck" do
       @shoe.place_cut_card
-      @shoe.cutoff.must_be :<, @shoe.decks.length/3
+      @shoe.cutoff.must_be :<, @shoe.remaining/3
     end
 
     it "should not need shuffle upon initial cut card placement" do
@@ -767,9 +767,9 @@ module Blackjack
       @custom_shoe.shuffle
       100.times {
         @custom_shoe.place_cut_card
-        @custom_shoe.cutoff.must_be :<=, @shoe.decks.length/4
+        @custom_shoe.cutoff.must_be :<=, @shoe.remaining/4
       }
-      @custom_shoe.decks.length.must_equal (@num_decks*52)
+      @custom_shoe.remaining.must_equal (@num_decks*52)
     end
 
     it "should let the cut card be placed at a specific offset" do
@@ -796,30 +796,71 @@ module Blackjack
     end
 
     it "should deal cards to hands one at a time face up" do
-      num_cards = @shoe.decks.length
+      num_cards = @shoe.remaining
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
       @destination.expect(:add, nil, [[top_card]])
       @shoe.place_cut_card
       @shoe.deal_one_up(@destination)
       @destination.verify
-      @shoe.decks.length.must_equal num_cards-1
+      @shoe.remaining.must_equal num_cards-1
     end
 
     it "should deal cards to hands one at a time face down" do
       @shoe.place_cut_card
-      num_cards = @shoe.decks.length
+      num_cards = @shoe.remaining
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
       @destination.expect(:add, nil, [[top_card]])
       @shoe.deal_one_down(@destination)
       @destination.verify
-      @shoe.decks.length.must_equal num_cards-1
+      @shoe.remaining.must_equal num_cards-1
+    end
+
+    it "should support a new hand getter to deal cards to" do
+      @shoe.place_cut_card
+      hand = @shoe.new_hand
+      num_cards = 3
+      num_cards.times { @shoe.deal_one_up(hand)}
+      hand.length.must_equal num_cards
+    end
+
+    it "should support a discard pile that is wired to the hand when it folds and back to deck when shuffling" do
+      @shoe.place_cut_card
+      start_count = @shoe.remaining
+      hand_counts = [11,4,7,3,2,9]
+      hands = Array.new(hand_counts.length) {@shoe.new_hand}
+      cards_dealt = hand_counts.inject(0) {|i,t| t += i}
+
+      2.times do
+        total_cards_dealt = 0
+        3.times do |i|
+          hand_counts.each_with_index do |c, i|
+            c.times { @shoe.deal_one_up(hands[i])}
+            hands[i].length.must_equal(c)
+          end
+          total_cards_dealt += cards_dealt
+          @shoe.remaining.must_equal(start_count - total_cards_dealt)
+
+          hands.map(&:fold)
+          @shoe.discarded.must_equal(total_cards_dealt)
+
+          hands.all? {|h| h.length == 0}.must_equal(true)
+        end
+
+        @shoe.remaining.must_equal(start_count - total_cards_dealt)
+        @shoe.discarded.must_equal(total_cards_dealt)
+
+        @shoe.shuffle
+        @shoe.place_cut_card
+        @shoe.discarded.must_equal(0)
+        @shoe.remaining.must_equal(start_count)
+      end
     end
 
     it "should deal cards and report needs_shuffle? true when reached cut card" do
       @shoe.place_cut_card
-      deal_this_many = @shoe.decks.length - @shoe.cutoff
+      deal_this_many = @shoe.remaining - @shoe.cutoff
       deal_this_many.times do
         @destination = MiniTest::Mock.new
         top_card = @shoe.decks.first
@@ -838,7 +879,7 @@ module Blackjack
 
     it "should deal cards to hands one at a time face up and keep counter" do
       @shoe.place_cut_card
-      num_cards = @shoe.decks.length
+      num_cards = @shoe.remaining
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
       @destination.expect(:add, nil, [[top_card]])
@@ -870,7 +911,7 @@ module Blackjack
       @shuffs.times { @shoe.shuffle }
       @shoe.place_cut_card
       @shoe.num_shuffles.count.must_equal 1 + @shuffs
-      num_cards = @shoe.decks.length
+      num_cards = @shoe.remaining
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
       @destination.expect(:add, nil, [[top_card]])

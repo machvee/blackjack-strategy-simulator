@@ -24,8 +24,12 @@ module Blackjack
     def initialize(options={})
       @options = DEFAULT_OPTIONS.merge(options)
       @decks = Deck.new(@options[:num_decks_in_shoe])
-      @discard_pile = Cards.new(@decks)
+      @discard_pile = Cards.new(decks)
       shuffle
+    end
+
+    def new_hand
+      Cards.new(discard_pile)
     end
 
     def place_cut_card(cut_offset=nil)
@@ -45,17 +49,26 @@ module Blackjack
       deal_one(destination, Card::FACE_DOWN)
     end
 
+    def remaining
+      #
+      # number of cards remaining in shoe, included beyond cut_card
+      #
+      decks.length
+    end
+
+    def discarded
+      #
+      # number of cards in the discard pile
+      #
+      discard_pile.length
+    end
+
     def shuffle
       discard_pile.fold
       remove_cut_card
       decks.shuffle_up(options[:split_and_shuffles])
       num_shuffles.incr
       @force_shuffle = false
-    end
-
-    def discard(cards)
-      discard_pile.add(cards)
-      hands_dealt.incr
     end
 
     def force_shuffle
