@@ -32,7 +32,7 @@ module Blackjack
     end
 
     def debit(amount)
-      raise "insufficient funds to transfer #{amount}. current balance = #{current_balance}" \
+      raise "insufficient funds to debit #{amount}. (current balance = #{current_balance})" \
         if current_balance - amount < 0
       balance.sub(amount)
       debits.incr

@@ -363,6 +363,80 @@ module Blackjack
     end
   end
 
+  describe Bank, "A money account" do
+    before do
+      @initial_balance = 3833
+      @bank1 = Bank.new(@initial_balance)
+      @bank2 = Bank.new(@initial_balance)
+    end
+
+    it "should have initial balances" do
+      @bank1.current_balance.must_equal(@initial_balance)
+      @bank2.current_balance.must_equal(@initial_balance)
+    end
+
+    it "should allow direct credit and debiting" do
+      amount_to_credit = 91
+      amount_to_debit = 83
+      @bank1.credit(amount_to_credit)
+      @bank1.current_balance.must_equal(@initial_balance + amount_to_credit)
+      @bank1.credits.count.must_equal(1)
+      @bank2.debit(amount_to_debit)
+      @bank2.current_balance.must_equal(@initial_balance - amount_to_debit)
+      @bank2.debits.count.must_equal(1)
+    end
+
+    it "should allow a reset back to initial balance" do
+      amount_to_credit = 91
+      amount_to_debit = 83
+      @bank1.credit(amount_to_credit)
+      @bank1.current_balance.must_equal(@initial_balance + amount_to_credit)
+      @bank1.credits.count.must_equal(1)
+      @bank2.debit(amount_to_debit)
+      @bank2.current_balance.must_equal(@initial_balance - amount_to_debit)
+      @bank2.debits.count.must_equal(1)
+      @bank1.reset
+      @bank2.reset
+      @bank1.current_balance.must_equal(@initial_balance)
+      @bank2.current_balance.must_equal(@initial_balance)
+      @bank1.credits.count.must_equal(0)
+      @bank2.credits.count.must_equal(0)
+      @bank1.debits.count.must_equal(0)
+      @bank2.debits.count.must_equal(0)
+    end
+
+    it "should allow transfer_to another account" do
+      amount_to_transfer = 382
+      @bank1.transfer_to(@bank2, amount_to_transfer)
+      @bank1.current_balance.must_equal(@initial_balance - amount_to_transfer)
+      @bank2.current_balance.must_equal(@initial_balance + amount_to_transfer)
+      @bank1.credits.count.must_equal(0)
+      @bank1.debits.count.must_equal(1)
+      @bank2.credits.count.must_equal(1)
+      @bank2.debits.count.must_equal(0)
+    end
+
+    it "should allow transfer_from another account" do
+      amount_to_transfer = 98
+      @bank1.transfer_from(@bank2, amount_to_transfer)
+      @bank1.current_balance.must_equal(@initial_balance + amount_to_transfer)
+      @bank2.current_balance.must_equal(@initial_balance - amount_to_transfer)
+      @bank1.credits.count.must_equal(1)
+      @bank1.debits.count.must_equal(0)
+      @bank2.credits.count.must_equal(0)
+      @bank2.debits.count.must_equal(1)
+    end
+
+    it "should raise an exception if trying to debit below 0 balance" do
+      @bank1.debit(@initial_balance) # ok
+      @bank1.current_balance.must_equal(0)
+      proc {
+        @bank2.debit(@initial_balance+1)
+      }.must_raise RuntimeError
+      @bank2.current_balance.must_equal(@initial_balance)
+    end
+  end
+
   describe Cards::Card, "A Card" do 
     before do
       @a_card = Cards::Card.new('A', 'S')
