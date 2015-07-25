@@ -341,6 +341,28 @@ module Blackjack
     end
   end
 
+  describe Player, "A Player" do
+    before do
+      @player = Player.new(@name='dave')
+    end
+
+    it "should have a name" do
+      @player.name.must_equal(@name)
+    end
+
+    it "should have a bank" do
+      @player.bank.current_balance.must_be :>, 0
+    end
+
+    it "should have stats" do
+      @player.stats.hands.count.must_equal(0)
+      @player.stats.hands_won.count.must_equal(0)
+      @player.stats.hands_lost.count.must_equal(0)
+      @player.stats.busts.count.must_equal(0)
+      @player.stats.blackjacks.count.must_equal(0)
+    end
+  end
+
   describe Cards::Card, "A Card" do 
     before do
       @a_card = Cards::Card.new('A', 'S')
@@ -923,7 +945,6 @@ module Blackjack
       @shoe.reset_counters
       @shoe.cards_dealt.count.must_equal 0
       @shoe.num_shuffles.count.must_equal 0
-      @shoe.hands_dealt.count.must_equal 0
     end
   end
 end

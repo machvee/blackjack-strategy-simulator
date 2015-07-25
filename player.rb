@@ -1,21 +1,23 @@
 module Blackjack
   class Player
 
-    DEFAULT_START_BANK=500
-
     attr_reader   :name
     attr_reader   :table
     attr_accessor :strategy
     attr_reader   :bank
     attr_reader   :stats
 
-    def initialize(name, start_bank=DEFAULT_START_BANK)
+    DEFAULT_OPTIONS = {
+      start_bank: 500
+    }
+
+    def initialize(name, options={})
+      options.merge!(DEFAULT_OPTIONS)
       @name = name
       @hands = []
-      @current_hand = nil
       @table = nil
       @strategy = nil
-      @bank = Bank.new(start_bank)
+      @bank = Bank.new(options[:start_bank])
       @stats = PlayerStats.new(self)
     end
 

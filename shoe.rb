@@ -12,7 +12,7 @@ module Blackjack
     attr_reader  :options
     attr_reader  :discard_pile
 
-    counters  :num_shuffles, :hands_dealt, :cards_dealt
+    counters  :num_shuffles, :cards_dealt
 
     DEFAULT_OPTIONS = {
       cut_card_segment: 0.25,

@@ -25,9 +25,7 @@ module Blackjack
 
     def bet(player, bet_amount)
       @player = player
-
       player.bank.transfer_to(box, bet_amount)
-
     end
 
     def take_winnings
@@ -37,10 +35,6 @@ module Blackjack
     def split
       raise "player hand is already split" unless split_bet_box.nil?
       @split_bet_box = BetBox.new(table)
-    end
-
-    def <<(card)
-      hand << card
     end
 
     def discard
