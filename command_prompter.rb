@@ -1,5 +1,5 @@
 module Blackjack
-  class Prompt
+  class CommandPrompter
     attr_reader :legend
     attr_reader :valid_inputs
     attr_reader :minimum_integer
@@ -10,8 +10,8 @@ module Blackjack
     def initialize(*valid_cmd_names)
       #
       # usage:
-      #   p = Prompt.new("Bet Amount:int:1:10", "Hit", "Stand", "sPlit", "Double")
-      #   p.prompt do |cmd|
+      #   p = CommandPrompter.new("Bet Amount:int:1:10", "Hit", "Stand", "sPlit", "Double")
+      #   p.get_command do |cmd|
       #     case cmd
       #        when "h"
       #           ....
@@ -21,10 +21,52 @@ module Blackjack
       #     end
       #   end
       #
-      commands = []
+      #   User sees:
+      #
+      #     Bet Amount (1 - 10), [H]it, [S]tand, s[P]lit, [D]ouble
+      #     => 
+      #
+      @input = $stdin
+      @output = $stdout
+
+      parse_params_and_configure(valid_cmd_names)
+    end
+
+    def get_command
+      #
+      # yields and/or returns the integer or downcased command letter
+      # validated by configured command definitions
+      #
+      cmd = nil
+      while(true) do
+        print_legend
+        print_prompt
+        cmd, lc_cmd = get_input
+        next if cmd.empty?
+        break if valid_cmd?(lc_cmd)
+        print_invalid_cmd(cmd)
+      end
+      quit_check(lc_cmd)
+      yield lc_cmd if block_given?
+      lc_cmd
+    end
+
+    private
+
+    def print(str)
+      output.print str
+    end
+
+    def println(str)
+      output.puts str 
+    end
+
+    def parse_params_and_configure(valid_cmd_names)
       @valid_inputs = ['q']
       @minimum_integer = nil
       @maximum_integer = nil
+
+      commands = []
       valid_cmd_names.each do |cmd|
         scmd = cmd.split(':')
         nc = scmd.length
@@ -49,40 +91,24 @@ module Blackjack
         end
       end
       @legend = commands.join(", ") + " or [Q]uit"
-      @input = $stdin
-      @output = $stdout
     end
 
-    def prompt
-      invalid = true
-      cmd = nil
-      while(true) do
-        println legend
-        print "=> "
-        cmd = getline
-        next if cmd.empty?
-        dcmd = cmd.downcase
-        break if valid_cmd?(dcmd)
-        println "'#{cmd}' is invalid"
-      end
-      quit_check(dcmd)
-      yield dcmd if block_given?
-      dcmd
+    def get_input
+      typed = input.gets.chomp
+      [typed, typed.downcase]
     end
 
-    def getline
-      input.gets.chomp
+    def print_legend
+      println legend
     end
 
-    def print(str)
-      output.print str
+    def print_prompt
+      print "=> "
     end
 
-    def println(str)
-      output.puts str 
+    def print_invalid_cmd(cmd)
+      println "'#{cmd}' is invalid"
     end
-
-    private
 
     def quit_check(dcmd)
       exit if dcmd == 'q'
