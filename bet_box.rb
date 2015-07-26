@@ -43,6 +43,10 @@ module Blackjack
       reset
     end
 
+    def current_bet
+      box.current_balance
+    end
+
     def reset
       @player = nil
       @amount = 0

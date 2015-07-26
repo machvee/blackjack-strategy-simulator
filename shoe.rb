@@ -35,6 +35,7 @@ module Blackjack
     def place_cut_card(cut_offset=nil)
       @cutoff = cut_offset||random_cut_offset
       raise "invalid cut card placement" if cutoff <=0 || cutoff >= (decks.length-1)
+      self
     end
 
     def needs_shuffle?
@@ -69,10 +70,12 @@ module Blackjack
       decks.shuffle_up(options[:split_and_shuffles])
       num_shuffles.incr
       @force_shuffle = false
+      self
     end
 
     def force_shuffle
       @force_shuffle = true
+      self
     end
 
     private
@@ -96,6 +99,7 @@ module Blackjack
       raise "needs shuffle" if needs_shuffle?
       decks.deal(destination, 1, orientation)
       cards_dealt.incr
+      destination
     end
   end
 

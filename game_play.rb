@@ -47,6 +47,15 @@ module Blackjack
       # 3. If the dealer's up-card is not A or 10-point:
       #     a. check each players hand for blackjack, pay them the BJ payout, and discard the players hand
       #
+      if deal.up_card.ace?
+        players.each do |player|
+          if player.strategy.insurance?
+            # yes no even_money
+          end
+        end
+      elsif deal.up_card.ten?
+      else
+      end
     end
 
     def player_hand
@@ -102,6 +111,14 @@ module Blackjack
       end
     end
 
+    def wait_for_player_bets
+      players.each do |player|
+        bet_amount = player.strategy.bet_amount
+        player.leave_table if bet_amount == Action::LEAVE
+        player.make_bet(bet_amount) if bet_amount > 0
+      end
+    end
+
     def run
       # Open the table (Set house bank, assign a dealer, configure, shoe needs shuffle)
       # While table remains open:
@@ -121,6 +138,14 @@ module Blackjack
       #   
       #
       # Close table (record stats)
+      #
+      while table.any_seated_players?
+        shuffle_check
+        wait_for_player_bets
+        next unless table.any_bets? 
+        opening_sequence
+        blackjack_check
+      end
     end
   end
 end

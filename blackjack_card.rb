@@ -35,6 +35,10 @@ module Blackjack
           Cards::Card.face_to_value(card_face)
       end
     end
+
+    def ten?
+      Cards::Card.custom_value_of_face(face) == 10
+    end
   end
 
   class Cards::Cards

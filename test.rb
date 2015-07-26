@@ -115,8 +115,7 @@ module Blackjack
         first_reading = @w.rainfall.total
         readings2 = [4,2,0]
         @w.rainfall.add(*readings2)
-        @w.rainfall.total.must_be :==, 
-          (readings.inject(0) {|i,t| t += i} + readings2.inject(0) {|i,t| t += i})
+        @w.rainfall.total.must_be :==, readings.reduce(:+) + readings2.reduce(:+)
         @w.rainfall.count.must_equal 4
         @w.rainfall.last.must_equal(0)
         @w.rainfall.last(3).must_equal(readings2)
@@ -206,6 +205,18 @@ module Blackjack
       seat_position = @table.join(@player)
       seat_position.must_be :>=, 0
       seat_position.must_be :<, @table.config[:num_seats]
+    end
+
+    it "should allow respond true to any_seated_players? when a player is seated" do 
+      @player = MiniTest::Mock.new
+      seat_position = @table.join(@player)
+      seat_position.must_be :>=, 0
+      seat_position.must_be :<, @table.config[:num_seats]
+      @table.any_seated_players?.must_equal(true)
+    end
+
+    it "should allow respond false to any_seated_players? when table is empty" do 
+      @table.any_seated_players?.must_equal(false)
     end
 
     it "should increment the players_seated counter when a player joins" do
@@ -361,6 +372,31 @@ module Blackjack
       @player.stats.busts.count.must_equal(0)
       @player.stats.blackjacks.count.must_equal(0)
     end
+
+    it "should be able to join a table" do
+      @table = MiniTest::Mock.new
+      @table.expect(:join, @player, [@player, nil])
+      @player.join(@table)
+      @table.verify
+    end
+
+    it "should be able to join a table at a specific seat position" do
+      @table = MiniTest::Mock.new
+      @seat = 0
+      @table.expect(:join, @player, [@player, @seat])
+      @player.join(@table, @seat)
+      @table.verify
+    end
+
+    it "should be able to join, then leave a table" do
+      @table = MiniTest::Mock.new
+      @table.expect(:leave, @player, [@player])
+      @table.expect(:join, @player, [@player, nil])
+      @player.join(@table)
+      @player.leave_table
+      @table.verify
+    end
+
   end
 
   describe Bank, "A money account" do
@@ -926,7 +962,7 @@ module Blackjack
       start_count = @shoe.remaining
       hand_counts = [11,4,7,3,2,9]
       hands = Array.new(hand_counts.length) {@shoe.new_hand}
-      cards_dealt = hand_counts.inject(0) {|i,t| t += i}
+      cards_dealt = hand_counts.reduce(:+)
 
       2.times do
         total_cards_dealt = 0

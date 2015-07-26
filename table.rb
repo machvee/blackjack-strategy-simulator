@@ -23,7 +23,9 @@ module Blackjack
     DEFAULT_CONFIG = {
       blackjack_payout:    DEFAULT_BLACKJACK_PAYS,
       dealer_hits_soft_17: false,
-      num_seats:           DEFAULT_MAX_SEATS
+      num_seats:           DEFAULT_MAX_SEATS,
+      minimum_bet:         25,
+      maximum_bet:         5000
     }
 
     attr_reader   :name
@@ -71,7 +73,6 @@ module Blackjack
       ind = seated_players.index(player)
       raise "player #{player.name} isn't at table #{name}" if ind.nil?
       seated_players[ind] = nil
-      player.leave_table
     end
 
     def seat_available?(desired_seat_position=nil)
@@ -119,6 +120,14 @@ module Blackjack
 
     def num_players
       seated_players.count {|sp| !sp.nil?}
+    end
+
+    def any_bets?
+      bet_boxes.any? {|bet_box| bet_box.current_bet > 0}
+    end
+
+    def any_seated_players?
+      !seated_players.compact.empty?
     end
 
     private

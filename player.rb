@@ -28,12 +28,15 @@ module Blackjack
     end
 
     def leave_table
+      @table.leave(self)
       @table = nil
+      self
     end
 
     def make_bet
       bet_box.bet(self, strategy.bet_amount)
       stats.hands.incr
+      self
     end
 
     def bet_box

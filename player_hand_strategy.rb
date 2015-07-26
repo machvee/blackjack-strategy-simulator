@@ -1,10 +1,17 @@
 module Blackjack
 
   module Action
-    HIT=1
-    STAND=2
-    SPLIT=3
-    DOUBLE_DOWN=4
+    LEAVE=0
+    SIT_OUT=1
+    PLAY=2
+    HIT=3
+    STAND=4
+    SPLIT=5
+    DOUBLE_DOWN=6
+    SURRENDER=7
+    INSURANCE=8
+    NO_INSURANCE=9
+    EVEN_MONEY=10
   end
 
   class PlayerHandStrategy
@@ -16,65 +23,128 @@ module Blackjack
     # table (if any) and the dealers up card
     #
 
+    attr_reader  :table
     attr_reader  :player
-    attr_reader  :player_hand
-    attr_reader  :e
 
-    def initialize(player, dealer_up_card=nil, other_hands=[])
+    def initialize(table, player)
+      @table = player
       @player = player
-      @player_hand = player.bet_box.hand
-      @dealer_up_card = dealer_up_card
-      @other_hands = other_hands
     end
 
-    def decision
+    def play?
       #
-      # override in subclass to decide what to do
+      # return Action::BET to put chips in the bet_box
+      # return Action::SIT_OUT to stay at table but sit out hand
+      # return Action::LEAVE to leave table before next hand dealt
       #
-      # Action::HIT
-      # Action::STAND
-      # Action::SPLIT
-      # Action::DOUBLE_DOWN
+    end
+
+    def bet_amount
       #
+      # override in sub-class to provide a whole dollar amount
+      # to bet.
+      #
+    end
+
+    def insurance?
+      #
+      # override in sub-class to indicate true or false
+      # true - the player wants insurance against dealer Ace up-card
+      # false - no insurance
+      #
+    end
+
+    def decision(player_hand, dealer_up_card, other_hands=[])
+      #
+      # override in subclass to decide what to do based on
+      #   player_hand
+      #   dealer_up_card
+      #   other_hands
+      #
+      # valid responses:
+      #
+      #   Action::HIT
+      #   Action::STAND
+      #   Action::SPLIT
+      #   Action::DOUBLE_DOWN
+      #
+    end
+
+    def error(message)
+      #
+      # Dealer will call this with a message string when/if the PlayerHandStrategy
+      # would return an invalid decision, insurance?, bet_amount, or play? response,
+      # and then invokes the offending method again
+      #
+      # e.g. raise "invalid entry: #{message}"
+      # 
     end
   end
 
   class PromptPlayerHandStrategy < PlayerHandStrategy
-    def initialize(player, dealer_up_card=nil, other_hands=[])
-      @get_user_decision = Prompt.new("Hit", "Stand", "Double", "sPlit")
+    #
+    # this strategy will make a few automatic decisions, but
+    # primarily prompts the Player for on how much to bet,
+    # whether to Hit, Stand or Split, etc.
+    #
+    def initialize(table, player)
+      @get_user_decision = CommandPrompter.new("Hit", "Stand", "Double", "sPlit")
       @map = {
         'h' => Action::HIT,
         's' => Action::STAND,
         'd' => Action::DOUBLE_DOWN
         'p' => Action::SPLIT
       }
+      min_bet = table.config.minimum_bet
+      max_bet = table.config.maximum_bet
+      @user_bet_maker = CommandPrompter.new("Bet Amount:int:#{min_bet}:#{max_bet}")
     end
 
-    def decision
-      show_other_hands
-      show_dealer_up_card
-      show_player_hand
+    def decision(player_hand, dealer_up_card, other_hands=[])
+      show_other_hands(other_hands)
+      show_dealer_up_card(dealer_up_card)
+      show_player_hand(player_hand)
       prompt_for_action
+    end
+
+    def bet_amount
+      @user_bet_maker.get_command.to_i
+    end
+
+    def play?
+      player.bank.current_balance > blayer.bank.initial_deposit/8 ? Action::BET : Action::LEAVE
+    end
+
+    def insurance?
+      Action::NO_INSURANCE
+    end
+
+    def error(message)
+      sep = "="*[80, (message.length)].min
+      puts ''
+      puts sep
+      puts message
+      puts sep
+      puts ''
     end
 
     private
 
-    def show_other_hands
+    def show_other_hands(other_hands)
       puts other_hands.inspect unless other_hands.empty?
     end
 
-    def show_dealer_up_card
+    def show_dealer_up_card(dealer_up_card)
       puts "Dealer's showing:"
       dealer_up_card.print
     end
 
-    def show_player_hand
+    def show_player_hand(player_hand)
       player_hand.print
     end
 
     def prompt_for_action
-      cmd = @get_user_decision.prompt
-      @map[cmd]
+      @map[@get_user_decision.get_command]
     end
   end
 end
