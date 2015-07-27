@@ -46,11 +46,13 @@ module Blackjack
       #
     end
 
-    def insurance?
+    def insurance?(player_hand)
       #
-      # override in sub-class to indicate true or false
-      # true - the player wants insurance against dealer Ace up-card
-      # false - no insurance
+      # override in sub-class to indicate:
+      #
+      # Action::INSURANCE - the player wants insurance against dealer Ace up-card
+      # Action::NO_INSURANCE - willing to lose automatically if dealer has blackjack
+      # Action::EVEN_MONEY - player_hand is blackjack, will take 1-1 immediate payout 
       #
     end
 
@@ -70,14 +72,17 @@ module Blackjack
       #
     end
 
-    def error(message)
+    def error(strategy_step, message)
       #
       # Dealer will call this with a message string when/if the PlayerHandStrategy
-      # would return an invalid decision, insurance?, bet_amount, or play? response,
+      # would respond with something invalid during the above strategy_steps
       # and then invokes the offending method again
       #
-      # e.g. raise "invalid entry: #{message}"
+      #  (e.g. :decision, :insurance, :bet_amount, or :play)
+      #
+      # e.g. raise "invalid entry for #{strategy_step}: #{message}"
       # 
+      raise "#{strategy_step}: #{message}"
     end
   end
 
@@ -92,11 +97,11 @@ module Blackjack
       @map = {
         'h' => Action::HIT,
         's' => Action::STAND,
-        'd' => Action::DOUBLE_DOWN
+        'd' => Action::DOUBLE_DOWN,
         'p' => Action::SPLIT
       }
-      min_bet = table.config.minimum_bet
-      max_bet = table.config.maximum_bet
+      min_bet = table.config[:minimum_bet]
+      max_bet = table.config[:maximum_bet]
       @user_bet_maker = CommandPrompter.new("Bet Amount:int:#{min_bet}:#{max_bet}")
     end
 
@@ -115,11 +120,11 @@ module Blackjack
       player.bank.current_balance > blayer.bank.initial_deposit/8 ? Action::BET : Action::LEAVE
     end
 
-    def insurance?
+    def insurance?(player_hand)
       Action::NO_INSURANCE
     end
 
-    def error(message)
+    def error(strategy_step, message)
       sep = "="*[80, (message.length)].min
       puts ''
       puts sep

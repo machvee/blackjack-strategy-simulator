@@ -262,7 +262,7 @@ module Blackjack
       @fav_seat = 4
       @player = Player.new('ted4')
       seat_position = @table.join(@player, @fav_seat)
-      @table.bet_box_for(@player).must_equal(@table.bet_boxes[@fav_seat])
+      @table.bet_boxes.dedicated_to(@player).must_equal(@table.bet_boxes[@fav_seat])
     end
 
     it "should provide a mid-table player way to reach adjacent, available bet_boxes for multi-bet play" do
@@ -270,11 +270,9 @@ module Blackjack
       @player = Player.new('ted2')
       seat_position = @table.join(@player, @fav_seat)
       expected_results = [
-        @table.bet_boxes[@fav_seat-1],
         @table.bet_boxes[@fav_seat],
-        @table.bet_boxes[@fav_seat+1]
       ].each
-      @table.available_bet_boxes_for(@player) do |bet_box|
+      @table.bet_boxes.available_for(@player) do |bet_box|
         bet_box.must_equal(expected_results.next)
       end
     end
@@ -341,7 +339,7 @@ module Blackjack
       gp = GamePlay.new(@table)
       gp.shuffle_check
       gp.opening_sequence
-      @table.each_active_bet_box do |bb|
+      @table.bet_boxes.each_active do |bb|
         bb.box.current_balance.must_equal(5)
         bb.hand.length.must_equal(2)
         bb.hand[0].face_up?.must_equal(true)

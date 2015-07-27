@@ -4,6 +4,7 @@ require 'shoe'
 require 'dealer'
 require 'player'
 require 'player_stats'
+require 'bet_boxes'
 require 'bet_box'
 require 'bank'
 require 'game_play'
@@ -25,7 +26,8 @@ module Blackjack
       dealer_hits_soft_17: false,
       num_seats:           DEFAULT_MAX_SEATS,
       minimum_bet:         25,
-      maximum_bet:         5000
+      maximum_bet:         5000,
+      max_player_bets:     3
     }
 
     attr_reader   :name
@@ -50,7 +52,7 @@ module Blackjack
       # on the table.  Dealer deals to position 0 first and (num_seats-1)
       # last
       #
-      @bet_boxes = Array.new(num_seats) {BetBox.new(self)}
+      @bet_boxes = BetBoxes.new(self, num_seats)
 
       @dealer = Dealer.new(self)
     end
@@ -87,43 +89,8 @@ module Blackjack
       shoe.new_hand
     end
 
-    def bet_box_for(player)
-      bet_box = bet_boxes[seat_position(player)]
-      bet_box.available? ? bet_box : nil
-    end
-
-    def available_bet_boxes_for(player)
-      player_seat_position = seat_position(player)
-      raise "that player is not seated" if player_seat_position.nil?
-
-      max_pos = config[:num_seats]-1
-      best_adjacent_box_positions = case player_seat_position
-        when 0
-          [0, 1, 2]
-        when max_pos
-          [max_pos, max_pos-1, max_pos-2]
-        else
-          [player_seat_position-1, player_seat_position, player_seat_position+1] 
-      end
-
-      best_adjacent_box_positions.each do |try_it|
-        bet_box = bet_boxes[try_it]
-        yield bet_box if bet_box.available?
-      end
-    end
-
-    def each_active_bet_box
-      bet_boxes.each do |bet_box|
-        yield bet_box if bet_box.active?
-      end
-    end
-
     def num_players
       seated_players.count {|sp| !sp.nil?}
-    end
-
-    def any_bets?
-      bet_boxes.any? {|bet_box| bet_box.current_bet > 0}
     end
 
     def any_seated_players?
@@ -137,7 +104,7 @@ module Blackjack
     end
 
     def num_seats
-      config[:num_seats] || DEFAULT_MAX_SEATS
+      config[:num_seats]
     end
 
     def find_empty_seat_position(desired_seat_position=nil)

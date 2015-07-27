@@ -49,9 +49,7 @@ module Blackjack
       #
       if deal.up_card.ace?
         players.each do |player|
-          if player.strategy.insurance?
-            # yes no even_money
-          end
+          dealer.ask_insurance?(player, player)
         end
       elsif deal.up_card.ten?
       else
@@ -142,7 +140,7 @@ module Blackjack
       while table.any_seated_players?
         shuffle_check
         wait_for_player_bets
-        next unless table.any_bets? 
+        next unless table.bet_boxes.any_bets? 
         opening_sequence
         blackjack_check
       end

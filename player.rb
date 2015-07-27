@@ -40,7 +40,7 @@ module Blackjack
     end
 
     def bet_box
-      table.bet_box_for(self)
+      table.bet_boxes.dedicated_to(self)
     end
 
     def reset

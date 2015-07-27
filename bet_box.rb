@@ -15,15 +15,34 @@ module Blackjack
       reset
     end
 
+    def dedicated?
+      #
+      # bet box has a seated player in front of it
+      #
+      !table.seated_players[position].nil?
+    end
+
     def available?
-      player.nil?
+      #
+      # adjacent seated players may place a bet here
+      # when its available?
+      #
+      !dedicated? && player.nil?
     end
 
     def active?
-      !available?
+      #
+      # A player has a bet in this bet box
+      # adjacent seated players may not place a bet here
+      # when its active?
+      #
+      !player.nil?
     end
 
     def bet(player, bet_amount)
+      #
+      # player makes a bet
+      #
       @player = player
       player.bank.transfer_to(box, bet_amount)
     end
@@ -45,6 +64,10 @@ module Blackjack
 
     def current_bet
       box.current_balance
+    end
+
+    def position
+      @pos ||= table.bet_boxes.index(self)
     end
 
     def reset
