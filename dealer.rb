@@ -14,7 +14,7 @@ module Blackjack
       init_response_validator
     end
 
-    def deal_one_card_face_up_to_bet_active_bet_boxes
+    def deal_one_card_face_up_to_bet_active_bet_box
       table.bet_boxes.each_active do |bet_box|
         table.shoe.deal_one_up(bet_box.hand)
       end
@@ -81,7 +81,7 @@ module Blackjack
       play: [
         Action::LEAVE,
         Action::SIT_OUT,
-        Action::PLAY
+        Action::BET
       ],
       insurance: [
         Action::INSURANCE,

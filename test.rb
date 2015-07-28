@@ -144,7 +144,7 @@ module Blackjack
     end
 
     it "should deal hands to players with bets made" do
-      @dealer.deal_one_card_face_up_to_bet_active_bet_boxes
+      @dealer.deal_one_card_face_up_to_bet_active_bet_box
     end
   end
 
@@ -271,6 +271,101 @@ module Blackjack
       seat_position = @table.join(@player, @fav_seat)
       expected_results = [
         @table.bet_boxes[@fav_seat],
+        @table.bet_boxes[@fav_seat-1],
+        @table.bet_boxes[@fav_seat+1]
+      ].each
+      @table.bet_boxes.available_for(@player) do |bet_box|
+        bet_box.must_equal(expected_results.next)
+      end
+    end
+
+    it "should provide a mid-table player way to reach adjacent, available bet_boxes for multi-bet play when the one to the right is taken" do
+      @fav_seat = 2
+      @player = Player.new('ted2')
+      @player2 = Player.new('tedsbuddy')
+      seat_position = @table.join(@player, @fav_seat)
+      seat_position = @table.join(@player2, @fav_seat-1)
+      expected_results = [
+        @table.bet_boxes[@fav_seat],
+        @table.bet_boxes[@fav_seat+1],
+        @table.bet_boxes[@fav_seat+2]
+      ].each
+      @table.bet_boxes.available_for(@player) do |bet_box|
+        bet_box.must_equal(expected_results.next)
+      end
+    end
+
+    it "should provide a mid-table player way to reach adjacent, available bet_boxes for multi-bet play when the one to the left is taken" do
+      @fav_seat = 2
+      @player = Player.new('ted2')
+      @player2 = Player.new('tedsbuddy')
+      seat_position = @table.join(@player, @fav_seat)
+      seat_position = @table.join(@player2, @fav_seat+1)
+      expected_results = [
+        @table.bet_boxes[@fav_seat],
+        @table.bet_boxes[@fav_seat-1],
+        @table.bet_boxes[@fav_seat-2]
+      ].each
+      @table.bet_boxes.available_for(@player) do |bet_box|
+        bet_box.must_equal(expected_results.next)
+      end
+    end
+
+    it "should provide a mid-table player one bet_box when no other adjacents are available" do
+      @fav_seat = 2
+      @player = Player.new('ted2')
+      @player2 = Player.new('tedsbuddy')
+      @player3 = Player.new('tedsotherbuddy')
+      seat_position = @table.join(@player, @fav_seat)
+      seat_position = @table.join(@player2, @fav_seat+1)
+      seat_position = @table.join(@player3, @fav_seat-1)
+      expected_results = [
+        @table.bet_boxes[@fav_seat]
+      ].each
+      @table.bet_boxes.available_for(@player) do |bet_box|
+        bet_box.must_equal(expected_results.next)
+      end
+    end
+
+    it "should provide a mid-table player two bet_boxes when only one adjacent is available" do
+      @fav_seat = 2
+      @player = Player.new('ted2')
+      @player2 = Player.new('tedsbuddy')
+      @player3 = Player.new('tedsotherbuddy')
+      seat_position = @table.join(@player, @fav_seat)
+      seat_position = @table.join(@player2, @fav_seat+1)
+      seat_position = @table.join(@player3, @fav_seat-2)
+      expected_results = [
+        @table.bet_boxes[@fav_seat],
+        @table.bet_boxes[@fav_seat-1]
+      ].each
+      @table.bet_boxes.available_for(@player) do |bet_box|
+        bet_box.must_equal(expected_results.next)
+      end
+    end
+
+    it "should provide a zero position player way to reach adjacent, available bet_boxes for multi-bet play" do
+      @fav_seat = 0
+      @player = Player.new('tedzero')
+      seat_position = @table.join(@player, @fav_seat)
+      expected_results = [
+        @table.bet_boxes[@fav_seat],
+        @table.bet_boxes[@fav_seat+1],
+        @table.bet_boxes[@fav_seat+2]
+      ].each
+      @table.bet_boxes.available_for(@player) do |bet_box|
+        bet_box.must_equal(expected_results.next)
+      end
+    end
+
+    it "should provide the last position player way to reach adjacent, available bet_boxes for multi-bet play" do
+      @fav_seat = @table.config[:num_seats]
+      @player = Player.new('tedlast')
+      seat_position = @table.join(@player, @fav_seat)
+      expected_results = [
+        @table.bet_boxes[@fav_seat],
+        @table.bet_boxes[@fav_seat-1],
+        @table.bet_boxes[@fav_seat-2]
       ].each
       @table.bet_boxes.available_for(@player) do |bet_box|
         bet_box.must_equal(expected_results.next)
@@ -322,25 +417,32 @@ module Blackjack
     end
 
     it "should allow use of the game play class with many players" do
-      class TestStrategy
-        def initialize(player, dealer_up_card=nil, other_hands=[])
+      class TestStrategy < PlayerHandStrategy
+        def play?
+          Action::BET
         end
+
+        def insurance?(hand)
+          hand.blackjack? ? Action::EVEN_MONEY : Action::NO_INSURANCE
+        end
+
         def bet_amount
-          5
+          25
         end
-        def decision
+
+        def decision(hand, dealer_up_card, other_hands)
         end
       end
-      names = %w{dave davey katie vader cass}
+      names = %w{dave davey katie vader cass erica}
       players = names.map {|n| Player.new(n)}
-      players.each {|p| p.strategy = TestStrategy.new(p, ); p.join(@table)}
+      players.each {|p| p.strategy = TestStrategy.new(@table, p); p.join(@table)}
       @table.num_players.must_equal(names.length)
-      players.each {|p| p.make_bet}
       gp = GamePlay.new(@table)
+      gp.wait_for_player_bets
       gp.shuffle_check
-      gp.opening_sequence
+      gp.opening_deal
       @table.bet_boxes.each_active do |bb|
-        bb.box.current_balance.must_equal(5)
+        bb.box.current_balance.must_equal(25)
         bb.hand.length.must_equal(2)
         bb.hand[0].face_up?.must_equal(true)
         bb.hand[1].face_up?.must_equal(true)

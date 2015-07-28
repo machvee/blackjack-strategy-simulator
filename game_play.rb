@@ -10,7 +10,7 @@ module Blackjack
       @players = table.seated_players
     end
 
-    def opening_sequence
+    def opening_deal
       # 
       # 1. Players have put amounts of money in bet_boxes (or are sitting out) and
       #    have indicated ready
@@ -19,9 +19,9 @@ module Blackjack
       # 4. dealer from his left to right, deals one additional card face up to each active bet_box
       # 5. dealer deals himself one card face down (hole-card)
       #
-      dealer.deal_one_card_face_up_to_bet_active_bet_boxes
+      dealer.deal_one_card_face_up_to_bet_active_bet_box
       dealer.deal_up_card
-      dealer.deal_one_card_face_up_to_bet_active_bet_boxes
+      dealer.deal_one_card_face_up_to_bet_active_bet_box
       dealer.deal_hole_card
     end
 
@@ -47,11 +47,11 @@ module Blackjack
       # 3. If the dealer's up-card is not A or 10-point:
       #     a. check each players hand for blackjack, pay them the BJ payout, and discard the players hand
       #
-      if deal.up_card.ace?
-        players.each do |player|
-          dealer.ask_insurance?(player, player)
+      if dealer.up_card.ace?
+        table.bet_boxes.each_active do |bet_box|
+          dealer.ask_insurance?(bet_box.player, bet_box.hand)
         end
-      elsif deal.up_card.ten?
+      elsif dealer.up_card.ten?
       else
       end
     end
@@ -111,10 +111,21 @@ module Blackjack
 
     def wait_for_player_bets
       players.each do |player|
-        bet_amount = player.strategy.bet_amount
-        player.leave_table if bet_amount == Action::LEAVE
-        player.make_bet(bet_amount) if bet_amount > 0
-      end
+        catch :player_leaves_table do
+          table.bet_boxes.available_for(player) do |bet_box|
+            case dealer.ask_play?(player)
+              when Action::LEAVE
+                player.leave_table
+                throw :player_leaves_table
+              when Action::SIT_OUT
+                break
+              when Action::BET
+                bet_amount = dealer.ask_bet_amount(player)
+                player.make_bet(bet_box, bet_amount)
+            end # case
+          end # table.bet_boxes
+        end # catch
+      end # players
     end
 
     def run
@@ -126,7 +137,7 @@ module Blackjack
       # GamePlay#shuffle_check
       # Wait for players to make bets. When one or more bets have been made, and other
       # players have signified they're in or out:
-      #   GamePlay#opening_sequence
+      #   GamePlay#opening_deal
       #   GamePlay#blackjack_check
       #   for each bet_box that has a bet
       #     GamePlay#player_hand
@@ -141,7 +152,7 @@ module Blackjack
         shuffle_check
         wait_for_player_bets
         next unless table.bet_boxes.any_bets? 
-        opening_sequence
+        opening_deal
         blackjack_check
       end
     end

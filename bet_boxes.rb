@@ -7,7 +7,7 @@ module Blackjack
 
     def initialize(table, num_bet_boxes)
       @table = table
-      @bet_boxes = Array.new(num_bet_boxes) {BetBox.new(table)}
+      @bet_boxes = Array.new(num_bet_boxes) {|i| BetBox.new(table, i)}
     end
 
     def each
@@ -43,13 +43,44 @@ module Blackjack
 
       min_pos = 0
       max_pos = table.config[:num_seats]-1
+      max_player_bets = table.config[:max_player_bets]
+      bet_box_count = 1
+      offset = 1
+      available_bet_boxes = [dedicated_to(player)]
+      right_remain = left_remain = true
+      while(true) do
+        #
+        # look to the players right then left for an available? bet_box
+        # keep working outwards until as many bet_boxes can be selected
+        # up to max_player_bets
+        #
+        break unless right_remain || left_remain
 
-      yield dedicated_to(player)
+        if right_remain
+          ind = player_seat_position - offset
+          if ind >= min_pos && bet_boxes[ind].available?
+            available_bet_boxes << bet_boxes[ind]
+            break if available_bet_boxes.length == max_player_bets
+          else
+            right_remain = false
+          end
+        end
 
-      #
-      # TODO: need to iterate over adjacent, available bet_boxes
-      # if they're available
-      #
+        if left_remain
+          ind = player_seat_position + offset
+          if ind <= max_pos && bet_boxes[ind].available?
+            available_bet_boxes << bet_boxes[ind]
+            break if available_bet_boxes.length == max_player_bets
+          else
+            left_remain = false
+          end
+        end
+        offset += 1
+      end
+
+      available_bet_boxes.each do |bet_box|
+        yield bet_box
+      end
     end
 
     def each_active

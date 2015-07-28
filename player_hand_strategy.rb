@@ -3,7 +3,7 @@ module Blackjack
   module Action
     LEAVE=0
     SIT_OUT=1
-    PLAY=2
+    BET=2
     HIT=3
     STAND=4
     SPLIT=5
@@ -33,9 +33,10 @@ module Blackjack
 
     def play?
       #
+      # Invoked for available_for(player) bet_boxes which lets players make one or more bets
       # return Action::BET to put chips in the bet_box
-      # return Action::SIT_OUT to stay at table but sit out hand
-      # return Action::LEAVE to leave table before next hand dealt
+      # return Action::SIT_OUT to not make a bet in the bet_box
+      # return Action::LEAVE to take bets and leave table before next hand dealt
       #
     end
 
@@ -103,6 +104,8 @@ module Blackjack
       min_bet = table.config[:minimum_bet]
       max_bet = table.config[:maximum_bet]
       @user_bet_maker = CommandPrompter.new("Bet Amount:int:#{min_bet}:#{max_bet}")
+      @bets_to_make = 2
+      @bet_count = 0
     end
 
     def decision(player_hand, dealer_up_card, other_hands=[])
@@ -110,6 +113,7 @@ module Blackjack
       show_dealer_up_card(dealer_up_card)
       show_player_hand(player_hand)
       prompt_for_action
+      @bet_count = 0
     end
 
     def bet_amount
@@ -117,7 +121,10 @@ module Blackjack
     end
 
     def play?
-      player.bank.current_balance > blayer.bank.initial_deposit/8 ? Action::BET : Action::LEAVE
+      return Action::LEAVE if player.bank.current_balance <= blayer.bank.initial_deposit/8
+      return Action::SIT_OUT if @bet_count == @bets_to_make
+      @bet_count += 1
+      Action::BET
     end
 
     def insurance?(player_hand)

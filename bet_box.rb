@@ -4,14 +4,16 @@ module Blackjack
     attr_reader :player
     attr_reader :box
     attr_reader :hand
+    attr_reader :position
     attr_reader :split_bet_box
 
     include Cards
 
-    def initialize(table)
+    def initialize(table, player_seat_position)
       @table = table
       @box = Bank.new(0)
       @hand = table.new_hand
+      @position = player_seat_position
       reset
     end
 
@@ -53,7 +55,7 @@ module Blackjack
 
     def split
       raise "player hand is already split" unless split_bet_box.nil?
-      @split_bet_box = BetBox.new(table)
+      @split_bet_box = BetBox.new(table, position)
     end
 
     def discard
@@ -66,14 +68,14 @@ module Blackjack
       box.current_balance
     end
 
-    def position
-      @pos ||= table.bet_boxes.index(self)
-    end
-
     def reset
       @player = nil
       @amount = 0
       @split_bet_box = nil
+    end
+
+    def inspect
+      available? ? "Available BetBox #{position}" : "Dedicated BetBox #{position} for #{player.name}"
     end
   end
 end

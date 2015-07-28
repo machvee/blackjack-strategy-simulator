@@ -33,8 +33,8 @@ module Blackjack
       self
     end
 
-    def make_bet
-      bet_box.bet(self, strategy.bet_amount)
+    def make_bet(bet_box, bet_amount)
+      bet_box.bet(self, bet_amount)
       stats.hands.incr
       self
     end
