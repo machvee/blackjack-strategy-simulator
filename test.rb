@@ -182,7 +182,11 @@ module Blackjack
     it "should support default configuration" do 
       @table.config[:blackjack_payout].must_equal [3,2]
       @table.config[:dealer_hits_soft_17].must_equal false
+      @table.config[:player_surrender].must_equal false
       @table.config[:num_seats].must_equal 6
+      @table.config[:minimum_bet].must_equal 25
+      @table.config[:maximum_bet].must_equal 5000
+      @table.config[:double_down_on].must_equal []
     end
 
     it "should support options for configuration" do

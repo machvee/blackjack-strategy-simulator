@@ -56,6 +56,10 @@ module Blackjack
       soft_sum > TWENTYONE 
     end
 
+    def hittable?
+      soft_sum < TWENTYONE 
+    end
+
     def soft?
       has_ace?
     end

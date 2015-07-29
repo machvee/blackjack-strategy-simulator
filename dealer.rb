@@ -11,7 +11,7 @@ module Blackjack
 
     def initialize(table)
       @table = table
-      init_response_validator
+      @validator = StrategyValidator(table)
     end
 
     def deal_one_card_face_up_to_bet_active_bet_box
@@ -35,20 +35,20 @@ module Blackjack
       end
     end
 
-    def ask_insurance?(player, player_hand)
-      prompt_player_strategy_and_validate(:insurance) do
-        player.strategy.insurance?(player_hand)
+    def ask_insurance?(player, bet_box)
+      prompt_player_strategy_and_validate(:insurance, player, bet_box) do
+        player.strategy.insurance?(bet_box)
       end
     end
 
-    def ask_decision(player, player_hand)
-      prompt_player_strategy_and_validate(:decision) do
-        player.strategy.decision(player_hand, dealer.up_card, table.other_hands(player_hand))
+    def ask_decision(player, bet_box)
+      prompt_player_strategy_and_validate(:decision, player, bet_box) do
+        player.strategy.decision(bet_box, dealer.up_card, table.other_hands(player_hand))
       end
     end
 
     def ask_bet_amount(player)
-      prompt_player_strategy_and_validate(:bet_amount) do
+      prompt_player_strategy_and_validate(:bet_amount, player) do
         player.strategy.bet_amount
       end
     end
@@ -67,45 +67,36 @@ module Blackjack
 
     private
 
-    def prompt_player_strategy_and_validate(strategy_step)
+    def prompt_player_strategy_and_validate(strategy_step, player, bet_box=nil)
       while(true) do
         response = yield
-        success, message = validate_step_response(strategy_step, response)
+        success, message = validate_step_response(strategy_step, response, player, bet_box)
         break if success
         player.strategy.error(strategy_step, message)
       end
       response
     end
 
-    STRATEGY_VALID_INPUT_HASH = {
-      play: [
-        Action::LEAVE,
-        Action::SIT_OUT,
-        Action::BET
-      ],
-      insurance: [
-        Action::INSURANCE,
-        Action::NO_INSURANCE,
-        Action::EVEN_MONEY
-      ],
-      decision: [
-        Action::HIT,
-        Action::STAND,
-        Action::SPLIT,
-        Action::DOUBLE_DOWN,
-        Action::SURRENDER
-      ]
-    }
+    def validate_step_response(strategy_step, response, player, bet_box)
+      valid_input = case strategy_step
+        when :play
+          @validator.validate_play?(player, response)
+        when :insurance
+          @validator.validate_insurance?(player, bet_box, response)
+        when :bet_amount
+          @validator.validate_bet_amount(player, response)
+        when :decision
+          @validator.validate_decision(player, bet_box, response)
+      end
 
-    def init_response_validator
-      @validator_hash = STRATEGY_VALID_INPUT_HASH.merge(bet_amount: table.config[:minimum_bet]..table.config[:maximum_bet])
-    end
+      error_message = case strategy_step
+        when :insurance
+          if !player_hand.blackjack?
+            "Player must have Blackjack to request EVEN_MONEY for insurance?"
+          end
+        when :decision
+      end
 
-    def validate_step_response(strategy_step, response)
-      valid_input = @validator_hash[strategy_step].include?(response)
-      message = valid_input ? nil : error_message(strategy_step, response)
-
-      [valid_input, message]
     end
 
     def error_message(strategy_step, response)

@@ -47,7 +47,7 @@ module Blackjack
       #
     end
 
-    def insurance?(player_hand)
+    def insurance?(bet_box)
       #
       # override in sub-class to indicate:
       #
@@ -57,10 +57,10 @@ module Blackjack
       #
     end
 
-    def decision(player_hand, dealer_up_card, other_hands=[])
+    def decision(bet_box, dealer_up_card, other_hands=[])
       #
       # override in subclass to decide what to do based on
-      #   player_hand
+      #   bet_box (hand and current_bet)
       #   dealer_up_card
       #   other_hands
       #
@@ -108,7 +108,8 @@ module Blackjack
       @bet_count = 0
     end
 
-    def decision(player_hand, dealer_up_card, other_hands=[])
+    def decision(bet_box, dealer_up_card, other_hands=[])
+      player_hand = bet_box.hand
       show_other_hands(other_hands)
       show_dealer_up_card(dealer_up_card)
       show_player_hand(player_hand)
@@ -127,7 +128,7 @@ module Blackjack
       Action::BET
     end
 
-    def insurance?(player_hand)
+    def insurance?(bet_box)
       Action::NO_INSURANCE
     end
 
