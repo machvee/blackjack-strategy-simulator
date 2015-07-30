@@ -29,7 +29,7 @@ module Blackjack
     end
 
     def ask_play?(player)
-      prompt_player_strategy_and_validate(:play) do
+      prompt_player_strategy_and_validate(:play, player) do
         player.strategy.play?
       end
     end
@@ -81,11 +81,11 @@ module Blackjack
         when :play
           @validator.validate_play?(player, response)
         when :insurance
-          @validator.validate_insurance?(player, bet_box, response)
+          @validator.validate_insurance?(bet_box, response)
         when :bet_amount
           @validator.validate_bet_amount(player, response)
         when :decision
-          @validator.validate_decision(player, bet_box, response)
+          @validator.validate_decision(bet_box, response)
       end
       [valid_input, error_message]
     end

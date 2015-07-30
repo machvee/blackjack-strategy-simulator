@@ -43,8 +43,7 @@ module Blackjack
       end
     end
 
-
-    def validate_insurance?(player, bet_box, response)
+    def validate_insurance?(bet_box, response)
       #
       # player must have blackjack in order to ask
       # for Action::EVEN_MONEY
@@ -54,6 +53,8 @@ module Blackjack
       #
       # Action::NO_INSURANCE is always valid
       #
+      player = bet_box.player
+
       if !STRATEGY_VALID_INPUT_HASH[:insurance].include?(response)
         [false, "Sorry, that's not a valid response"]
       elsif player.bank.current_balance < bet_box.current_bet/2.0
@@ -78,10 +79,11 @@ module Blackjack
       end
     end
 
-    def validate_decision(player, bet_box, response)
+    def validate_decision(bet_box, response)
       if !STRATEGY_VALID_INPUT_HASH[:decision].include?(response)
         [false, "Sorry, that's not a valid response"]
       else
+        player = bet_box.player
         valid_resp, error_message =
           case response
           when Action::SURRENDER 
