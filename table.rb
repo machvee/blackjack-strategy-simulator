@@ -1,6 +1,7 @@
 require 'counter_measures'
 require 'blackjack_card'
 require 'shoe'
+require 'strategy_validator'
 require 'dealer'
 require 'player'
 require 'player_hand_strategy'

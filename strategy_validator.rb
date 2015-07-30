@@ -1,7 +1,7 @@
-module Blackjack
-  class StrategyEvaluator
+require 'player_hand_strategy'
 
-    YOU ARE HERE.  reverse this.  change to invalid_strategy_step? and have it return [false, nil] or [true, "reason why its not valid"]
+module Blackjack
+  class StrategyValidator
 
     STRATEGY_VALID_INPUT_HASH = {
       play: [
@@ -72,7 +72,7 @@ module Blackjack
       if player.bank.current_balance < table.config[:minimum_bet]
         [false, "Player has insufficient funds to make a #{table.config[:minimum_bet]} minimum bet"]
       elsif !valid_bet_amount.include?(bet_amount)
-        [false, "Player bet must be between #{valid_bet_amount.min} and #{valid_bet_amount.max}"
+        [false, "Player bet must be between #{valid_bet_amount.min} and #{valid_bet_amount.max}"]
       else
         [true, nil]
       end
@@ -82,7 +82,8 @@ module Blackjack
       if !STRATEGY_VALID_INPUT_HASH[:decision].include?(response)
         [false, "Sorry, that's not a valid response"]
       else
-        valid_resp, error_message = case response
+        valid_resp, error_message =
+          case response
           when Action::SURRENDER 
             #
             # can the player surrender?
@@ -110,7 +111,7 @@ module Blackjack
             if player.bank.current_balance == 0 
               [false, "Player has insufficient funds to double down"]
             elsif !valid_double_hand?(bet_box.hand)
-              [false, "Player can only double down on hands of #{table.config[:double_down_on].map(&:to_s).join(", ")}"]
+              [false, "Player can only double down on hands of #{valid_double_hand_values}"]
             end
           when Action::HIT
             #
@@ -121,10 +122,8 @@ module Blackjack
             end
           end
           [valid_resp||true, error_message]
-        end
       end
     end
-
 
     private
 
@@ -137,6 +136,10 @@ module Blackjack
       double_down_on.empty? ||
       double_down_on.include?(hand.hard_sum) ||
       double_down_on.include?(hand.soft_sum)
+    end
+
+    def valid_double_hand_values
+      table.config[:double_down_on].map(&:to_s).join(', ')
     end
   end
 end

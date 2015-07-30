@@ -1,5 +1,4 @@
 require 'cards'
-require 'player_hand_strategy'
 
 module Blackjack
   class Dealer
@@ -11,7 +10,7 @@ module Blackjack
 
     def initialize(table)
       @table = table
-      @validator = StrategyValidator(table)
+      @validator = StrategyValidator.new(table)
     end
 
     def deal_one_card_face_up_to_bet_active_bet_box
