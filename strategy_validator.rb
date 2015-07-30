@@ -29,23 +29,22 @@ module Blackjack
       @table = table
     end
 
-    def valid_play?(player)
-      valid_responses = STRATEGY_VALID_INPUT_HASH[:play]
+    def validate_play?(player, response)
       #
       # player must have minimum bet amount in bank in order to
       # place a bet
       #
-      if player.bank.current_balance < table.config[:minimum_bet]
-        valid_responses.delete(Action::BET)
+      if !STRATEGY_VALID_INPUT_HASH[:play].include?(response)
+        [false, "Sorry, that's not a valid response"]
+      elsif player.bank.current_balance < table.config[:minimum_bet]
+        [false, "Player has insufficient funds to make a #{table.config[:minimum_bet]} minimum bet"]
+      else
+        [true, nil]
       end
-      valid_responses
     end
 
-    def validate_play?(player, response)
-      valid_play?(player).include?(response)
-    end
 
-    def valid_insurance?(player, bet_box)
+    def validate_insurance?(player, bet_box, response)
       #
       # player must have blackjack in order to ask
       # for Action::EVEN_MONEY
@@ -55,54 +54,77 @@ module Blackjack
       #
       # Action::NO_INSURANCE is always valid
       #
-      valid_responses = STRATEGY_VALID_INPUT_HASH[:insurance]
-      valid_responses.delete(Action::INSURANCE) unless player.bank.current_balance >= bet_box.current_bet/2.0
-      valid_responses.delete(Action::EVEN_MONEY) unless bet_box.hand.blackjack?
-      valid_responses
+      if !STRATEGY_VALID_INPUT_HASH[:insurance].include?(response)
+        [false, "Sorry, that's not a valid response"]
+      elsif player.bank.current_balance < bet_box.current_bet/2.0
+        [false, "Player bank has insufficient funds for insurance bet"]
+      elsif !bet_box.hand.blackjack?
+        [false, "Player must have Blackjack to request even money"]
+      else 
+        [true, nil]
+      end
     end
 
-    def validate_insurance?(player, bet_box, response)
-      valid_insurance?(player, bet_box).include?(response)
-    end
-
-    def valid_bet_amount
-      table.config[:minimum_bet]..table.config[:maximum_bet]
-    end
 
     def validate_bet_amount(player, bet_amount)
-      player.bank.current_balance >= table.config[:minimum_bet] &&
-        valid_bet_amount.include?(bet_amount)
-    end
+      valid_bet_amount = table.config[:minimum_bet]..table.config[:maximum_bet]
 
-    def valid_decision(player, bet_box)
-      valid_responses = STRATEGY_VALID_INPUT_HASH[:decision]
-      #
-      # can the player surrender?
-      #
-      valid_responses.delete(Action::SURRENDER) unless table.config[:player_surrender] && bet_box.hand.length == 2
-
-      #
-      # can the player split?
-      #
-      # TODO: need to enforce hand max splits from table.config
-      valid_responses.delete(Action::SPLIT) unless player.bank.current_balance >= bet_box.current_bet && valid_split_hand?(bet_box.hand)
-
-      #
-      # can the player double down? (assumes double for less)
-      #
-      valid_responses.delete(Action::DOUBLE_DOWN) unless player.bank.current_balance == 0 && valid_double_hand?(bet_box.hand)
-
-      #
-      # can the player hit?
-      #
-      valid_responses.delete(Action::HIT) unless bet_box.hand.hittable?
-
-      valid_responses
+      if player.bank.current_balance < table.config[:minimum_bet]
+        [false, "Player has insufficient funds to make a #{table.config[:minimum_bet]} minimum bet"]
+      elsif !valid_bet_amount.include?(bet_amount)
+        [false, "Player bet must be between #{valid_bet_amount.min} and #{valid_bet_amount.max}"
+      else
+        [true, nil]
+      end
     end
 
     def validate_decision(player, bet_box, response)
-      valid_decision(player, bet_box).include?(response)
+      if !STRATEGY_VALID_INPUT_HASH[:decision].include?(response)
+        [false, "Sorry, that's not a valid response"]
+      else
+        valid_resp, error_message = case response
+          when Action::SURRENDER 
+            #
+            # can the player surrender?
+            #
+            if !table.config[:player_surrender] 
+              [false, "This table does not allow player to surrender"]
+            elsif bet_box.hand.length > 2
+              [false, "Player may surrender only after initial hand is dealt"]
+            end
+          when Action::SPLIT
+            #
+            # can the player split?
+            #
+            # TODO: need to enforce hand max splits from table.config
+            #
+            if player.bank.current_balance < bet_box.current_bet
+              [false, "Player has insufficient funds to split the hand"]
+            elsif !valid_split_hand?(bet_box.hand)
+              [false, "Player can only split cards that are identical in value"]
+            end
+          when Action::DOUBLE_DOWN
+            #
+            # can the player double down? (assumes double for less)
+            #
+            if player.bank.current_balance == 0 
+              [false, "Player has insufficient funds to double down"]
+            elsif !valid_double_hand?(bet_box.hand)
+              [false, "Player can only double down on hands of #{table.config[:double_down_on].map(&:to_s).join(", ")}"]
+            end
+          when Action::HIT
+            #
+            # can the player hit?
+            #
+            if !bet_box.hand.hittable?
+              [false, "Player hand can no longer be hit"]
+            end
+          end
+          [valid_resp||true, error_message]
+        end
+      end
     end
+
 
     private
 

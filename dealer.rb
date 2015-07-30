@@ -78,7 +78,7 @@ module Blackjack
     end
 
     def validate_step_response(strategy_step, response, player, bet_box)
-      valid_input = case strategy_step
+      valid_input, error_message = case strategy_step
         when :play
           @validator.validate_play?(player, response)
         when :insurance
@@ -88,26 +88,7 @@ module Blackjack
         when :decision
           @validator.validate_decision(player, bet_box, response)
       end
-
-      error_message = case strategy_step
-        when :insurance
-          if !player_hand.blackjack?
-            "Player must have Blackjack to request EVEN_MONEY for insurance?"
-          end
-        when :decision
-      end
-
+      [valid_input, error_message]
     end
-
-    def error_message(strategy_step, response)
-      case strategy_step
-        when :bet_amount
-          "#{response} is an invalid bet amount"
-        else
-          bad_resp_const = Action.constants.find {|c| Action.const_get(c) == response}
-          "Action::#{bad_resp_const} is an invalid response for Strategy##{strategy_step}"
-      end
-    end
-
   end
 end
