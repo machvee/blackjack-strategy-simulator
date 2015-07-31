@@ -49,7 +49,7 @@ module Blackjack
       #
       if dealer.up_card.ace?
         table.bet_boxes.each_active do |bet_box|
-          response = dealer.ask_insurance?(bet_box.player, bet_box.hand)
+          response = dealer.ask_insurance?(bet_box)
           case response
             when Action::NO_INSURANCE
             when Action::INSURANCE
