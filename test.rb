@@ -426,15 +426,15 @@ module Blackjack
           Action::BET
         end
 
-        def insurance?(hand)
-          hand.blackjack? ? Action::EVEN_MONEY : Action::NO_INSURANCE
+        def insurance?(bet_box)
+          bet_box.hand.blackjack? ? Action::EVEN_MONEY : Action::NO_INSURANCE
         end
 
         def bet_amount
           25
         end
 
-        def decision(hand, dealer_up_card, other_hands)
+        def decision(bet_box, dealer_up_card, other_hands)
         end
       end
       names = %w{dave davey katie vader cass erica}
@@ -453,6 +453,71 @@ module Blackjack
       end
       @table.dealer.up_card.face_up?.must_equal(true)
       @table.dealer.hole_card.face_down?.must_equal(true)
+    end
+  end
+
+  describe StrategyValidator, "A validator for strategy responses" do
+    before do
+      @table = Table.new('t1')
+      @player = Player.new('dave')
+      @player.join(@table)
+      @sv = StrategyValidator.new(@table)
+    end
+
+    it "for the play response, it should return false with non-play response" do
+      @sv.validate_play?(@player, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
+    end
+
+    it "for the play response, it should return true with valid LEAVE response" do
+      @sv.validate_play?(@player, Action::LEAVE).must_equal([true, nil])
+    end
+
+    it "for the play response, it should return true with valid BET response" do
+      @sv.validate_play?(@player, Action::BET).must_equal([true, nil])
+    end
+
+    it "for the play response, it should return true with valid SIT_OUT response" do
+      @sv.validate_play?(@player, Action::SIT_OUT).must_equal([true, nil])
+    end
+
+    it "for the play response, it should return false when player is broke and they want to BET" do
+      @player.bank.debit(@player.bank.current_balance)
+      @player.bank.current_balance.must_equal(0)
+      @sv.validate_play?(@player, Action::BET).must_equal([false,
+        "Player has insufficient funds to make a #{@table.config[:minimum_bet]} minimum bet"])
+    end
+
+  
+    it "it should return false for insurance with non-play response" do
+      @sv.validate_insurance?(@player.bet_box, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
+    end
+
+    it "should return false for insurance? when player is broke and they want INSURANCE" do
+      @player.make_bet(@player.bet_box, 10)
+      @player.bank.debit(@player.bank.current_balance)
+      @player.bank.current_balance.must_equal(0)
+      @player.bet_box.hand.add(Cards::Cards.make('JD', '9H').to_a)
+      @sv.validate_insurance?(@player.bet_box, Action::INSURANCE).must_equal([false,
+        "Player has insufficient funds to make an insurance bet"])
+    end
+
+    it "should return true for insurance? when player wants INSURANCE" do
+      @player.make_bet(@player.bet_box, 10)
+      @player.bet_box.hand.add(Cards::Cards.make('JD', '9H').to_a)
+      @sv.validate_insurance?(@player.bet_box, Action::INSURANCE).must_equal([true, nil])
+    end
+
+    it "should return true for insurance player has blackjack and they want EVEN MONEY" do
+      @player.make_bet(@player.bet_box, 10)
+      @player.bet_box.hand.add(Cards::Cards.make('JD', '9H').to_a)
+      @sv.validate_insurance?(@player.bet_box, Action::EVEN_MONEY).must_equal([false,
+        "Player must have Blackjack to request even money"])
+    end
+
+    it "should return false for insurance player doesn't have blackjack and they want EVEN MONEY" do
+      @player.make_bet(@player.bet_box, 10)
+      @player.bet_box.hand.add(Cards::Cards.make('JD', 'AH').to_a)
+      @sv.validate_insurance?(@player.bet_box, Action::EVEN_MONEY).must_equal([true, nil])
     end
   end
 

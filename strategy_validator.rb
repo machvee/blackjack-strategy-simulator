@@ -53,16 +53,22 @@ module Blackjack
       #
       # Action::NO_INSURANCE is always valid
       #
-      player = bet_box.player
-
       if !STRATEGY_VALID_INPUT_HASH[:insurance].include?(response)
         [false, "Sorry, that's not a valid response"]
-      elsif player.bank.current_balance < bet_box.current_bet/2.0
-        [false, "Player bank has insufficient funds for insurance bet"]
-      elsif !bet_box.hand.blackjack?
-        [false, "Player must have Blackjack to request even money"]
-      else 
-        [true, nil]
+      else
+        player = bet_box.player
+        valid_resp, error_message =
+          case response
+          when Action::INSURANCE
+            if player.bank.current_balance < bet_box.current_bet/2.0
+              [false, "Player has insufficient funds to make an insurance bet"]
+            end
+          when Action::EVEN_MONEY
+            if !bet_box.hand.blackjack?
+              [false, "Player must have Blackjack to request even money"]
+            end
+          end
+          valid_resp.nil? ? [true, nil] : [valid_resp, error_message]
       end
     end
 
@@ -123,7 +129,7 @@ module Blackjack
               [false, "Player hand can no longer be hit"]
             end
           end
-          [valid_resp||true, error_message]
+          valid_resp.nil? ? [true, nil] : [valid_resp, error_message]
       end
     end
 
