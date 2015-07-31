@@ -507,17 +507,45 @@ module Blackjack
       @sv.validate_insurance?(@player.bet_box, Action::INSURANCE).must_equal([true, nil])
     end
 
-    it "should return true for insurance player has blackjack and they want EVEN MONEY" do
+    it "should return false for insurance player doesn't have blackjack and they want EVEN MONEY" do
       @player.make_bet(@player.bet_box, 10)
       @player.bet_box.hand.set('JD', '9H')
       @sv.validate_insurance?(@player.bet_box, Action::EVEN_MONEY).must_equal([false,
         "Player must have Blackjack to request even money"])
     end
 
-    it "should return false for insurance player doesn't have blackjack and they want EVEN MONEY" do
+    it "should return true for insurance player has blackjack and they want EVEN MONEY" do
       @player.make_bet(@player.bet_box, 10)
       @player.bet_box.hand.set('JD', 'AH')
       @sv.validate_insurance?(@player.bet_box, Action::EVEN_MONEY).must_equal([true, nil])
+    end
+
+    it "should return false for bet_amount when player has insufficient funds" do
+      @player.bank.debit(@player.bank.current_balance)
+      @player.bank.current_balance.must_equal(0)
+      @sv.validate_bet_amount(@player, 25).must_equal([false,
+        "Player has insufficient funds to make a #{@table.config[:minimum_bet]} minimum bet"])
+    end
+
+    it "should return false for bet_amount when player bets below table minimum" do
+      min = @table.config[:minimum_bet]
+      @sv.validate_bet_amount(@player, min-1).must_equal([false,
+        "Player bet must be between #{min} and #{@table.config[:maximum_bet]}"])
+    end
+
+    it "should return false for bet_amount when player bets above table maximum" do
+      max = @table.config[:maximum_bet]
+      @sv.validate_bet_amount(@player, max+1).must_equal([false,
+        "Player bet must be between #{@table.config[:minimum_bet]} and #{max}"])
+    end
+
+    it "should return true for a valid bet_amount" do
+      min = @table.config[:minimum_bet]
+      max = @table.config[:maximum_bet]
+      @sv.validate_bet_amount(@player, min).must_equal([true, nil])
+      @sv.validate_bet_amount(@player, max).must_equal([true, nil])
+      @sv.validate_bet_amount(@player, min+1).must_equal([true, nil])
+      @sv.validate_bet_amount(@player, max-1).must_equal([true, nil])
     end
   end
 
