@@ -488,7 +488,7 @@ module Blackjack
     end
 
   
-    it "it should return false for insurance with non-play response" do
+    it "it should return false for insurance with non-insurance response" do
       @sv.validate_insurance?(@player.bet_box, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
     end
 
@@ -546,6 +546,10 @@ module Blackjack
       @sv.validate_bet_amount(@player, max).must_equal([true, nil])
       @sv.validate_bet_amount(@player, min+1).must_equal([true, nil])
       @sv.validate_bet_amount(@player, max-1).must_equal([true, nil])
+    end
+
+    it "should return false for decision when input is a non-decsion" do
+      @sv.validate_decision(@player.bet_box, Action::LEAVE).must_equal([false, "Sorry, that's not a valid response"])
     end
   end
 
