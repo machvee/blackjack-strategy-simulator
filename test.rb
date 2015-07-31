@@ -496,27 +496,27 @@ module Blackjack
       @player.make_bet(@player.bet_box, 10)
       @player.bank.debit(@player.bank.current_balance)
       @player.bank.current_balance.must_equal(0)
-      @player.bet_box.hand.add(Cards::Cards.make('JD', '9H').to_a)
+      @player.bet_box.hand.set('JD', '9H')
       @sv.validate_insurance?(@player.bet_box, Action::INSURANCE).must_equal([false,
         "Player has insufficient funds to make an insurance bet"])
     end
 
     it "should return true for insurance? when player wants INSURANCE" do
       @player.make_bet(@player.bet_box, 10)
-      @player.bet_box.hand.add(Cards::Cards.make('JD', '9H').to_a)
+      @player.bet_box.hand.set('JD', '9H')
       @sv.validate_insurance?(@player.bet_box, Action::INSURANCE).must_equal([true, nil])
     end
 
     it "should return true for insurance player has blackjack and they want EVEN MONEY" do
       @player.make_bet(@player.bet_box, 10)
-      @player.bet_box.hand.add(Cards::Cards.make('JD', '9H').to_a)
+      @player.bet_box.hand.set('JD', '9H')
       @sv.validate_insurance?(@player.bet_box, Action::EVEN_MONEY).must_equal([false,
         "Player must have Blackjack to request even money"])
     end
 
     it "should return false for insurance player doesn't have blackjack and they want EVEN MONEY" do
       @player.make_bet(@player.bet_box, 10)
-      @player.bet_box.hand.add(Cards::Cards.make('JD', 'AH').to_a)
+      @player.bet_box.hand.set('JD', 'AH')
       @sv.validate_insurance?(@player.bet_box, Action::EVEN_MONEY).must_equal([true, nil])
     end
   end

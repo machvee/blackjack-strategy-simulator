@@ -205,13 +205,22 @@ module Cards
       @cards = cards
     end
 
+    def set(*cards)
+      # usage hand.set(*%w{JC AS 4H 3D 2D})
+      @cards = cards.map {|fs| Cards.from_face_suit(fs)}
+    end
+
+    def self.from_face_suit(fs, direction=Card::FACE_UP)
+      f=fs[0..-2]
+      s=fs[-1..-1]
+      Card.new(f, s, direction)
+    end
+
     def self.make(*cards)
       # usage Cards.make(*%w{JC AS 4H 3D 2D})
       h = []
       cards.each do |fs|
-        f=fs[0..-2]
-        s=fs[-1..-1]
-        h << Card.new(f,s, Card::FACE_UP)
+        h << from_face_suit(fs)
       end
       new(nil, h)
     end
