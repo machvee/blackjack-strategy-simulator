@@ -98,7 +98,7 @@ module Blackjack
             #
             if !table.config[:player_surrender] 
               [false, "This table does not allow player to surrender"]
-            elsif bet_box.hand.length > 2
+            elsif bet_box.hand.length > 2 || bet_box.split?
               [false, "Player may surrender only after initial hand is dealt"]
             end
           when Action::SPLIT
@@ -126,7 +126,7 @@ module Blackjack
             # can the player hit?
             #
             if !bet_box.hand.hittable?
-              [false, "Player hand can no longer be hit"]
+              [false, "Player hand can no longer be hit after hard 21"]
             end
           end
           valid_resp.nil? ? [true, nil] : [valid_resp, error_message]

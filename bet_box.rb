@@ -54,8 +54,12 @@ module Blackjack
     end
 
     def split
-      raise "player hand is already split" unless split_bet_box.nil?
+      raise "player hand is already split" if split?
       @split_bet_box = BetBox.new(table, position)
+    end
+
+    def split?
+      !@split_bet_box.nil?
     end
 
     def discard
