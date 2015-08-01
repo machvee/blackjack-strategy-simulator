@@ -6,6 +6,7 @@ require 'dealer'
 require 'player'
 require 'player_hand_strategy'
 require 'player_stats'
+require 'split_boxes'
 require 'bet_boxes'
 require 'bet_box'
 require 'bank'
@@ -31,7 +32,8 @@ module Blackjack
       num_seats:           DEFAULT_MAX_SEATS,
       minimum_bet:         25,
       maximum_bet:         5000,
-      max_player_bets:     3
+      max_player_bets:     3,
+      max_player_splits:   nil # unlimited or n
     }
 
     attr_reader   :name
@@ -91,6 +93,14 @@ module Blackjack
 
     def new_hand
       shoe.new_hand
+    end
+
+    def has_split_limit?
+      !config[:max_player_splits].nil?
+    end
+
+    def split_limit
+      config[:max_player_splits]
     end
 
     def num_players

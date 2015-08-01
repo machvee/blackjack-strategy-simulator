@@ -187,6 +187,8 @@ module Blackjack
       @table.config[:minimum_bet].must_equal 25
       @table.config[:maximum_bet].must_equal 5000
       @table.config[:double_down_on].must_equal []
+      @table.config[:max_player_splits].must_equal nil
+      @table.config[:max_player_bets].must_equal 3
     end
 
     it "should support options for configuration" do
@@ -659,8 +661,65 @@ module Blackjack
       @player.bet_box.hand.set('KD', 'QH')
       @sv.validate_decision(@player.bet_box, Action::STAND).must_equal([true, nil])
     end
+  end
 
+  describe BetBox, "A BetBox" do
+    before do
+      @position = 0
+      @table = Table.new('bet_box_test_table')
+      @player = Player.new('dave')
+      @player.join(@table, @position)
+      @bet_box = @table.bet_boxes[@position]
+      @bet_box_empty = @table.bet_boxes[@position+1]
+    end
 
+    it "should be dedicated? because a player sits in front of it" do
+      @bet_box.dedicated?.must_equal(true)
+    end
+
+    it "should not be dedicated? because no player sits in front of it" do
+      @bet_box_empty.dedicated?.must_equal(false)
+    end
+
+    it "must not be available? because its dedicated" do
+      @bet_box.available?.must_equal(false)
+    end
+
+    it "must be available? because its not dedicated" do
+      @bet_box_empty.available?.must_equal(true)
+    end
+
+    it "is not active yet because no bet" do
+      @bet_box.active?.must_equal(false)
+    end
+
+    it "is active when a player has made a bet" do
+      @player.make_bet(@bet_box, 50)
+      @bet_box.active?.must_equal(true)
+    end
+
+    it "supports bet making" do
+      start_bank = @player.bank.current_balance
+      bet_amt = 50
+      @bet_box.bet(@player, bet_amt)
+      @bet_box.active?.must_equal(true)
+      @player.bank.current_balance.must_equal(start_bank-bet_amt)
+    end
+
+    it "lets the player take winnings" do
+      start_bank = @player.bank.current_balance
+      bet_amt = 50
+      @bet_box.bet(@player, bet_amt)
+      @player.bank.current_balance.must_equal(start_bank-bet_amt)
+      @bet_box.box.current_balance.must_equal(bet_amt)
+      @bet_box.take_winnings
+      @bet_box.box.current_balance.must_equal(0)
+      @player.bank.current_balance.must_equal(start_bank)
+    end
+
+    it "allows a player to split the hand" do
+      # YOU ARE HERE test splitting
+    end
   end
 
   describe Player, "A Player" do
