@@ -667,6 +667,8 @@ module Blackjack
     before do
       @position = 0
       @table = Table.new('bet_box_test_table')
+      @table.shoe.shuffle
+      @table.shoe.place_cut_card
       @player = Player.new('dave')
       @player.join(@table, @position)
       @bet_box = @table.bet_boxes[@position]
@@ -718,7 +720,18 @@ module Blackjack
     end
 
     it "allows a player to split the hand" do
-      # YOU ARE HERE test splitting
+      bet_amt = 50
+      @bet_box.bet(@player, bet_amt)
+      @player.bet_box.hand.set('8D', '8H')
+      @bet_box.split?.must_equal(false)
+      @bet_box.split
+      @bet_box.num_splits.must_equal(1)
+      @bet_box.split_boxes.each do |bet_box|
+        @table.shoe.deal_one_up(bet_box.hand)
+        bet_box.split?.must_equal(false)
+        bet_box.split
+      end
+      @bet_box.num_splits.must_equal(3)
     end
   end
 
