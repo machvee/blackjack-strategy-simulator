@@ -567,16 +567,18 @@ module Blackjack
       @player.make_bet(@player.bet_box, 10)
       @player.bet_box.hand.set('4D', '9H', '3H')
       @sv.validate_decision(@player.bet_box, Action::SURRENDER).must_equal([false,
-        "Player may surrender only after initial hand is dealt"])
+        "Player may surrender on initial two cards dealt"])
     end
 
     it "should return false for decision when input is a SURRENDER but player already split" do
       @table.config[:player_surrender] = true
       @player.make_bet(@player.bet_box, 10)
-      @player.bet_box.hand.set('4D', '9H')
+      @player.bet_box.hand.set('4D', '4H')
       @player.bet_box.split
-      @sv.validate_decision(@player.bet_box, Action::SURRENDER).must_equal([false,
-        "Player may surrender only after initial hand is dealt"])
+      @player.bet_box.split_boxes.each do |bet_box|
+        @sv.validate_decision(bet_box, Action::SURRENDER).must_equal([false,
+          "Player may surrender on initial two cards dealt"])
+      end
     end
 
     it "should return true for decision when input is a SURRENDER and its legit" do
@@ -723,14 +725,14 @@ module Blackjack
       bet_amt = 50
       @bet_box.bet(@player, bet_amt)
       @player.bet_box.hand.set('8D', '8H')
-      @bet_box.split?.must_equal(false)
       @bet_box.split
+      @bet_box.split?.must_equal(true) # this hand was split
       @bet_box.num_splits.must_equal(1)
       @bet_box.split_boxes.each do |bet_box|
         bet_box.active?.must_equal(true)
         @table.shoe.deal_one_up(bet_box.hand)
-        bet_box.split?.must_equal(false)
-        bet_box.split
+        bet_box.from_split?.must_equal(true) # this hand came from a split
+        bet_box.split # split the split hand again
       end
       @bet_box.num_splits.must_equal(3)
       counter = 0

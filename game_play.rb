@@ -67,9 +67,9 @@ module Blackjack
       #
       # ask the player strategy what it wants
       #   until one of the following happens:
-      #     a. player chooses HOLD
+      #     a. player chooses STAND
       #     b. player BUSTS (hard total > 21)
-      #     c. player HAS hard total of 21
+      #     c. player HAS soft total of 21
       #
       #  Player strategy responses:
       #     HIT
@@ -77,11 +77,25 @@ module Blackjack
       #     STAND
       #     DOUBLE
       #     SPLIT
+      #       Dealer calls bet_box split, and deals one new card face up to
+      #       each new hand. play then iteraters over each new hand
+      #     SURRENDER
+      #       take discard hand and 1/2 the player bet
+      #       
       #
       #  Validate the player strategy response
       #     DOUBLE - must have 2 cards and meet house rules
       #     SPLIT - must have 2 identical cards, and be under max splits
+      #     SURRENDER - must have only 2 cards
       #
+      response = dealer.ask_decision(bet_box)
+      case response
+        when Action::HIT
+        when Action::STAND
+        when Action::SPLIT
+        when Action::DOUBLE
+        when Action::SURRENDER
+      end
     end
 
     def dealer_hand

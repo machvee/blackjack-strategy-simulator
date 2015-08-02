@@ -86,6 +86,10 @@ module Blackjack
     end
 
     def validate_decision(bet_box, response)
+
+      # its a programming error to ask for a decision on a bet_box already split
+      raise "this bet_box has been split" if bet_box.split?
+
       if !STRATEGY_VALID_INPUT_HASH[:decision].include?(response)
         [false, "Sorry, that's not a valid response"]
       else
@@ -98,8 +102,8 @@ module Blackjack
             #
             if !table.config[:player_surrender] 
               [false, "This table does not allow player to surrender"]
-            elsif bet_box.hand.length > 2 || bet_box.split?
-              [false, "Player may surrender only after initial hand is dealt"]
+            elsif bet_box.hand.length > 2 || bet_box.from_split?
+              [false, "Player may surrender on initial two cards dealt"]
             end
           when Action::SPLIT
             #

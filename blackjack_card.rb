@@ -57,6 +57,10 @@ module Blackjack
     end
 
     def hittable?
+      #
+      # in most casinos, the dealer must no longer allow a hit
+      # when the player has a soft 21
+      #
       soft_sum < TWENTYONE 
     end
 

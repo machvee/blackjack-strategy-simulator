@@ -86,6 +86,13 @@ module Blackjack
       !split_boxes.nil?
     end
 
+    def from_split?
+      #
+      # was this bet_box created from a split?
+      #
+      !parent_split_box.nil?
+    end
+
     def num_splits
       root_bet_box.split_counter
     end
