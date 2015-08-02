@@ -103,7 +103,7 @@ module Blackjack
     end
   end
 
-  class SingleDeckShoe < Shoe
+  class OneDeckShoe < Shoe
     def initialize(options={})
       super(options.merge(num_decks_in_shoe: 1))
     end
@@ -115,9 +115,21 @@ module Blackjack
     end
   end
 
+  class FourDeckShoe < Shoe
+    def initialize(options={})
+      super(options.merge(num_decks_in_shoe: 4))
+    end
+  end
+
   class SixDeckShoe < Shoe
     def initialize(options={})
       super(options.merge(num_decks_in_shoe: 6))
+    end
+  end
+
+  class EightDeckShoe < Shoe
+    def initialize(options={})
+      super(options.merge(num_decks_in_shoe: 8))
     end
   end
 end

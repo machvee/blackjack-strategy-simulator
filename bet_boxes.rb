@@ -83,10 +83,8 @@ module Blackjack
       end
     end
 
-    def each_active
-      bet_boxes.each do |bet_box|
-        yield bet_box if bet_box.active?
-      end
+    def each_active(&block)
+      bet_boxes.each { |bet_box| bet_box.iter(&block) if bet_box.active? }
     end
   end
 end

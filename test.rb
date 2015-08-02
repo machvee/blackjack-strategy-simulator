@@ -196,7 +196,7 @@ module Blackjack
       @configuration = {
         blackjack_payout: [6,5],
         dealer_hits_soft_17: true,
-        shoe: SingleDeckShoe.new,
+        shoe: OneDeckShoe.new,
         num_seats: 4
       }
 
@@ -727,11 +727,18 @@ module Blackjack
       @bet_box.split
       @bet_box.num_splits.must_equal(1)
       @bet_box.split_boxes.each do |bet_box|
+        bet_box.active?.must_equal(true)
         @table.shoe.deal_one_up(bet_box.hand)
         bet_box.split?.must_equal(false)
         bet_box.split
       end
       @bet_box.num_splits.must_equal(3)
+      counter = 0
+      @table.bet_boxes.each_active do |bet_box|
+        bet_box.hand.length.must_equal(1)
+        counter +=1
+      end
+      counter.must_equal(4)
     end
   end
 
@@ -1244,7 +1251,7 @@ module Blackjack
       @shoe = Shoe.new
       @shoe.remaining.must_equal (1*52)
 
-      @shoe = SingleDeckShoe.new
+      @shoe = OneDeckShoe.new
       @shoe.remaining.must_equal (1*52)
 
       @shoe = TwoDeckShoe.new

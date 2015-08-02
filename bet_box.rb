@@ -23,7 +23,8 @@ module Blackjack
       @box = Bank.new(0)
       @hand = table.new_hand
       @position = player_seat_position
-      reset(parent_split_box)
+      reset
+      @parent_split_box = parent_split_box # do after reset
     end
 
     def dedicated?
@@ -94,8 +95,7 @@ module Blackjack
     end
 
     def discard
-      split_boxes.discard unless split_boxes.nil?
-      hand.fold
+      split_boxes.discard if split?
       reset
     end
 
@@ -103,13 +103,22 @@ module Blackjack
       box.current_balance
     end
 
-    def reset(parent_split_box=nil)
+    def iter(&block)
+      split? ? split_boxes.iter(&block) : block.call(self)
+    end
+
+    def reset
+      hand.fold
       @player = nil
       @split_boxes = nil
-      @parent_split_box=parent_split_box
+      @parent_split_box = nil
     end
 
     def inspect
+      split? ?  split_boxes.inspect : to_s
+    end
+
+    def to_s
       available? ? "Available BetBox #{position}" : "Dedicated BetBox #{position} for #{player.name}"
     end
 

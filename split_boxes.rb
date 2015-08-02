@@ -30,6 +30,14 @@ module Blackjack
       each {|bet_box| bet_box.discard}
     end
 
+    def iter(&block)
+      each {|bet_box| bet_box.iter(&block)}
+    end
+
+    def inspect
+      "Split: " + map {|bet_box| bet_box.inspect}.join("\n")
+    end
+
     private
 
     def create_left_box_from_parent_bet_box
@@ -55,6 +63,5 @@ module Blackjack
     def current_bet_amount
       @current_bet ||= parent_bet_box.bet_amount
     end
-
   end
 end
