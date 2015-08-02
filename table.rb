@@ -22,18 +22,17 @@ module Blackjack
     DEFAULT_HOUSE_BANK_AMOUNT=250_000
 
     DEFAULT_MAX_SEATS = 6
-    DEFAULT_BLACKJACK_PAYS = [3,2]
 
     DEFAULT_CONFIG = {
-      blackjack_payout:    DEFAULT_BLACKJACK_PAYS,
-      dealer_hits_soft_17: false,
-      player_surrender:    false,
-      double_down_on:      [], # ANY or -- [9,10,11]
-      num_seats:           DEFAULT_MAX_SEATS,
-      minimum_bet:         25,
-      maximum_bet:         5000,
-      max_player_bets:     3,
-      max_player_splits:   nil # unlimited or n
+      num_seats:            DEFAULT_MAX_SEATS,
+      blackjack_payout:     [3,2], #  or [6,5]
+      dealer_hits_soft_17:  false,
+      player_surrender:     false,
+      double_down_on:       [], # [] means ANY. or [9,10,11] or [10,11]
+      minimum_bet:          25,
+      maximum_bet:          5000,
+      max_player_bets:      3,
+      max_player_splits:    nil # nil unlimited or n: one hand split up to n times
     }
 
     attr_reader   :name

@@ -575,6 +575,14 @@ module Blackjack
       @player.make_bet(@player.bet_box, 10)
       @player.bet_box.hand.set('4D', '4H')
       @player.bet_box.split
+      proc {
+        #
+        # its a programming error to ask to validate a decision on an
+        # already split bet_box.  decisions should be asked instead on the
+        # bet_boxes returned by the split_boxes.each
+        #
+        @sv.validate_decision(@player.bet_box, Action::SURRENDER)
+      }.must_raise RuntimeError
       @player.bet_box.split_boxes.each do |bet_box|
         @sv.validate_decision(bet_box, Action::SURRENDER).must_equal([false,
           "Player may surrender on initial two cards dealt"])

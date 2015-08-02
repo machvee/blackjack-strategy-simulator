@@ -87,7 +87,11 @@ module Blackjack
 
     def validate_decision(bet_box, response)
 
-      # its a programming error to ask for a decision on a bet_box already split
+      #
+      # its a programming error to ask to validate a decision on an
+      # already split bet_box.  decisions should be asked instead on the
+      # bet_boxes returned by the bet_box.split_boxes.each
+      #
       raise "this bet_box has been split" if bet_box.split?
 
       if !STRATEGY_VALID_INPUT_HASH[:decision].include?(response)
