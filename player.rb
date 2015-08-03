@@ -39,6 +39,53 @@ module Blackjack
       self
     end
 
+    def won_bet(bet_box)
+      bet_box.take_winnings
+      stats.hands_won.incr
+      self
+    end
+
+    def lost_bet(bet_box)
+      stats.hands_lost.incr
+      self
+    end
+
+    def make_insurance_bet(bet_box, bet_amount)
+      bet_box.insurance_bet(bet_amount)
+      stats.insurances.incr
+      self
+    end
+
+    def won_insurance_bet(bet_box)
+      bet_box.take_insurance
+      stats.insurances_won.incr
+      self
+    end
+
+    def lost_insurance_bet(bet_box)
+      stats.insurances_lost.incr
+      self
+    end
+
+    def make_double_down_bet(bet_box, bet_amount)
+      bet_box.double_down_bet(bet_amount)
+      stats.double_downs.incr
+      self
+    end
+
+    def won_double_down_bet(bet_box)
+      stats.double_downs_won.incr
+      self
+    end
+
+    def make_split_bet(bet_box)
+      bet_box.bet(self, bet_box.bet_amount)
+      stats.splits.incr
+      stats.splits.incr # double split count for two hand results
+      stats.hands.incr  # one additional hand is created for each split
+      self
+    end
+
     def bet_box
       table.bet_boxes.dedicated_to(self)
     end

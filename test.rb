@@ -1,12 +1,36 @@
 require 'minitest/autorun'
 require 'table'
 
-#################################################
-#
-#  C O U N T E R S
-#
 module Blackjack
 
+  describe Player, "A Blackjack Player" do
+    it "should be able to play the game of blackjack interactively" do
+    end
+
+    it "should be able to define a Strategy for betting" do
+    end
+
+    it "should be able to define a Strategy for hitting/doubling/standing/splitting" do
+    end
+
+    it "should be able to automate his play using a defined Strategy" do 
+    end
+ 
+    it "should be able to describe events that may occur during the game, and alter strategy when those events occur" do
+    end
+
+    it "should be able to view stats maintained during automated play so as to assign a score or value to a Strategy" do
+    end
+
+    it "should be able to store Strategys" do
+    end
+  end
+
+
+  #################################################
+  #
+  #  C O U N T E R _ M E A S U R E S
+  #
   describe CounterMeasures, "A counter/measurement DSL" do
     describe CounterMeasures::Counter, "A counter DSL" do
       before do
@@ -710,6 +734,26 @@ module Blackjack
       @bet_box.active?.must_equal(true)
     end
 
+    it "lets a player take insurance bet winnings" do
+      bet_amt = 50
+      ins_bet = bet_amt/2
+      @bet_box.bet(@player, bet_amt)
+      @bet_box.insurance_bet(ins_bet)
+      @bet_box.insurance.credit(ins_bet*2) # winnings 2-1
+      ins_winnings = @bet_box.insurance_bet_amount
+      player_balance = @player.bank.current_balance
+      @bet_box.take_insurance
+      @player.bank.current_balance.must_equal(player_balance + ins_winnings)
+      @bet_box.insurance.current_balance.must_equal(0)
+    end
+
+    it "lets a player make an insurance bet" do
+      bet_amt = 50
+      @bet_box.bet(@player, bet_amt)
+      @bet_box.insurance_bet(bet_amt/2)
+      @bet_box.insurance.current_balance.must_equal(bet_amt/2)
+    end
+
     it "supports bet making" do
       start_bank = @player.bank.current_balance
       bet_amt = 50
@@ -718,15 +762,14 @@ module Blackjack
       @player.bank.current_balance.must_equal(start_bank-bet_amt)
     end
 
-    it "lets the player take winnings" do
+    it "lets the player win a bet" do
       start_bank = @player.bank.current_balance
       bet_amt = 50
       @bet_box.bet(@player, bet_amt)
-      @player.bank.current_balance.must_equal(start_bank-bet_amt)
-      @bet_box.box.current_balance.must_equal(bet_amt)
-      @bet_box.take_winnings
+      @bet_box.box.credit(bet_amt)
+      @player.won_bet(@bet_box)
       @bet_box.box.current_balance.must_equal(0)
-      @player.bank.current_balance.must_equal(start_bank)
+      @player.bank.current_balance.must_equal(start_bank + bet_amt)
     end
 
     it "allows a player to split the hand" do
@@ -795,6 +838,21 @@ module Blackjack
       @player.join(@table)
       @player.leave_table
       @table.verify
+    end
+
+    it "should be able to make a bet" do
+      bet_amt = 50
+      table = Table.new('player_table')
+      @player.join(table)
+      @player.make_bet(@player.bet_box, bet_amt)
+      @player.bet_box.bet_amount.must_equal(bet_amt)
+    end
+
+    it "should be able to win a bet" do
+
+    end
+
+    it "should be able to lose a bet" do
     end
 
   end

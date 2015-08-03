@@ -72,10 +72,8 @@ module Blackjack
       end
     end
 
-
     def validate_bet_amount(player, bet_amount)
       valid_bet_amount = table.config[:minimum_bet]..table.config[:maximum_bet]
-
       if player.bank.current_balance < table.config[:minimum_bet]
         [false, "Player has insufficient funds to make a #{table.config[:minimum_bet]} minimum bet"]
       elsif !valid_bet_amount.include?(bet_amount)
@@ -85,8 +83,27 @@ module Blackjack
       end
     end
 
-    def validate_decision(bet_box, response)
+    def validate_insurance_bet(bet_box, bet_amount)
+      max_legal_bet = bet_box.current_bet / 2.0
+      legal_bet_range = 1..max_legal_bet
+      if !legal_bet_range.include?(bet_amount)
+        [false, "Player insurance bet must be between #{legal_bet_range.min} and #{legal_bet_range.max}"]
+      else
+        [true, nil]
+      end
+    end
 
+    def validate_double_down_bet(bet_box, bet_amount)
+      max_legal_bet = bet_box.current_bet
+      legal_bet_range = 1..max_legal_bet
+      if !legal_bet_range.include?(bet_amount)
+        [false, "Player double bet must be between #{legal_bet_range.min} and #{legal_bet_range.max}"]
+      else
+        [true, nil]
+      end
+    end
+
+    def validate_decision(bet_box, response)
       #
       # its a programming error to ask to validate a decision on an
       # already split bet_box.  decisions should be asked instead on the

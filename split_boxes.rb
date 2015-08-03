@@ -42,11 +42,15 @@ module Blackjack
 
     def create_left_box_from_parent_bet_box
       @bet_box_left = new_hand_from_parent
-      bet_box_left.bet(player, current_bet_amount, player.bank)
+      player.make_split_bet(bet_box_left)
     end
 
     def create_right_box_from_parent_bet_box
       @bet_box_right = new_hand_from_parent
+      #
+      # transfer the bet from the parent bet box to the new
+      # split right bet box
+      #
       bet_box_right.bet(player, current_bet_amount, parent_bet_box.box)
     end
 

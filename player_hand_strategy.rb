@@ -43,8 +43,18 @@ module Blackjack
     def bet_amount
       #
       # override in sub-class to provide a whole dollar amount
-      # to bet.
+      # to bet for the main opening bet.
       #
+    end
+
+    def insurance_bet_amount(bet_box)
+      # The player may choose up to 1/2
+      # the MAIN bet amount for INSURANCE
+    end
+
+    def double_down_bet_amount(bet_box)
+      # The player may choose up to the full
+      # MAIN bet amount for DOUBLE_DOWN
     end
 
     def insurance?(bet_box)
@@ -103,7 +113,7 @@ module Blackjack
       }
       min_bet = table.config[:minimum_bet]
       max_bet = table.config[:maximum_bet]
-      @user_bet_maker = CommandPrompter.new("Bet Amount:int:#{min_bet}:#{max_bet}")
+      @main_bet_maker = CommandPrompter.new("Bet Amount:int:#{min_bet}:#{max_bet}")
       @bets_to_make = 2
       @bet_count = 0
     end
@@ -118,7 +128,19 @@ module Blackjack
     end
 
     def bet_amount
-      @user_bet_maker.get_command.to_i
+      @main_bet_maker.get_command.to_i
+    end
+
+    def insurance_bet_amount(bet_box)
+      max_bet = bet_box.current_bet/2.0
+      insurance_bet_maker = CommandPrompter.new("Insurance Bet Amount:int:1:#{max_bet}")
+      insurance_bet_maker.get_command.to_i
+    end
+
+    def double_down_bet_amount(bet_box)
+      max_bet = bet_box.current_bet
+      double_down_bet_maker = CommandPrompter.new("Double Down Bet Amount:int:1:#{max_bet}")
+      double_down_bet_maker.get_command.to_i
     end
 
     def play?

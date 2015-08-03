@@ -47,21 +47,31 @@ module Blackjack
       # 3. If the dealer's up-card is not A or 10-point:
       #     a. check each players hand for blackjack, pay them the BJ payout, and discard the players hand
       #
-      if dealer.up_card.ace?
+      # returns true if dealer had blackjack, else false
+      #
+      dealer_has_blackjack = if dealer.up_card.ace?
         table.bet_boxes.each_active do |bet_box|
           response = dealer.ask_insurance?(bet_box)
           case response
             when Action::NO_INSURANCE
+              next
             when Action::INSURANCE
+              insurance_bet_amt = dealer.ask_insurance_bet_amount(bet_box)
+              player.insurance_bet(insurance_bet_amt)
             when Action::EVEN_MONEY
           end
         end
+        true
       elsif dealer.up_card.ten?
+        dealer.flip_hole_card if dealer.hand.blackjack?
+        true
       else
+        false
       end
+      dealer_has_blackjack
     end
 
-    def player_hand
+    def player_hands
       #
       # for each active? bet_box
       #
@@ -159,7 +169,7 @@ module Blackjack
       #   GamePlay#opening_deal
       #   GamePlay#blackjack_check
       #   for each bet_box that has a bet
-      #     GamePlay#player_hand
+      #     GamePlay#player_hands
       #   GamePlay#dealer_hand
       #   GamePlay#close_out
       # Go to 
@@ -172,7 +182,11 @@ module Blackjack
         wait_for_player_bets
         next unless table.bet_boxes.any_bets? 
         opening_deal
-        blackjack_check
+        if blackjack_check
+        else
+          player_hands
+        end
+        close_out
       end
     end
   end

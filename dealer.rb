@@ -52,6 +52,18 @@ module Blackjack
       end
     end
 
+    def ask_insurance_bet_amount(bet_box)
+      prompt_player_strategy_and_validate(:insurance_bet_amount, bet_box.player, bet_box) do
+        player.strategy.insurance_bet_amount(bet_box)
+      end
+    end
+
+    def ask_double_down_bet_amount(bet_box)
+      prompt_player_strategy_and_validate(:double_down_bet_amount, bet_box.player, bet_box) do
+        player.strategy.double_down_bet_amount(bet_box)
+      end
+    end
+
     def up_card
       hand[0]
     end
@@ -84,6 +96,10 @@ module Blackjack
           @validator.validate_insurance?(bet_box, response)
         when :bet_amount
           @validator.validate_bet_amount(player, response)
+        when :insurance_bet_amount
+          @validator.validate_insurance_bet_amount(bet_box, response)
+        when :double_down_bet_amount
+          @validator.validate_double_down_bet_amount(bet_box, response)
         when :decision
           @validator.validate_decision(bet_box, response)
       end

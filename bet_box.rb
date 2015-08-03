@@ -3,6 +3,7 @@ module Blackjack
     attr_reader :table
     attr_reader :player
     attr_reader :box
+    attr_reader :insurance
     attr_reader :hand
     attr_reader :position
 
@@ -21,6 +22,7 @@ module Blackjack
     def initialize(table, player_seat_position, parent_split_box=nil)
       @table = table
       @box = Bank.new(0)
+      @insurance = Bank.new(0)
       @hand = table.new_hand
       @position = player_seat_position
       reset
@@ -51,20 +53,38 @@ module Blackjack
       !player.nil?
     end
 
+    def insurance_bet(bet_amount)
+      player.bank.transfer_to(insurance, bet_amount)
+      self
+    end
+
     def bet(player, bet_amount, from_account=nil)
       #
       # player makes a bet
       #
       @player = player
       (from_account||player.bank).transfer_to(box, bet_amount)
+      self
     end
 
     def take_winnings
-      box.transfer_to(player.bank, box.current_balance)
+      money = bet_amount
+      box.transfer_to(player.bank, money)
+      money
+    end
+
+    def take_insurance
+      money = insurance_bet_amount
+      insurance.transfer_to(player.bank, money)
+      money
     end
 
     def bet_amount
       box.current_balance
+    end
+
+    def insurance_bet_amount
+      insurance.current_balance
     end
 
     def split
@@ -104,6 +124,7 @@ module Blackjack
     def discard
       split_boxes.discard if split?
       reset
+      self
     end
 
     def current_bet
@@ -119,6 +140,7 @@ module Blackjack
       @player = nil
       @split_boxes = nil
       @parent_split_box = nil
+      self
     end
 
     def inspect
