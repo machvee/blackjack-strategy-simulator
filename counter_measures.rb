@@ -1,5 +1,4 @@
 module CounterMeasures
-
   ################################################
   #
   #  C O U N T E R
@@ -93,10 +92,75 @@ module CounterMeasures
     end
   end
 
+  class EventStatsKeeper < StatsKeeper
+    def initialize(condition_lambdas, *stats_names)
+      @keeper = Hash.new
+      lambda_iter = condition_lambdas.each
+      stats_names.each {|stat_name| @keeper[stat_name] = Event.new(stat_name, lambda_iter.next)}
+    end
+
+    def update
+      @keeper.values.each {|event| event.update}
+    end
+  end
+
   def self.included(base)
     base.extend ClassMethods
   end
 
+  #########################
+  #
+  #  H I S T O R Y
+  #
+  class History
+
+    ################
+    #
+    #  R I N G   B U F F E R
+    #
+    class RingBuffer < Array
+      attr_reader :max_size
+
+      def initialize(max_size, enum = nil)
+        @max_size = max_size
+        enum.each { |e| self << e } if enum
+      end
+
+      def <<(el)
+        if self.size < @max_size || @max_size.nil?
+          super
+        else
+          self.shift
+          self.push(el)
+        end
+      end
+
+      alias :push :<<
+    end
+
+    attr_reader :buffer
+
+    def initialize(length)
+      @buffer = RingBuffer.new(length)
+    end
+
+    def record(m)
+      buffer << m
+    end
+
+    def <<(m)
+      record(m)
+    end
+
+    def last(n=1)
+      l = buffer.last(n)
+      n > 1 ? l : l.first
+    end
+
+    def reset
+      buffer.clear
+    end
+  end
 
   ################################################
   #
@@ -137,55 +201,6 @@ module CounterMeasures
     #  rainfall.count => 2
     #
 
-    #########################
-    #
-    #  H I S T O R Y
-    #
-    class History
-
-      ################
-      #
-      #  R I N G   B U F F E R
-      #
-      class RingBuffer < Array
-        attr_reader :max_size
-
-        def initialize(max_size, enum = nil)
-          @max_size = max_size
-          enum.each { |e| self << e } if enum
-        end
-
-        def <<(el)
-          if self.size < @max_size || @max_size.nil?
-            super
-          else
-            self.shift
-            self.push(el)
-          end
-        end
-
-        alias :push :<<
-      end
-
-      attr_reader :history
-
-      def initialize(length)
-        @history = RingBuffer.new(length)
-      end
-
-      def record(m)
-        history << m
-      end
-
-      def last(n=1)
-        l = history.last(n)
-        n > 1 ? l : l.first
-      end
-
-      def reset
-        history.clear
-      end
-    end
 
     attr_reader   :name
     attr_reader   :tally   # ongoing measurement until committed
@@ -193,7 +208,6 @@ module CounterMeasures
     attr_reader   :total   # ongoing sum of measurements
     attr_reader   :min     # ongoing min
     attr_reader   :max     # ongoing max
-    attr_reader   :history # keep n measures back
 
     def initialize(name)
       @name = name
@@ -216,13 +230,13 @@ module CounterMeasures
         @total += m
         keep_min(m)
         keep_max(m)
-        history.record(m)
+        @history.record(m)
       end
       self
     end
 
     def last(n=1)
-      history.last(n)
+      @history.last(n)
     end
 
     def reset
@@ -231,7 +245,7 @@ module CounterMeasures
       @total = 0
       @min = nil
       @max = nil
-      history.reset
+      @history.reset
     end
 
     def average
@@ -269,6 +283,90 @@ module CounterMeasures
     end
   end
 
+  ################################################
+  #
+  #  E V E N T
+  #
+  class Event
+    #
+    # event definer must have an event condition method
+    # defined that returns true if the event passed
+    # or false if event failed.  The condition method
+    # must be named "#{event_name}?"
+    #
+    #   include CounterMeasures
+    #
+    #   event   :hot_day
+    #
+    #   def hot_day?
+    #     @todays_temps.max >= 90
+    #   end
+    #
+    attr_reader   :name
+
+    attr_reader   :condition_lambda
+
+    DEFAULT_HISTORY_LENGTH = 40
+
+    def initialize(name, condition_lambda, options = {})
+      sname = name.to_s
+      @name = sname
+      @condition_lambda = condition_lambda
+      @_passed = Counter.new(sname + '_passed')
+      @_failed = Counter.new(sname + '_failed')
+      @history = History.new(DEFAULT_HISTORY_LENGTH)
+    end
+
+    def update
+      result = condition_lambda.call
+      if result
+        @_passed.incr
+      else
+        @_failed.incr
+      end
+      @history << result
+    end
+
+    def passed
+      @_passed.count
+    end
+
+    def failed
+      @_failed.count
+    end
+
+    def count
+      passed + failed
+    end
+
+    def last(n=1)
+      @history.last(n)
+    end
+
+    def reset
+      @_passed.reset
+      @_failed.reset
+      @history.reset
+    end
+
+    def export
+      {
+         count:  count,
+        passed:  passed.count,
+        failed:  failed.count
+      }
+    end
+
+    def to_s
+      "#{name} - #{export}"
+    end
+
+    def inspect
+      to_s
+    end
+
+  end
+
   module ClassMethods
     def counters(*counter_name_symbols)
       counter_name_symbols.each do |s|
@@ -299,6 +397,22 @@ module CounterMeasures
         end
       }
     end
+
+    def events(*event_name_symbols)
+      event_name_symbols.each do |s|
+        class_eval %Q{
+          def #{s}
+            @_#{s}_event ||= events_[:#{s}]
+          end
+        }
+      end
+      class_eval %Q{
+        def events_
+          @__event_lambdas ||= [*#{event_name_symbols}].map {|name| lambda(&method((name.to_s + "?").to_sym))}
+          @__events ||= EventStatsKeeper.new(@__event_lambdas, *#{event_name_symbols})
+        end
+      }
+    end
   end
 
   def counters
@@ -317,4 +431,15 @@ module CounterMeasures
     measures_.reset
   end
 
+  def events
+    events_.to_hash
+  end
+
+  def update_events
+    events_.update
+  end
+
+  def reset_events
+    events_.reset
+  end
 end

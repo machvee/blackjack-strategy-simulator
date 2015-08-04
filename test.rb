@@ -32,6 +32,50 @@ module Blackjack
   #  C O U N T E R _ M E A S U R E S
   #
   describe CounterMeasures, "A counter/measurement DSL" do
+    describe CounterMeasures::Event, "An event stats DSL" do
+      before do
+        class Temperature
+          include CounterMeasures
+
+          events :hot_day, :cold_day
+
+          attr_reader  :temps
+          
+          def initialize
+            @temps = []
+          end
+
+          def todays_temps(*todays_temp_readings)
+            @temps = todays_temp_readings
+            update_events
+          end
+
+          def hot_day?
+            temps.max >= 90
+          end
+
+          def cold_day?
+            temps.min <= 50
+          end
+        end
+      end
+
+      it "should keep stats on hot and cold days" do
+        f = Temperature.new
+        f.todays_temps(47,54,75,74,50) # cold day (47)
+        f.todays_temps(87,84,95,84,60) # hot day (95)
+        f.todays_temps(57,64,85,89,87) # neither
+        f.todays_temps(27,34,45,39,30) # cold day (27)
+        f.cold_day.passed.must_equal(2)
+        f.cold_day.count.must_equal(4)
+        f.hot_day.passed.must_equal(1)
+        f.hot_day.count.must_equal(4)
+        f.reset_events
+        f.cold_day.passed.must_equal(0)
+        f.hot_day.passed.must_equal(0)
+      end
+    end
+
     describe CounterMeasures::Counter, "A counter DSL" do
       before do
         class Foo
