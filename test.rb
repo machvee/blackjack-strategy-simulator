@@ -69,6 +69,7 @@ module Blackjack
         f.cold_day.passed.must_equal(2)
         f.cold_day.count.must_equal(4)
         f.hot_day.passed.must_equal(1)
+        f.hot_day.failed.must_equal(3)
         f.hot_day.count.must_equal(4)
         f.reset_events
         f.cold_day.passed.must_equal(0)
