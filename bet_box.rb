@@ -68,23 +68,21 @@ module Blackjack
     end
 
     def take_winnings
-      money = bet_amount
-      box.transfer_to(player.bank, money)
-      money
+      box.transfer_to(player.bank, bet_amount)
+      self
     end
 
     def take_insurance
-      money = insurance_bet_amount
-      insurance.transfer_to(player.bank, money)
-      money
+      insurance.transfer_to(player.bank, insurance_bet_amount)
+      self
     end
 
     def bet_amount
-      box.current_balance
+      box.balance
     end
 
     def insurance_bet_amount
-      insurance.current_balance
+      insurance.balance
     end
 
     def split
@@ -125,10 +123,6 @@ module Blackjack
       split_boxes.discard if split?
       reset
       self
-    end
-
-    def current_bet
-      box.current_balance
     end
 
     def iter(&block)

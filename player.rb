@@ -50,6 +50,16 @@ module Blackjack
       self
     end
 
+    def blackjack(bet_box)
+      stats.blackjacks.incr
+      self
+    end
+
+    def surrendered(bet_box)
+      stats.surrenders.incr
+      self
+    end
+
     def make_insurance_bet(bet_box, bet_amount)
       bet_box.insurance_bet(bet_amount)
       stats.insurances.incr
@@ -67,9 +77,9 @@ module Blackjack
       self
     end
 
-    def make_double_down_bet(bet_box, bet_amount)
-      bet_box.double_down_bet(bet_amount)
+    def make_double_down_bet(bet_box, double_down_bet_amount)
       stats.double_downs.incr
+      player.bank.transfer_to(bet_box.box, double_down_bet_amount)
       self
     end
 
@@ -93,6 +103,10 @@ module Blackjack
     def reset
       stats.reset
       bank.reset
+    end
+
+    def inspect
+      "#{name} - $#{bank.balance}"
     end
   end
 end

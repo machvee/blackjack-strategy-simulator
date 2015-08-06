@@ -138,9 +138,11 @@ module CounterMeasures
       alias :push :<<
     end
 
+    DEFAULT_HISTORY_LENGTH=50
+
     attr_reader :buffer
 
-    def initialize(length)
+    def initialize(length=DEFAULT_HISTORY_LENGTH)
       @buffer = RingBuffer.new(length)
     end
 
@@ -211,7 +213,7 @@ module CounterMeasures
 
     def initialize(name)
       @name = name
-      @history = History.new(50)
+      @history = History.new
       reset
     end
 
@@ -303,28 +305,14 @@ module CounterMeasures
     #   end
     #
     attr_reader   :name
-
     attr_reader   :condition_lambda
 
-    DEFAULT_HISTORY_LENGTH = 40
-
-    def initialize(name, condition_lambda, options = {})
-      sname = name.to_s
-      @name = sname
+    def initialize(name_sym, condition_lambda, options = {})
+      @name = name_sym.to_s
       @condition_lambda = condition_lambda
-      @_passed = Counter.new(sname + '_passed')
-      @_failed = Counter.new(sname + '_failed')
-      @history = History.new(DEFAULT_HISTORY_LENGTH)
-    end
-
-    def update
-      result = condition_lambda.call
-      if result
-        @_passed.incr
-      else
-        @_failed.incr
-      end
-      @history << result
+      @_passed = Counter.new(name + '_passed')
+      @_failed = Counter.new(name + '_failed')
+      @history = History.new
     end
 
     def passed
@@ -343,17 +331,29 @@ module CounterMeasures
       @history.last(n)
     end
 
+    def update
+      result = condition_lambda.call
+      if result
+        @_passed.incr
+      else
+        @_failed.incr
+      end
+      @history << result
+      self
+    end
+
     def reset
       @_passed.reset
       @_failed.reset
       @history.reset
+      self
     end
 
     def export
       {
          count:  count,
-        passed:  passed.count,
-        failed:  failed.count
+        passed:  passed,
+        failed:  failed
       }
     end
 

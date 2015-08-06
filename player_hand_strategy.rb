@@ -144,7 +144,7 @@ module Blackjack
     end
 
     def play?
-      return Action::LEAVE if player.bank.current_balance <= blayer.bank.initial_deposit/8
+      return Action::LEAVE if player.bank.balance <= blayer.bank.initial_deposit/8
       return Action::SIT_OUT if @bet_count == @bets_to_make
       @bet_count += 1
       Action::BET

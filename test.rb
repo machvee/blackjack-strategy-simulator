@@ -37,40 +37,67 @@ module Blackjack
         class Temperature
           include CounterMeasures
 
-          events :hot_day, :cold_day
+          HEAT_WAVE_DAYS=10
+          HOT_HIGH_TEMP=90
+          COLD_LOW_TEMP=50
 
-          attr_reader  :temps
-          
-          def initialize
-            @temps = []
+          events :hot_day, :cold_day, :heat_wave
+          measures :daily_readings, :highs
+
+          def reading(temp)
+            daily_readings.add(temp)
           end
 
-          def todays_temps(*todays_temp_readings)
-            @temps = todays_temp_readings
+          def end_of_day
+            highs.add(daily_readings.max)
             update_events
+            daily_readings.reset
           end
 
           def hot_day?
-            temps.max >= 90
+            daily_readings.max >= HOT_HIGH_TEMP
           end
 
           def cold_day?
-            temps.min <= 50
+            daily_readings.min <= COLD_LOW_TEMP
+          end
+
+          def heat_wave?
+            last_days_hot = hot_day.last(HEAT_WAVE_DAYS)
+            last_days_hot.length == HEAT_WAVE_DAYS && last_days_hot.all?
           end
         end
       end
 
       it "should keep stats on hot and cold days" do
         f = Temperature.new
-        f.todays_temps(47,54,75,74,50) # cold day (47)
-        f.todays_temps(87,84,95,84,60) # hot day (95)
-        f.todays_temps(57,64,85,89,87) # neither
-        f.todays_temps(27,34,45,39,30) # cold day (27)
-        f.cold_day.passed.must_equal(2)
-        f.cold_day.count.must_equal(4)
-        f.hot_day.passed.must_equal(1)
-        f.hot_day.failed.must_equal(3)
-        f.hot_day.count.must_equal(4)
+        really_hot_days = 17
+        hot_days = 0
+        cold_days = 0
+        just_right = 0
+        tues_temps = [47,54,75,74,75,74,78,74,75,74,53]
+        tues_temps.each do |temp|
+          f.reading(temp)
+        end
+        f.daily_readings.count.must_equal(tues_temps.length)
+        f.end_of_day; cold_days += 1
+
+        really_hot_days.times do |i|
+          f.daily_readings.add(87+i,84+i,95+i,84+i,60+i)
+          f.end_of_day; hot_days += 1
+        end
+        f.daily_readings.add(57,64,85,89,87)
+        f.end_of_day; just_right += 1
+        f.daily_readings.add(27,34,45,39,30)
+        f.end_of_day; cold_days += 1
+        total_days = hot_days + cold_days + just_right
+
+        f.cold_day.passed.must_equal(cold_days)
+        f.cold_day.count.must_equal(total_days)
+        f.hot_day.passed.must_equal(hot_days)
+        f.hot_day.failed.must_equal(cold_days + just_right)
+        f.hot_day.count.must_equal(total_days)
+        f.heat_wave.passed.must_equal(really_hot_days - Temperature::HEAT_WAVE_DAYS + 1)
         f.reset_events
         f.cold_day.passed.must_equal(0)
         f.hot_day.passed.must_equal(0)
@@ -517,7 +544,7 @@ module Blackjack
       gp.shuffle_check
       gp.opening_deal
       @table.bet_boxes.each_active do |bb|
-        bb.box.current_balance.must_equal(25)
+        bb.box.balance.must_equal(25)
         bb.hand.length.must_equal(2)
         bb.hand[0].face_up?.must_equal(true)
         bb.hand[1].face_up?.must_equal(true)
@@ -552,8 +579,8 @@ module Blackjack
     end
 
     it "for the play response, it should return false when player is broke and they want to BET" do
-      @player.bank.debit(@player.bank.current_balance)
-      @player.bank.current_balance.must_equal(0)
+      @player.bank.debit(@player.bank.balance)
+      @player.bank.balance.must_equal(0)
       @sv.validate_play?(@player, Action::BET).must_equal([false,
         "Player has insufficient funds to make a #{@table.config[:minimum_bet]} minimum bet"])
     end
@@ -565,8 +592,8 @@ module Blackjack
 
     it "should return false for insurance? when player is broke and they want INSURANCE" do
       @player.make_bet(@player.bet_box, 10)
-      @player.bank.debit(@player.bank.current_balance)
-      @player.bank.current_balance.must_equal(0)
+      @player.bank.debit(@player.bank.balance)
+      @player.bank.balance.must_equal(0)
       @player.bet_box.hand.set('JD', '9H')
       @sv.validate_insurance?(@player.bet_box, Action::INSURANCE).must_equal([false,
         "Player has insufficient funds to make an insurance bet"])
@@ -592,8 +619,8 @@ module Blackjack
     end
 
     it "should return false for bet_amount when player has insufficient funds" do
-      @player.bank.debit(@player.bank.current_balance)
-      @player.bank.current_balance.must_equal(0)
+      @player.bank.debit(@player.bank.balance)
+      @player.bank.balance.must_equal(0)
       @sv.validate_bet_amount(@player, 25).must_equal([false,
         "Player has insufficient funds to make a #{@table.config[:minimum_bet]} minimum bet"])
     end
@@ -667,7 +694,7 @@ module Blackjack
 
     it "should return false for decision when input is a SPLIT and player is broke" do
       @player.make_bet(@player.bet_box, 10)
-      @player.bank.debit(@player.bank.current_balance)
+      @player.bank.debit(@player.bank.balance)
       @player.bet_box.hand.set('8D', '8H')
       @sv.validate_decision(@player.bet_box, Action::SPLIT).must_equal([false,
         "Player has insufficient funds to split the hand"])
@@ -688,7 +715,7 @@ module Blackjack
 
     it "should return false for decision when input is DOUBLE_DOWN and player is broke" do
       @player.make_bet(@player.bet_box, 10)
-      @player.bank.debit(@player.bank.current_balance)
+      @player.bank.debit(@player.bank.balance)
       @player.bet_box.hand.set('8D', '3H')
       @sv.validate_decision(@player.bet_box, Action::DOUBLE_DOWN).must_equal([false,
         "Player has insufficient funds to double down"])
@@ -786,35 +813,35 @@ module Blackjack
       @bet_box.insurance_bet(ins_bet)
       @bet_box.insurance.credit(ins_bet*2) # winnings 2-1
       ins_winnings = @bet_box.insurance_bet_amount
-      player_balance = @player.bank.current_balance
+      player_balance = @player.bank.balance
       @bet_box.take_insurance
-      @player.bank.current_balance.must_equal(player_balance + ins_winnings)
-      @bet_box.insurance.current_balance.must_equal(0)
+      @player.bank.balance.must_equal(player_balance + ins_winnings)
+      @bet_box.insurance.balance.must_equal(0)
     end
 
     it "lets a player make an insurance bet" do
       bet_amt = 50
       @bet_box.bet(@player, bet_amt)
       @bet_box.insurance_bet(bet_amt/2)
-      @bet_box.insurance.current_balance.must_equal(bet_amt/2)
+      @bet_box.insurance.balance.must_equal(bet_amt/2)
     end
 
     it "supports bet making" do
-      start_bank = @player.bank.current_balance
+      start_bank = @player.bank.balance
       bet_amt = 50
       @bet_box.bet(@player, bet_amt)
       @bet_box.active?.must_equal(true)
-      @player.bank.current_balance.must_equal(start_bank-bet_amt)
+      @player.bank.balance.must_equal(start_bank-bet_amt)
     end
 
     it "lets the player win a bet" do
-      start_bank = @player.bank.current_balance
+      start_bank = @player.bank.balance
       bet_amt = 50
       @bet_box.bet(@player, bet_amt)
       @bet_box.box.credit(bet_amt)
       @player.won_bet(@bet_box)
-      @bet_box.box.current_balance.must_equal(0)
-      @player.bank.current_balance.must_equal(start_bank + bet_amt)
+      @bet_box.box.balance.must_equal(0)
+      @player.bank.balance.must_equal(start_bank + bet_amt)
     end
 
     it "allows a player to split the hand" do
@@ -850,7 +877,7 @@ module Blackjack
     end
 
     it "should have a bank" do
-      @player.bank.current_balance.must_be :>, 0
+      @player.bank.balance.must_be :>, 0
     end
 
     it "should have stats" do
@@ -910,18 +937,18 @@ module Blackjack
     end
 
     it "should have initial balances" do
-      @bank1.current_balance.must_equal(@initial_balance)
-      @bank2.current_balance.must_equal(@initial_balance)
+      @bank1.balance.must_equal(@initial_balance)
+      @bank2.balance.must_equal(@initial_balance)
     end
 
     it "should allow direct credit and debiting" do
       amount_to_credit = 91
       amount_to_debit = 83
       @bank1.credit(amount_to_credit)
-      @bank1.current_balance.must_equal(@initial_balance + amount_to_credit)
+      @bank1.balance.must_equal(@initial_balance + amount_to_credit)
       @bank1.credits.count.must_equal(1)
       @bank2.debit(amount_to_debit)
-      @bank2.current_balance.must_equal(@initial_balance - amount_to_debit)
+      @bank2.balance.must_equal(@initial_balance - amount_to_debit)
       @bank2.debits.count.must_equal(1)
     end
 
@@ -929,15 +956,15 @@ module Blackjack
       amount_to_credit = 91
       amount_to_debit = 83
       @bank1.credit(amount_to_credit)
-      @bank1.current_balance.must_equal(@initial_balance + amount_to_credit)
+      @bank1.balance.must_equal(@initial_balance + amount_to_credit)
       @bank1.credits.count.must_equal(1)
       @bank2.debit(amount_to_debit)
-      @bank2.current_balance.must_equal(@initial_balance - amount_to_debit)
+      @bank2.balance.must_equal(@initial_balance - amount_to_debit)
       @bank2.debits.count.must_equal(1)
       @bank1.reset
       @bank2.reset
-      @bank1.current_balance.must_equal(@initial_balance)
-      @bank2.current_balance.must_equal(@initial_balance)
+      @bank1.balance.must_equal(@initial_balance)
+      @bank2.balance.must_equal(@initial_balance)
       @bank1.credits.count.must_equal(0)
       @bank2.credits.count.must_equal(0)
       @bank1.debits.count.must_equal(0)
@@ -947,8 +974,8 @@ module Blackjack
     it "should allow transfer_to another account" do
       amount_to_transfer = 382
       @bank1.transfer_to(@bank2, amount_to_transfer)
-      @bank1.current_balance.must_equal(@initial_balance - amount_to_transfer)
-      @bank2.current_balance.must_equal(@initial_balance + amount_to_transfer)
+      @bank1.balance.must_equal(@initial_balance - amount_to_transfer)
+      @bank2.balance.must_equal(@initial_balance + amount_to_transfer)
       @bank1.credits.count.must_equal(0)
       @bank1.debits.count.must_equal(1)
       @bank2.credits.count.must_equal(1)
@@ -958,8 +985,8 @@ module Blackjack
     it "should allow transfer_from another account" do
       amount_to_transfer = 98
       @bank1.transfer_from(@bank2, amount_to_transfer)
-      @bank1.current_balance.must_equal(@initial_balance + amount_to_transfer)
-      @bank2.current_balance.must_equal(@initial_balance - amount_to_transfer)
+      @bank1.balance.must_equal(@initial_balance + amount_to_transfer)
+      @bank2.balance.must_equal(@initial_balance - amount_to_transfer)
       @bank1.credits.count.must_equal(1)
       @bank1.debits.count.must_equal(0)
       @bank2.credits.count.must_equal(0)
@@ -968,11 +995,11 @@ module Blackjack
 
     it "should raise an exception if trying to debit below 0 balance" do
       @bank1.debit(@initial_balance) # ok
-      @bank1.current_balance.must_equal(0)
+      @bank1.balance.must_equal(0)
       proc {
         @bank2.debit(@initial_balance+1)
       }.must_raise RuntimeError
-      @bank2.current_balance.must_equal(@initial_balance)
+      @bank2.balance.must_equal(@initial_balance)
     end
   end
 

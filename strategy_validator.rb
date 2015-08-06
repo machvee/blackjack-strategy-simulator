@@ -36,7 +36,7 @@ module Blackjack
       #
       if !STRATEGY_VALID_INPUT_HASH[:play].include?(response)
         [false, "Sorry, that's not a valid response"]
-      elsif player.bank.current_balance < table.config[:minimum_bet]
+      elsif player.bank.balance < table.config[:minimum_bet]
         [false, "Player has insufficient funds to make a #{table.config[:minimum_bet]} minimum bet"]
       else
         [true, nil]
@@ -60,7 +60,7 @@ module Blackjack
         valid_resp, error_message =
           case response
           when Action::INSURANCE
-            if player.bank.current_balance < bet_box.current_bet/2.0
+            if player.bank.balance < bet_box.current_bet/2.0
               [false, "Player has insufficient funds to make an insurance bet"]
             end
           when Action::EVEN_MONEY
@@ -74,7 +74,7 @@ module Blackjack
 
     def validate_bet_amount(player, bet_amount)
       valid_bet_amount = table.config[:minimum_bet]..table.config[:maximum_bet]
-      if player.bank.current_balance < table.config[:minimum_bet]
+      if player.bank.balance < table.config[:minimum_bet]
         [false, "Player has insufficient funds to make a #{table.config[:minimum_bet]} minimum bet"]
       elsif !valid_bet_amount.include?(bet_amount)
         [false, "Player bet must be between #{valid_bet_amount.min} and #{valid_bet_amount.max}"]
@@ -132,7 +132,7 @@ module Blackjack
             #
             # TODO: need to enforce hand max splits from table.config
             #
-            if player.bank.current_balance < bet_box.current_bet
+            if player.bank.balance < bet_box.current_bet
               [false, "Player has insufficient funds to split the hand"]
             elsif !valid_split_hand?(bet_box.hand)
               [false, "Player can only split cards that are identical in value"]
@@ -141,7 +141,7 @@ module Blackjack
             #
             # can the player double down? (assumes double for less)
             #
-            if player.bank.current_balance == 0 
+            if player.bank.balance == 0 
               [false, "Player has insufficient funds to double down"]
             elsif !valid_double_hand?(bet_box.hand)
               [false, "Player can only double down on hands of #{valid_double_hand_values}"]

@@ -78,6 +78,10 @@ module Blackjack
       self
     end
 
+    def inspect
+      self.class.name
+    end
+
     private
 
     def remove_cut_card
@@ -99,7 +103,7 @@ module Blackjack
       raise "needs shuffle" if needs_shuffle?
       decks.deal(destination, 1, orientation)
       cards_dealt.incr
-      destination
+      self
     end
   end
 

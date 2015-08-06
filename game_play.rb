@@ -10,6 +10,24 @@ module Blackjack
       @players = table.seated_players
     end
 
+    def run
+      while players_at_table?
+        shuffle_check
+        wait_for_player_bets
+        play_a_hand_of_blackjack if any_player_bets?
+      end
+    end
+
+    def play_a_hand_of_blackjack
+      opening_deal
+      unless dealer_has_blackjack?
+        payout_any_blackjacks
+        players_play_hands
+        dealer_plays_hand
+      end
+      close_out
+    end
+
     def opening_deal
       # 
       # 1. Players have put amounts of money in bet_boxes (or are sitting out) and
@@ -19,13 +37,13 @@ module Blackjack
       # 4. dealer from his left to right, deals one additional card face up to each active bet_box
       # 5. dealer deals himself one card face down (hole-card)
       #
-      dealer.deal_one_card_face_up_to_bet_active_bet_box
+      dealer.deal_one_card_face_up_to_each_active_bet_box
       dealer.deal_up_card
-      dealer.deal_one_card_face_up_to_bet_active_bet_box
+      dealer.deal_one_card_face_up_to_each_active_bet_box
       dealer.deal_hole_card
     end
 
-    def blackjack_check
+    def dealer_has_blackjack?
       #
       # 1. If the dealers up-card is an Ace:
       #     a. invokes each active bet_box player's PlayerStrategy#insurance?  Response can be
@@ -49,29 +67,63 @@ module Blackjack
       #
       # returns true if dealer had blackjack, else false
       #
-      dealer_has_blackjack = if dealer.up_card.ace?
+      if dealer.up_card.ace?
         table.bet_boxes.each_active do |bet_box|
-          response = dealer.ask_insurance?(bet_box)
+          player = bet_box.player
+          response = dealer.ask_player_insurance?(bet_box)
           case response
             when Action::NO_INSURANCE
               next
             when Action::INSURANCE
-              insurance_bet_amt = dealer.ask_insurance_bet_amount(bet_box)
+              insurance_bet_amt = dealer.ask_player_insurance_bet_amount(bet_box)
               player.insurance_bet(insurance_bet_amt)
             when Action::EVEN_MONEY
+              #
+              # pay and clear this hand out now
+              #
+              player.won_bet(bet_box)
+              dealer.pay(bet_box, [1,1])
+              bet_box.hand.discard
           end
         end
-        true
-      elsif dealer.up_card.ten?
-        dealer.flip_hole_card if dealer.hand.blackjack?
-        true
-      else
-        false
       end
-      dealer_has_blackjack
+
+      has_black_jack = dealer.hand.blackjack?
+      dealer.flip_hole_card if has_black_jack
+      has_blackjack 
     end
 
-    def player_hands
+    def payout_any_blackjacks
+      table.bet_boxes.each_active do |bet_box|
+        if bet_box.hand.blackjack?
+          player.blackjack(bet_box)
+          player.won_bet(bet_box)
+          dealer.pay(bet_box, table.config[:blackjack_payout])
+          bet_box.hand.discard
+        end
+      end
+    end
+
+    def players_at_table?
+      table.any_seated_players?
+    end
+
+    def shuffle_check
+      #
+      # Does the shoe report, needs_shuffle?
+      # If so, shuffle the shoe and place card
+      # 
+      if table.shoe.needs_shuffle?
+        table.shoe.shuffle
+        table.shoe.place_cut_card
+      end
+    end
+
+    def any_player_bets?
+      table.bet_boxes.any_bets?
+    end
+
+    def players_play_hands
       #
       # for each active? bet_box
       #
@@ -98,58 +150,80 @@ module Blackjack
       #     SPLIT - must have 2 identical cards, and be under max splits
       #     SURRENDER - must have only 2 cards
       #
-      response = dealer.ask_decision(bet_box)
-      case response
-        when Action::HIT
-        when Action::STAND
-        when Action::SPLIT
-        when Action::DOUBLE
-        when Action::SURRENDER
+      table.bet_boxes.each_active? do |bet_box|
+        play_hand_until_end(bet_box)
       end
     end
 
-    def dealer_hand
-      #
-      # if dealer didn't already have blackjack
-      #   1. turn over hole card
-      #   2. until deal hand soft value >= 17 or BUST
-      #      deal one card face up
-      #
+    def played_hand_until_end(bet_box)
+      while(true) do
+
+        break if bet_box.hand.twentyone?
+
+        response = dealer.ask_player_decision(bet_box)
+
+        case response
+          when Action::HIT
+            dealer.deal_card_face_up_to(bet_box)
+            if dealer.check_player_hand_busted?(bet_box)
+              player.busted(bet_box)
+              dealer.collect(bet_box)
+              bet_box.discard
+              break
+            end
+          when Action::STAND
+            break
+          when Action::SPLIT
+            bet_box.split
+            bet_box.iter do |split_bet_box|
+              dealer.deal_card_face_up_to(split_bet_box)
+            end
+            bet_box.iter do |split_bet_box|
+              played_hand_until_end(split_bet_box)
+            end
+            break
+          when Action::DOUBLE
+            player.make_double_down_bet(bet_box)
+            dealer.deal_card_face_up_to(bet_box)
+            break
+          when Action::SURRENDER
+            player.surrendered(bet_box)
+            bet_box.box.transfer_to(table.house, bet_amount/2.0)
+            bet_box.box.transfer_to(player.bank, bet_amount/2.0)
+            bet_box.discard
+            break
+        end
+      end
     end
 
     def close_out
       #
       # 1. for each active bet_box, check hand
-      # 2. if > dealer hand (or dealer BUSTED), pay 1-1 transfer house to table
-      # 3. if == dealer hand, no money transfer (PUSH)
-      # 4. if < dealer hand, transfer bet from table to house
-      # 5. discard player hand 
+      # 2. If dealer had blackjack
+      # 3.   if A-10, pay any insurance bets and even money. all other hands lose
+      # 4. if > dealer hand (or dealer BUSTED), pay 1-1 transfer house to table
+      # 5. if == dealer hand, no money transfer (PUSH)
+      # 6. if < dealer hand, transfer bet from table to house
+      # 7. discard player hand 
       #
     end
 
-    def shuffle_check
-      #
-      # Does the shoe report, needs_shuffle?
-      # If so, shuffle the shoe and place card
-      # 
-      if table.shoe.needs_shuffle?
-        table.shoe.shuffle
-        table.shoe.place_cut_card
-      end
+    def dealer_plays_hand
+      dealer.play_hand
     end
 
     def wait_for_player_bets
       players.each do |player|
         catch :player_leaves_table do
           table.bet_boxes.available_for(player) do |bet_box|
-            case dealer.ask_play?(player)
+            case dealer.ask_player_play?(player)
               when Action::LEAVE
                 player.leave_table
                 throw :player_leaves_table
               when Action::SIT_OUT
                 break
               when Action::BET
-                bet_amount = dealer.ask_bet_amount(player)
+                bet_amount = dealer.ask_player_bet_amount(player)
                 player.make_bet(bet_box, bet_amount)
             end # case
           end # table.bet_boxes
@@ -157,37 +231,5 @@ module Blackjack
       end # players
     end
 
-    def run
-      # Open the table (Set house bank, assign a dealer, configure, shoe needs shuffle)
-      # While table remains open:
-      #
-      # If the table is empty, wait for players to join table
-      # When/if players are at the table
-      # GamePlay#shuffle_check
-      # Wait for players to make bets. When one or more bets have been made, and other
-      # players have signified they're in or out:
-      #   GamePlay#opening_deal
-      #   GamePlay#blackjack_check
-      #   for each bet_box that has a bet
-      #     GamePlay#player_hands
-      #   GamePlay#dealer_hand
-      #   GamePlay#close_out
-      # Go to 
-      #   
-      #
-      # Close table (record stats)
-      #
-      while table.any_seated_players?
-        shuffle_check
-        wait_for_player_bets
-        next unless table.bet_boxes.any_bets? 
-        opening_deal
-        if blackjack_check
-        else
-          player_hands
-        end
-        close_out
-      end
-    end
   end
 end

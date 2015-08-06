@@ -52,6 +52,10 @@ module Blackjack
       length == 2 && hard_sum == TWENTYONE
     end
 
+    def twentyone?
+      length > 2 && hard_sum == TWENTYONE
+    end
+
     def bust?
       soft_sum > TWENTYONE 
     end

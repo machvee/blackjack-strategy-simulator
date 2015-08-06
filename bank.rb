@@ -5,7 +5,7 @@ module Blackjack
 
     include CounterMeasures
 
-    counters   :balance, :credits, :debits
+    counters   :deposits, :credits, :debits
 
     attr_reader :initial_deposit
 
@@ -27,24 +27,24 @@ module Blackjack
     end
 
     def credit(amount)
-      balance.add(amount)
+      deposits.add(amount)
       credits.incr
     end
 
     def debit(amount)
-      raise "insufficient funds to debit #{amount}. (current balance = #{current_balance})" \
-        if current_balance - amount < 0
-      balance.sub(amount)
+      raise "insufficient funds to debit #{amount}. (current balance = #{balance})" \
+        if balance - amount < 0
+      deposits.sub(amount)
       debits.incr
     end
 
-    def current_balance
-      balance.count
+    def balance
+      deposits.count
     end
 
     def reset
       reset_counters
-      balance.set(initial_deposit)
+      deposits.set(initial_deposit)
     end
   end
 end

@@ -7,61 +7,126 @@ module Blackjack
 
     attr_accessor   :hand
     attr_reader     :table
+    attr_reader     :soft_hit_limit
 
     def initialize(table)
       @table = table
       @validator = StrategyValidator.new(table)
+      @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
     end
 
-    def deal_one_card_face_up_to_bet_active_bet_box
+    def deal_one_card_face_up_to_each_active_bet_box
       table.bet_boxes.each_active do |bet_box|
-        table.shoe.deal_one_up(bet_box.hand)
+        deal_card_face_up_to(bet_box)
       end
+      self
     end
+
+    def deal_card_face_up_to(bet_box)
+      table.shoe.deal_one_up(bet_box.hand)
+    end
+
 
     def deal_up_card
       @hand = Cards.new(table.shoe.decks)
       table.shoe.deal_one_up(hand)
+      self
+    end
+
+    def check_player_hand_busted?(bet_box)
+      if bet_box.hand.bust?
     end
 
     def deal_hole_card
       table.shoe.deal_one_down(hand)
+      self
     end
 
-    def ask_play?(player)
+    def flip_hole_card
+      hole_card.up if hole_card.face_down?
+      self
+    end
+
+    def deal_card_to_hand
+      table.shoe.deal_one_up(hand)
+      self
+    end
+
+    def collect(bet_box)
+      bet_box.box.transfer_to(table.house, bet_box.bet_amount)
+    end
+
+    def pay(bet_box, payout_odds)
+      #
+      # transfer winnings from the house account to
+      # the bet_box.box based on the payout_odds and
+      # the bet_box bet_amount
+      #
+      # payout_odds is an array of ints
+      #  [3,2]  payout 3 for every 2
+      #  [1,1]  payout 1 for every 1
+      #
+      pay_this  = payout_odds[0]
+      for_every = payout_odds[1]
+      amount = (bet_box.bet_amount / for_every) * pay_this
+      table.house.transfer_to(bet_box.box, amount)
+    end
+
+    def busted?
+      hand.bust?
+    end
+
+    def hit?
+      !busted? && ((hand.soft? && hand.hard_sum <= soft_hit_limit) || (hand.hard_sum < 17))
+    end
+
+    def play_hand
+      while hit? do
+        deal_card_to_hand
+      end
+      self
+    end
+
+    def ask_player_play?(player)
       prompt_player_strategy_and_validate(:play, player) do
         player.strategy.play?
       end
+      self
     end
 
-    def ask_insurance?(bet_box)
+    def ask_player_insurance?(bet_box)
       prompt_player_strategy_and_validate(:insurance, bet_box.player, bet_box) do
         player.strategy.insurance?(bet_box)
       end
+      self
     end
 
-    def ask_decision(bet_box)
+    def ask_player_decision(bet_box)
       prompt_player_strategy_and_validate(:decision, bet_box.player, bet_box) do
         player.strategy.decision(bet_box, dealer.up_card, table.other_hands(bet_box.hand))
       end
+      self
     end
 
-    def ask_bet_amount(player)
+    def ask_player_bet_amount(player)
       prompt_player_strategy_and_validate(:bet_amount, player) do
         player.strategy.bet_amount
       end
+      self
     end
 
-    def ask_insurance_bet_amount(bet_box)
+    def ask_player_insurance_bet_amount(bet_box)
       prompt_player_strategy_and_validate(:insurance_bet_amount, bet_box.player, bet_box) do
         player.strategy.insurance_bet_amount(bet_box)
       end
+      self
     end
 
-    def ask_double_down_bet_amount(bet_box)
+    def ask_player_double_down_bet_amount(bet_box)
       prompt_player_strategy_and_validate(:double_down_bet_amount, bet_box.player, bet_box) do
         player.strategy.double_down_bet_amount(bet_box)
       end
+      self
     end
 
     def up_card
@@ -70,10 +135,6 @@ module Blackjack
 
     def hole_card
       hand[1]
-    end
-
-    def flip_hole_card
-      hole_card.up if hole_card.face_down?
     end
 
     private

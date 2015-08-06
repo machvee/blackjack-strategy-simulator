@@ -41,12 +41,12 @@ module Blackjack
     attr_reader   :seated_players
     attr_reader   :bet_boxes
     attr_reader   :config
-    attr_reader   :bank
+    attr_reader   :house
 
     def initialize(name, options={})
       @name = name
       @config = DEFAULT_CONFIG.merge(options)
-      @bank = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
+      @house = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
       @shoe = new_shoe
       @shoe.force_shuffle
 
@@ -108,6 +108,10 @@ module Blackjack
 
     def any_seated_players?
       !seated_players.compact.empty?
+    end
+
+    def inspect
+      name
     end
 
     private
