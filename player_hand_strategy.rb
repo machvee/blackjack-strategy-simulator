@@ -70,7 +70,7 @@ module Blackjack
     def decision(bet_box, dealer_up_card, other_hands=[])
       #
       # override in subclass to decide what to do based on
-      #   bet_box (hand and current_bet)
+      #   bet_box (hand and bet_amount)
       #   dealer_up_card
       #   other_hands
       #
@@ -132,13 +132,13 @@ module Blackjack
     end
 
     def insurance_bet_amount(bet_box)
-      max_bet = bet_box.current_bet/2.0
+      max_bet = bet_box.bet_amount/2.0
       insurance_bet_maker = CommandPrompter.new("Insurance Bet Amount:int:1:#{max_bet}")
       insurance_bet_maker.get_command.to_i
     end
 
     def double_down_bet_amount(bet_box)
-      max_bet = bet_box.current_bet
+      max_bet = bet_box.bet_amount
       double_down_bet_maker = CommandPrompter.new("Double Down Bet Amount:int:1:#{max_bet}")
       double_down_bet_maker.get_command.to_i
     end

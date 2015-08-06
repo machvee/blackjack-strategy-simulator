@@ -51,12 +51,13 @@ module Blackjack
       # transfer the bet from the parent bet box to the new
       # split right bet box
       #
-      bet_box_right.bet(player, current_bet_amount, parent_bet_box.box)
+      bet_box_right.bet(player, bet_amount, parent_bet_box.box)
     end
 
     def new_hand_from_parent
       bet_box = BetBox.new(parent_bet_box.table, parent_bet_box.position, self)
       move_one_card_to(bet_box)
+      bet_box.hand.sum_hand
       bet_box
     end
 
@@ -64,8 +65,8 @@ module Blackjack
       bet_box.hand.add(parent_bet_box.hand.remove(1, Cards::Card::FACE_UP))
     end
 
-    def current_bet_amount
-      @current_bet ||= parent_bet_box.bet_amount
+    def bet_amount
+      @_bet_amount ||= parent_bet_box.bet_amount
     end
   end
 end

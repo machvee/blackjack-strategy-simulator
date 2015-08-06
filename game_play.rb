@@ -25,7 +25,7 @@ module Blackjack
         players_play_hands
         dealer_plays_hand
       end
-      close_out
+      pay_out
     end
 
     def opening_deal
@@ -196,7 +196,7 @@ module Blackjack
       end
     end
 
-    def close_out
+    def pay_out
       #
       # 1. for each active bet_box, check hand
       # 2. If dealer had blackjack
@@ -206,6 +206,11 @@ module Blackjack
       # 6. if < dealer hand, transfer bet from table to house
       # 7. discard player hand 
       #
+      
+      dealers_has = dealer.hand.hard_sum
+      table.bet_boxes.each_active do |bet_box|
+        player_has = bet_box.hand.hard_sum
+      end
     end
 
     def dealer_plays_hand

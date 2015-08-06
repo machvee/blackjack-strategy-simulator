@@ -26,7 +26,6 @@ module Blackjack
       table.shoe.deal_one_up(bet_box.hand)
     end
 
-
     def deal_up_card
       @hand = Cards.new(table.shoe.decks)
       table.shoe.deal_one_up(hand)
@@ -34,7 +33,7 @@ module Blackjack
     end
 
     def check_player_hand_busted?(bet_box)
-      if bet_box.hand.bust?
+      bet_box.hand.bust?
     end
 
     def deal_hole_card
@@ -53,6 +52,9 @@ module Blackjack
     end
 
     def collect(bet_box)
+      #
+      # call to transfer losing bet_box bet to house
+      #
       bet_box.box.transfer_to(table.house, bet_box.bet_amount)
     end
 

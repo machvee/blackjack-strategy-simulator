@@ -240,7 +240,7 @@ module Blackjack
     end
 
     it "should deal hands to players with bets made" do
-      @dealer.deal_one_card_face_up_to_bet_active_bet_box
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
     end
   end
 

@@ -21,7 +21,7 @@ module Blackjack
     end
 
     def any_bets?
-      bet_boxes.any? {|bet_box| bet_box.current_bet > 0}
+      bet_boxes.any? {|bet_box| bet_box.bet_amount > 0}
     end
 
     def dedicated_to(player)

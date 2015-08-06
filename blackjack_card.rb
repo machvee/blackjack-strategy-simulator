@@ -48,12 +48,11 @@ module Blackjack
     #
     TWENTYONE = 21
 
+    attr_reader  :soft_sum
+    attr_reader  :hard_sum
+
     def blackjack?
       length == 2 && hard_sum == TWENTYONE
-    end
-
-    def twentyone?
-      length > 2 && hard_sum == TWENTYONE
     end
 
     def bust?
@@ -68,6 +67,10 @@ module Blackjack
       soft_sum < TWENTYONE 
     end
 
+    def pair?
+      length == 2 && (cards[0].hard_value == cards[1].hard_value)
+    end
+
     def soft?
       has_ace?
     end
@@ -76,29 +79,35 @@ module Blackjack
       any? {|c| c.ace?}
     end
 
-    def pair?
-      length == 2 && (cards[0].hard_value == cards[1].hard_value)
+    def num_aces
+      count {|c| c.ace?}
     end
 
-    def hard_sum
-      return soft_sum if bust?
-
-      #
-      # Only one Card::ACE uses the soft value, the rest are taken as hard_value
-      #
-      first_ace = true
-      inject(0) do |t, c|
-        t += if c.ace? && first_ace
-          first_ace = false
-          c.hard_value
-        else
-          c.soft_value
-        end
-      end
-    end
-
-    def soft_sum
+    def sum
       inject(0) {|t, c| t += c.soft_value}
+    end
+
+    def sum_non_aces
+      inject(0) {|t, c| t += c.ace? ? 0 : c.hard_value}
+    end
+
+    def calc_hard_soft_sums
+      na = num_aces 
+      if na = 0
+        s = sum
+        return [s,s]
+      end
+
+      sna = sum_non_aces
+
+      soft = sna + na
+      hard = sna + na + TEN
+
+      [soft, hard > TWENYONE ? soft : hard]
+    end
+
+    def sum_hand
+      @soft_sum, @hard_sum = calc_hard_soft_sums
     end
 
     def counts

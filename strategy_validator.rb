@@ -48,7 +48,7 @@ module Blackjack
       # player must have blackjack in order to ask
       # for Action::EVEN_MONEY
       #
-      # player must have current_bet/2 in bank in order
+      # player must have bet_amount/2 in bank in order
       # take Action::INSURANCE
       #
       # Action::NO_INSURANCE is always valid
@@ -60,7 +60,7 @@ module Blackjack
         valid_resp, error_message =
           case response
           when Action::INSURANCE
-            if player.bank.balance < bet_box.current_bet/2.0
+            if player.bank.balance < bet_box.bet_amount/2.0
               [false, "Player has insufficient funds to make an insurance bet"]
             end
           when Action::EVEN_MONEY
@@ -84,7 +84,7 @@ module Blackjack
     end
 
     def validate_insurance_bet(bet_box, bet_amount)
-      max_legal_bet = bet_box.current_bet / 2.0
+      max_legal_bet = bet_box.bet_amount / 2.0
       legal_bet_range = 1..max_legal_bet
       if !legal_bet_range.include?(bet_amount)
         [false, "Player insurance bet must be between #{legal_bet_range.min} and #{legal_bet_range.max}"]
@@ -94,7 +94,7 @@ module Blackjack
     end
 
     def validate_double_down_bet(bet_box, bet_amount)
-      max_legal_bet = bet_box.current_bet
+      max_legal_bet = bet_box.bet_amount
       legal_bet_range = 1..max_legal_bet
       if !legal_bet_range.include?(bet_amount)
         [false, "Player double bet must be between #{legal_bet_range.min} and #{legal_bet_range.max}"]
@@ -132,7 +132,7 @@ module Blackjack
             #
             # TODO: need to enforce hand max splits from table.config
             #
-            if player.bank.balance < bet_box.current_bet
+            if player.bank.balance < bet_box.bet_amount
               [false, "Player has insufficient funds to split the hand"]
             elsif !valid_split_hand?(bet_box.hand)
               [false, "Player can only split cards that are identical in value"]

@@ -102,6 +102,7 @@ module Blackjack
       raise "needs cut card placed" if @cutoff.nil?
       raise "needs shuffle" if needs_shuffle?
       decks.deal(destination, 1, orientation)
+      destination.sum_hand
       cards_dealt.incr
       self
     end
