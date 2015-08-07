@@ -1363,11 +1363,6 @@ module Blackjack
       @deck.all? {|c| c.face_down?}.must_equal true
     end
 
-    it "should be able to deal hands" do
-      hands = @deck.deal_hands(4, 2)
-      hands.length.must_equal 4
-      hands.first.length.must_equal 2
-    end
   end
 
   describe BlackjackDeck, "a default deck of one set of cards" do
@@ -1379,11 +1374,6 @@ module Blackjack
       @deck.all? {|c| c.face_down?}.must_equal true
     end
 
-    it "should be able to deal hands" do
-      hands = @deck.deal_hands(4, 2)
-      hands.length.must_equal 4
-      hands.first.length.must_equal 2
-    end
   end
 
   describe Shoe, "shoes come in a variety of sizes" do

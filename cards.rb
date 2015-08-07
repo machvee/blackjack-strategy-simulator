@@ -381,20 +381,5 @@ module Cards
       num_decks.times {cards += card_class.all(direction)}
       super(nil, cards, card_class)
     end
-
-    def deal_hands(num_hands, how_many_cards, direction=Card::FACE_DOWN)
-      #
-      # create Hands from this deck, dealing one card out at a time to each Hand
-      # (remember to call Cards#fold on each hand to return them to this Deck)
-      #
-      hands=[]
-      num_hands.times {hands << deal_cards(1, direction)}
-      (how_many_cards-1).times do
-        hands.each do |hand|
-          deal(hand, 1, direction)
-        end
-      end
-      hands
-    end
   end
 end
