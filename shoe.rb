@@ -4,7 +4,6 @@ require 'counter_measures'
 module Blackjack
   class Shoe
 
-    include Cards
     include CounterMeasures
 
     attr_reader  :decks
@@ -23,13 +22,17 @@ module Blackjack
 
     def initialize(options={})
       @options = DEFAULT_OPTIONS.merge(options)
-      @decks = Deck.new(@options[:num_decks_in_shoe])
-      @discard_pile = Cards.new(decks)
+      @decks = BlackjackDeck.new(@options[:num_decks_in_shoe])
+      @discard_pile = Cards::Cards.new(decks)
       shuffle
     end
 
     def new_hand
-      Cards.new(discard_pile)
+      #
+      # returns an empty BlackjackHand that will naturally discard
+      # to the discard pile when folded
+      #
+      BlackjackHand.new(discard_pile)
     end
 
     def place_cut_card(cut_offset=nil)
@@ -43,11 +46,11 @@ module Blackjack
     end
 
     def deal_one_up(destination)
-      deal_one(destination, Card::FACE_UP)
+      deal_one(destination, BlackjackCard::FACE_UP)
     end
 
     def deal_one_down(destination)
-      deal_one(destination, Card::FACE_DOWN)
+      deal_one(destination, BlackjackCard::FACE_DOWN)
     end
 
     def remaining
@@ -102,7 +105,6 @@ module Blackjack
       raise "needs cut card placed" if @cutoff.nil?
       raise "needs shuffle" if needs_shuffle?
       decks.deal(destination, 1, orientation)
-      destination.sum_hand
       cards_dealt.incr
       self
     end

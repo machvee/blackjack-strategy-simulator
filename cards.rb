@@ -83,21 +83,17 @@ module Cards
     end
 
     def face_value
-      Card.face_to_value(face)
+      @_fv ||= self.class.face_to_value(face)
     end
 
     def suit_value
-      SUITS.index(suit)
+      @_sv ||= SUITS.index(suit)
     end
 
     def facing(direction)
       #
       # change a cards orientation to FACE_UP or FACE_DOWN (direction)
       @faces = direction
-    end
-
-    def self.for(face_index, suit_index, direction=FACE_DOWN)
-      Card.new(FACES[face_index-2], SUITS[suit_index], direction)
     end
 
     def to_s
@@ -168,10 +164,27 @@ module Cards
       a = []
       SUITS.each do |s|
         FACES.each do |f|
-          a << Card.new(f, s, direction)
+          a << new(f, s, direction)
         end
       end
       a
+    end
+
+    def self.from_face_suit(fs, direction=Card::FACE_UP)
+      face = fs[0..-2]
+      suit = fs[-1]
+      new(face, suit, direction)
+    end
+
+    def self.make(*face_suits)
+      #
+      # builds an array of Cards from the args
+      #
+      # usage: Card.make("AC", "JD", "4D", "JS")
+      #
+      face_suits.inject([]) do |h, fs|
+        h << from_face_suit(fs)
+      end
     end
 
     def self.face_to_value(face)
@@ -199,38 +212,64 @@ module Cards
 
     attr_reader :cards
     attr_reader :card_source
+    attr_reader :card_class
+    attr_reader :value # used by subclasses to hold hand value
 
-    def initialize(card_source, cards=[])
+    def initialize(card_source, card_array=[], card_class=Card)
       @card_source = card_source
-      @cards = cards
+      @cards = []
+      @card_class = card_class
+      @value = nil
+      add(card_array)
     end
 
-    def set(*cards)
-      # usage hand.set(*%w{JC AS 4H 3D 2D})
-      @cards = cards.map {|fs| Cards.from_face_suit(fs)}
+    def insert(offset, card)
+      @cards.insert(offset, card)
+      update_value
+      self
     end
 
-    def self.from_face_suit(fs, direction=Card::FACE_UP)
-      f=fs[0..-2]
-      s=fs[-1..-1]
-      Card.new(f, s, direction)
+    def add(cards)
+      @cards += cards.flatten
+      update_value
+      self
     end
 
-    def self.make(*cards)
-      # usage Cards.make(*%w{JC AS 4H 3D 2D})
-      h = []
-      cards.each do |fs|
-        h << from_face_suit(fs)
-      end
-      new(nil, h)
+    def remove(how_many, direction)
+      raise "too few cards remaining" if how_many > length
+      removed_cards = @cards.slice!(0, how_many).each {|c| c.facing(direction)}
+      update_value
+      removed_cards
+    end
+
+    def update_value
+      #
+      # override in subclass if desired to set @value
+      #
+      self
+    end
+
+    def set(*face_suits)
+      cards_to_add = card_class.make(*face_suits)
+      @cards = []
+      add(cards_to_add)
+      self
+    end
+
+    def self.make(*face_suits)
+      h = new(nil)
+      h.set(*face_suits)
+      h
     end
 
     def shuffle
       @cards.shuffle!
+      self
     end
 
     def shuffle_up(num_times=1)
       num_times.times {shuffle; split}
+      self
     end
 
     def facing(direction=Card::FACE_DOWN)
@@ -269,7 +308,7 @@ module Cards
       #
       # create a new Cards object using how_many from this set
       #
-      Cards.new(self, remove(how_many, direction))
+      self.class.new(remove(how_many, direction))
     end
 
     def fold(direction=Card::FACE_DOWN)
@@ -288,19 +327,6 @@ module Cards
         removed << @cards.delete_at(off-i)
       end
       @card_source.add(removed)
-    end
-
-    def add(cards)
-      @cards += cards.flatten
-    end
-
-    def remove(how_many, direction)
-      raise "too few cards remaining" if how_many > length
-      @cards.slice!(0, how_many).each {|c| c.facing(direction)}
-    end
-
-    def insert(offset, card)
-      @cards.insert(offset, card)
     end
 
     def order
@@ -350,10 +376,10 @@ module Cards
     #               D E C K
     # ========================================
     #
-    def initialize(num_decks=1, direction=Card::FACE_DOWN)
+    def initialize(num_decks=1, direction=Card::FACE_DOWN, card_class=Card)
       cards = []
-      num_decks.times {cards += Card.all(direction)}
-      super(nil, cards)
+      num_decks.times {cards += card_class.all(direction)}
+      super(nil, cards, card_class)
     end
 
     def deal_hands(num_hands, how_many_cards, direction=Card::FACE_DOWN)

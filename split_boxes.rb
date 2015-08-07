@@ -57,12 +57,11 @@ module Blackjack
     def new_hand_from_parent
       bet_box = BetBox.new(parent_bet_box.table, parent_bet_box.position, self)
       move_one_card_to(bet_box)
-      bet_box.hand.sum_hand
       bet_box
     end
 
     def move_one_card_to(bet_box)
-      bet_box.hand.add(parent_bet_box.hand.remove(1, Cards::Card::FACE_UP))
+      bet_box.hand.add(parent_bet_box.hand.remove(1, BlackjackCard::FACE_UP))
     end
 
     def bet_amount

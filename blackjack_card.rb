@@ -1,19 +1,18 @@
 require 'cards'
 
 module Blackjack
-  class Cards::Card
-    #
-    # monkey patch Card to have alternate Blackjack face values
-    #
+  class BlackjackCard < Cards::Card
+
     ACE_SOFT_VALUE=1
     ACE_HARD_VALUE=11
+    SOFT_DIFFERENCE=(ACE_HARD_VALUE-ACE_SOFT_VALUE)
 
     def face_value
       soft_value
     end
 
     def soft_value
-      Cards::Card.custom_value_of_face(face)
+      BlackjackCard.custom_value_of_face(face)
     end
 
     def hard_value
@@ -30,26 +29,38 @@ module Blackjack
         when ACE
           ACE_SOFT_VALUE
         when *FACE_CARDS
-          Cards::Card.face_to_value(TEN)
+          BlackjackCard.face_to_value(TEN)
         else
-          Cards::Card.face_to_value(card_face)
+          BlackjackCard.face_to_value(card_face)
       end
     end
 
     def ten?
-      Cards::Card.custom_value_of_face(face) == 10
+      BlackjackCard.custom_value_of_face(face) == 10
     end
   end
 
-  class Cards::Cards
+
+  class BlackjackHand < Cards::Cards
     #
-    # monkey patch Cards to have builtin knowledge of blackjack
-    # hands sums and states
+    # custom Cards subclass has builtin knowledge of blackjack
+    # hands sums
     #
     TWENTYONE = 21
 
     attr_reader  :soft_sum
     attr_reader  :hard_sum
+
+    def initialize(card_source, card_array=[])
+      super(card_source, card_array, BlackjackCard)
+    end
+
+    def update_value
+      @value = calc_hard_soft_sums
+      @soft_sum = value.first
+      @hard_sum = value.last
+      self
+    end
 
     def blackjack?
       length == 2 && hard_sum == TWENTYONE
@@ -79,6 +90,8 @@ module Blackjack
       any? {|c| c.ace?}
     end
 
+    private 
+
     def num_aces
       count {|c| c.ace?}
     end
@@ -93,7 +106,7 @@ module Blackjack
 
     def calc_hard_soft_sums
       na = num_aces 
-      if na = 0
+      if na == 0
         s = sum
         return [s,s]
       end
@@ -101,22 +114,24 @@ module Blackjack
       sna = sum_non_aces
 
       soft = sna + na
-      hard = sna + na + TEN
+      hard = sna + na + BlackjackCard::SOFT_DIFFERENCE
 
-      [soft, hard > TWENYONE ? soft : hard]
-    end
-
-    def sum_hand
-      @soft_sum, @hard_sum = calc_hard_soft_sums
+      [soft, hard > TWENTYONE ? soft : hard]
     end
 
     def counts
       #
       # return [[face, count_in_deck, face_val, count_in_deck]]
       #
-      freq = Hash[Card::FACES.map{|f| Cards::Card.custom_value_of_face(f)}.uniq.zip([0]*Card::FACES.length)]
+      freq = Hash[BlackjackCard::FACES.map{|f| BlackjackCard.custom_value_of_face(f)}.uniq.zip([0]*BlackjackCard::FACES.length)]
       map {|c| freq[c.face_value] += 1}
       freq.to_a
+    end
+  end
+
+  class BlackjackDeck < Cards::Deck
+    def initialize(num_decks=1)
+      super(num_decks, BlackjackCard::FACE_DOWN, BlackjackCard)
     end
   end
 end

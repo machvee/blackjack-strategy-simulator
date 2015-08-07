@@ -1,9 +1,5 @@
-require 'cards'
-
 module Blackjack
   class Dealer
-
-    include Cards
 
     attr_accessor   :hand
     attr_reader     :table
@@ -27,7 +23,7 @@ module Blackjack
     end
 
     def deal_up_card
-      @hand = Cards.new(table.shoe.decks)
+      @hand = table.new_hand
       table.shoe.deal_one_up(hand)
       self
     end

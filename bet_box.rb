@@ -17,8 +17,6 @@ module Blackjack
     attr_reader :parent_split_box
     attr_reader :split_boxes
 
-    include Cards
-
     def initialize(table, player_seat_position, parent_split_box=nil)
       @table = table
       @box = Bank.new(0)

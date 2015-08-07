@@ -1003,14 +1003,14 @@ module Blackjack
     end
   end
 
-  describe Cards::Card, "A Card" do 
+  describe BlackjackCard, "A Card" do 
     before do
-      @a_card = Cards::Card.new('A', 'S')
+      @a_card = BlackjackCard.new('A', 'S')
     end
 
     it "should have validate inputs" do
-      proc { Cards::Card.new('-', '*')}.must_raise RuntimeError
-      proc { Cards::Card.new('*', '-')}.must_raise RuntimeError
+      proc { BlackjackCard.new('-', '*')}.must_raise RuntimeError
+      proc { BlackjackCard.new('*', '-')}.must_raise RuntimeError
     end
 
     it "should have a default direction facing down" do
@@ -1034,9 +1034,9 @@ module Blackjack
 
   end
 
-  describe Cards::Card, "A single Blackjack Ace Card" do 
+  describe BlackjackCard, "A single Blackjack Ace Card" do 
     before do
-      @ace_spades = Cards::Card.new('A', 'S')
+      @ace_spades = BlackjackCard.new('A', 'S')
     end
 
     it "should have 'A' as its value" do
@@ -1061,9 +1061,9 @@ module Blackjack
     end
   end
 
-  describe Cards::Card, "A single Blackjack Face Card" do 
+  describe BlackjackCard, "A single Blackjack Face Card" do 
     before do
-      @jack_clubs = Cards::Card.new('J', 'C')
+      @jack_clubs = BlackjackCard.new('J', 'C')
     end
 
     it "should have 'J' as its value" do
@@ -1089,10 +1089,10 @@ module Blackjack
     end
   end
 
-  describe Cards::Card, "A deck of Blackjack Cards" do 
+  describe BlackjackCard, "A deck of Blackjack Cards" do 
 
     before do
-      @deck = Cards::Card.all
+      @deck = BlackjackCard.all
     end
 
     it "must have 52 cards" do
@@ -1111,9 +1111,9 @@ module Blackjack
     end
   end
 
-  describe Cards::Cards, "A Hand of 8 8" do
+  describe BlackjackHand, "A Hand of 8 8" do
     before do
-      @eight_eight = Cards::Cards.make('8D', '8S')
+      @eight_eight = BlackjackHand.make('8D', '8S')
     end
 
     it "should respond to pair" do
@@ -1129,9 +1129,9 @@ module Blackjack
     end
   end
 
-  describe Cards::Cards, "A Hand of 8 9" do
+  describe BlackjackHand, "A Hand of 8 9" do
     before do
-      @eight_nine = Cards::Cards.make('8D', '9S')
+      @eight_nine = BlackjackHand.make('8D', '9S')
     end
 
     it "should not respond to pair" do
@@ -1151,9 +1151,9 @@ module Blackjack
     end
   end
 
-  describe Cards::Cards, "A Hand of J Q" do
+  describe BlackjackHand, "A Hand of J Q" do
     before do
-      @jack_q = Cards::Cards.make('JD', 'QS')
+      @jack_q = BlackjackHand.make('JD', 'QS')
     end
 
     it "should respond to pair" do
@@ -1174,9 +1174,9 @@ module Blackjack
     end
   end
 
-  describe Cards::Cards, "A Hand of K 10" do
+  describe BlackjackHand, "A Hand of K 10" do
     before do
-      @k_10 = Cards::Cards.make('KD', '10S')
+      @k_10 = BlackjackHand.make('KD', '10S')
     end
 
     it "should respond to pair" do
@@ -1201,9 +1201,9 @@ module Blackjack
     end
   end
 
-  describe Cards::Cards, "A Hand of A Q" do
+  describe BlackjackHand, "A Hand of A Q" do
     before do
-      @blackjack = Cards::Cards.make('AD', 'QS')
+      @blackjack = BlackjackHand.make('AD', 'QS')
     end
 
     it "should not respond to pair" do
@@ -1236,9 +1236,9 @@ module Blackjack
   end
 
 
-  describe Cards::Cards, "A hand that has multiple aces" do
+  describe BlackjackHand, "A hand that has multiple aces" do
     before do
-      @hand = Cards::Cards.make('AD', 'AC', '4S', '3D')
+      @hand = BlackjackHand.make('AD', 'AC', '4S', '3D')
     end
 
     it "should not respond to pair" do
@@ -1271,9 +1271,9 @@ module Blackjack
   end
 
 
-  describe Cards::Cards, "A hand that has an aces and is more than 21" do
+  describe BlackjackHand, "A hand that has an aces and is more than 21" do
     before do
-      @hand = Cards::Cards.make('AD', '4C', '9S', 'QD')
+      @hand = BlackjackHand.make('AD', '4C', '9S', 'QD')
     end
 
     it "should not respond to pair" do
@@ -1306,9 +1306,9 @@ module Blackjack
   end
 
 
-  describe Cards::Cards, "A hand that has an no aces and is more than 21" do
+  describe BlackjackHand, "A hand that has an no aces and is more than 21" do
     before do
-      @hand = Cards::Cards.make('4D', '5C', '6S', 'QD')
+      @hand = BlackjackHand.make('4D', '5C', '6S', 'QD')
     end
 
     it "should not respond to pair" do
@@ -1340,13 +1340,13 @@ module Blackjack
     end
   end
 
-  describe Cards::Deck, "a deck can be created face up" do
+  describe BlackjackDeck, "a deck can be created" do
     before do
-      @deck = Cards::Deck.new(1, Cards::Card::FACE_UP)
+      @deck = BlackjackDeck.new(1)
     end
 
-    it "should have a deck with cards face up" do
-      @deck.all? {|c| c.face_up?}.must_equal true
+    it "should have a deck with cards face down" do
+      @deck.all? {|c| c.face_down?}.must_equal true
     end
 
     it "should have 52 cards" do
@@ -1354,9 +1354,9 @@ module Blackjack
     end
   end
 
-  describe Cards::Deck, "a default deck of one set of cards" do
+  describe BlackjackDeck, "a default deck of one set of cards" do
     before do
-      @deck = Cards::Deck.new(1)
+      @deck = BlackjackDeck.new(1)
     end
 
     it "should have a deck with cards face down by default" do
@@ -1370,9 +1370,9 @@ module Blackjack
     end
   end
 
-  describe Cards::Deck, "a default deck of one set of cards" do
+  describe BlackjackDeck, "a default deck of one set of cards" do
     before do
-      @deck = Cards::Deck.new(1)
+      @deck = BlackjackDeck.new(1)
     end
 
     it "should have a deck with cards face down by default" do
