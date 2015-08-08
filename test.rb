@@ -3,6 +3,18 @@ require 'table'
 
 module Blackjack
 
+  class TestShoe < Shoe
+    def initialize(*face_suits)
+      #
+      # this is a shoe that you can stack, that won't shuffle the
+      # order so for testing purposes, we can pre-arrange what
+      # cards will be dealt
+      #
+      super(split_and_shuffles: 0, num_decks_in_shoe: 1)
+      decks.set(*face_suits)
+    end
+  end
+
   describe Player, "A Blackjack Player" do
     it "should be able to play the game of blackjack interactively" do
     end
@@ -867,7 +879,10 @@ module Blackjack
       counter = 0
       @table.bet_boxes.each_active do |bet_box|
         bet_box.hand.length.must_equal(1)
+        bet_box.box.transfer_to(@table.house, bet_box.bet_amount)
         counter +=1
+        bet_box.discard
+        bet_box.hand.length.must_equal(0)
       end
       counter.must_equal(4)
     end

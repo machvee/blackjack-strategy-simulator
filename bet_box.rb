@@ -127,8 +127,9 @@ module Blackjack
     end
 
     def discard
-      split_boxes.discard if split?
-      reset
+      raise "you can't discard until dealer or player removes bet" if bet_amount > 0
+      hand.fold
+      @player = nil
       self
     end
 
@@ -137,8 +138,7 @@ module Blackjack
     end
 
     def reset
-      hand.fold
-      @player = nil
+      discard
       @split_boxes = nil
       @parent_split_box = nil
       self

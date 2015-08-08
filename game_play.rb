@@ -15,7 +15,12 @@ module Blackjack
         shuffle_check
         wait_for_player_bets
         play_a_hand_of_blackjack if any_player_bets?
+        reset
       end
+    end
+
+    def reset
+      table.bet_boxes.reset
     end
 
     def play_a_hand_of_blackjack
@@ -83,7 +88,7 @@ module Blackjack
               #
               player.won_bet(bet_box)
               dealer.pay(bet_box, [1,1])
-              bet_box.hand.discard
+              bet_box.discard
           end
         end
       end
@@ -99,7 +104,7 @@ module Blackjack
           player.blackjack(bet_box)
           player.won_bet(bet_box)
           dealer.pay(bet_box, table.config[:blackjack_payout])
-          bet_box.hand.discard
+          bet_box.discard
         end
       end
     end

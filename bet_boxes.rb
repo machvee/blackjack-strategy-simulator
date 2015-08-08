@@ -83,6 +83,11 @@ module Blackjack
       end
     end
 
+    def reset
+      each {|bet_box| bet_box.reset}
+      self
+    end
+
     def each_active(&block)
       bet_boxes.each { |bet_box| bet_box.iter(&block) if bet_box.active? }
     end
