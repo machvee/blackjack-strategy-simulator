@@ -206,10 +206,28 @@ module Blackjack
       # 6. if < dealer hand, transfer bet from table to house
       # 7. discard player hand 
       #
-      
       dealers_has = dealer.hand.hard_sum
       table.bet_boxes.each_active do |bet_box|
-        player_has = bet_box.hand.hard_sum
+        player = bet_box.player
+        player_has = player.hand.hard_sum
+        if dealer_has > player_has
+          #
+          # dealer wins
+          #
+          player.lost_bet(bet_box)
+          dealer.collect(bet_box)
+        elsif player_has > dealer_has
+          #
+          # player wins
+          #
+          dealer.pay(bet_box, [1,1])
+          player.won_bet(bet_box)
+        else
+          #
+          # push no action
+          #
+        end
+        bet_box.discard
       end
     end
 

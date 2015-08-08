@@ -8,7 +8,8 @@ module Blackjack
              :double_downs,  :double_downs_won, :double_downs_lost,
              :soft_doubles,  :soft_doubles_won, :soft_doubles_lost,
              :insurances,    :insurances_won,   :insurances_lost,
-             :busts,         :blackjacks,       :surrenders
+             :busts,         :blackjacks,       :surrenders,
+             :pushes
 
     def initialize(player)
       @player = player

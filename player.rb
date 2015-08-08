@@ -50,6 +50,12 @@ module Blackjack
       self
     end
 
+    def push_bet(bet_box)
+      bet_box.take_down_bet
+      stats.pushes.incr
+      self
+    end
+
     def blackjack(bet_box)
       stats.blackjacks.incr
       self

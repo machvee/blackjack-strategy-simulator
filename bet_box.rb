@@ -72,10 +72,12 @@ module Blackjack
       self
     end
 
-    def take_winnings
+    def take_down_bet
       box.transfer_to(player.bank, bet_amount)
       self
     end
+
+    alias :take_winnings :take_down_bet
 
     def take_insurance
       insurance.transfer_to(player.bank, insurance_bet_amount)
