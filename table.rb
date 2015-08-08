@@ -71,7 +71,12 @@ module Blackjack
           raise "Sorry that seat is taken by #{seated_players[desired_seat_position].name}"
         end
       end
+      seat(seat_position, player)
+    end
+
+    def seat(seat_position, player)
       seated_players[seat_position] = player
+      bet_boxes[seat_position].dedicate_to(player)
       players_seated.incr
       seat_position
     end
@@ -80,6 +85,8 @@ module Blackjack
       ind = seated_players.index(player)
       raise "player #{player.name} isn't at table #{name}" if ind.nil?
       seated_players[ind] = nil
+      bet_boxes[ind].player_leaves
+      self
     end
 
     def seat_available?(desired_seat_position=nil)

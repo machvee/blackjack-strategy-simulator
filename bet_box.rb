@@ -27,19 +27,26 @@ module Blackjack
       @parent_split_box = parent_split_box # do after reset
     end
 
+    def dedicate_to(player)
+      @reserved_for_player = player
+    end
+
+    def player_leaves
+      @reserved_for_player = nil
+    end
+
     def dedicated?
       #
       # bet box has a seated player in front of it
       #
-      !table.seated_players[position].nil?
+      !@reserved_for_player.nil?
     end
 
     def available?
       #
-      # adjacent seated players may place a bet here
-      # when its available?
+      # adjacent seated players may place a bet here its available?
       #
-      !dedicated? && player.nil?
+      !(dedicated? || active?)
     end
 
     def active?
@@ -48,7 +55,7 @@ module Blackjack
       # adjacent seated players may not place a bet here
       # when its active?
       #
-      !player.nil?
+      bet_amount > 0 || split?
     end
 
     def insurance_bet(bet_amount)
@@ -140,7 +147,13 @@ module Blackjack
     end
 
     def to_s
-      available? ? "Available BetBox #{position}" : "Dedicated BetBox #{position} for #{player.name}"
+      available? ? "Available BetBox #{position}" :
+        "BetBox %d with $%d for %s%s" % [
+           position,
+           bet_amount,
+           (player||@reserved_for_player).name,
+           hand.length == 0 ? "" : " " + hand.to_s
+         ]
     end
 
     private

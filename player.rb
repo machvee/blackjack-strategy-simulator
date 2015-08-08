@@ -33,8 +33,8 @@ module Blackjack
       self
     end
 
-    def make_bet(bet_box, bet_amount)
-      bet_box.bet(self, bet_amount)
+    def make_bet(bet_amount, alt_bet_box=nil)
+      (alt_bet_box||bet_box).bet(self, bet_amount)
       stats.hands.incr
       self
     end
@@ -88,8 +88,8 @@ module Blackjack
       self
     end
 
-    def make_split_bet(bet_box)
-      bet_box.bet(self, bet_box.bet_amount)
+    def make_split_bet(bet_box, bet_amount)
+      bet_box.bet(self, bet_amount)
       stats.splits.incr
       stats.splits.incr # double split count for two hand results
       stats.hands.incr  # one additional hand is created for each split

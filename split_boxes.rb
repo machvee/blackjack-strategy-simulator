@@ -8,6 +8,7 @@ module Blackjack
     # bank
     attr_reader  :player
     attr_reader  :parent_bet_box
+    attr_reader  :bet_amount
     attr_reader  :bet_box_left
     attr_reader  :bet_box_right
 
@@ -16,6 +17,8 @@ module Blackjack
     def initialize(parent_bet_box)
       @player = parent_bet_box.player
       @parent_bet_box = parent_bet_box
+      @bet_amount = parent_bet_box.bet_amount
+
       create_right_box_from_parent_bet_box
       create_left_box_from_parent_bet_box
     end
@@ -35,14 +38,14 @@ module Blackjack
     end
 
     def inspect
-      "Split: " + map {|bet_box| bet_box.inspect}.join("\n")
+      "Split:\n\t" + map {|bet_box| bet_box.inspect}.join("\n\t")
     end
 
     private
 
     def create_left_box_from_parent_bet_box
       @bet_box_left = new_hand_from_parent
-      player.make_split_bet(bet_box_left)
+      player.make_split_bet(bet_box_left, bet_amount)
     end
 
     def create_right_box_from_parent_bet_box
@@ -56,6 +59,7 @@ module Blackjack
 
     def new_hand_from_parent
       bet_box = BetBox.new(parent_bet_box.table, parent_bet_box.position, self)
+      bet_box.dedicate_to(player)
       move_one_card_to(bet_box)
       bet_box
     end
@@ -64,8 +68,5 @@ module Blackjack
       bet_box.hand.add(parent_bet_box.hand.remove(1, BlackjackCard::FACE_UP))
     end
 
-    def bet_amount
-      @_bet_amount ||= parent_bet_box.bet_amount
-    end
   end
 end

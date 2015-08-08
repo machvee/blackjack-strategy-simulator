@@ -9,6 +9,7 @@ module Blackjack
       @table = table
       @validator = StrategyValidator.new(table)
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
+      @hand = table.new_hand
     end
 
     def deal_one_card_face_up_to_each_active_bet_box
@@ -23,7 +24,6 @@ module Blackjack
     end
 
     def deal_up_card
-      @hand = table.new_hand
       table.shoe.deal_one_up(hand)
       self
     end
@@ -75,7 +75,9 @@ module Blackjack
     end
 
     def hit?
-      !busted? && ((hand.soft? && hand.hard_sum <= soft_hit_limit) || (hand.hard_sum < 17))
+      !busted? &&                                           # don't hit if already busted
+        ((hand.soft? && hand.hard_sum <= soft_hit_limit) || # hit if soft 16 (or if configured, soft 17) or less
+        (!hand_soft? && hand.hard_sum < 17))                # hit if hard hand < 17
     end
 
     def play_hand
@@ -83,6 +85,10 @@ module Blackjack
         deal_card_to_hand
       end
       self
+    end
+
+    def discard_hand
+      hand.fold
     end
 
     def ask_player_play?(player)

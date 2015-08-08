@@ -229,7 +229,7 @@ module Blackjack
                 break
               when Action::BET
                 bet_amount = dealer.ask_player_bet_amount(player)
-                player.make_bet(bet_box, bet_amount)
+                player.make_bet(bet_amount, bet_box)
             end # case
           end # table.bet_boxes
         end # catch

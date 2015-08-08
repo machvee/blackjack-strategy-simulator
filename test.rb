@@ -231,16 +231,21 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @table = Table.new('table_1')
-      @players = []
-      3.times {
-        player = MiniTest::Mock.new
-        @players << player
-      }
-      @dealer = Dealer.new(@table)
+      @players = %w{dave cortney erica}.inject([]) do |p, n|
+        player = Player.new(n)
+        player.join(@table)
+        player.make_bet(50)
+        p << player
+      end
+      @dealer = @table.dealer
+      @table.shoe.shuffle
+      @table.shoe.place_cut_card
     end
 
     it "should deal hands to players with bets made" do
+      num_cards_before_deal = @table.shoe.decks.length
       @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @table.shoe.decks.length.must_equal(num_cards_before_deal - @players.length)
     end
   end
 
@@ -461,7 +466,7 @@ module Blackjack
     end
 
     it "should provide the last position player way to reach adjacent, available bet_boxes for multi-bet play" do
-      @fav_seat = @table.config[:num_seats]
+      @fav_seat = @table.config[:num_seats]-1
       @player = Player.new('tedlast')
       seat_position = @table.join(@player, @fav_seat)
       expected_results = [
@@ -591,7 +596,7 @@ module Blackjack
     end
 
     it "should return false for insurance? when player is broke and they want INSURANCE" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bank.debit(@player.bank.balance)
       @player.bank.balance.must_equal(0)
       @player.bet_box.hand.set('JD', '9H')
@@ -600,20 +605,20 @@ module Blackjack
     end
 
     it "should return true for insurance? when player wants INSURANCE" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('JD', '9H')
       @sv.validate_insurance?(@player.bet_box, Action::INSURANCE).must_equal([true, nil])
     end
 
     it "should return false for insurance player doesn't have blackjack and they want EVEN MONEY" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('JD', '9H')
       @sv.validate_insurance?(@player.bet_box, Action::EVEN_MONEY).must_equal([false,
         "Player must have Blackjack to request even money"])
     end
 
     it "should return true for insurance player has blackjack and they want EVEN MONEY" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('JD', 'AH')
       @sv.validate_insurance?(@player.bet_box, Action::EVEN_MONEY).must_equal([true, nil])
     end
@@ -652,7 +657,7 @@ module Blackjack
 
     it "should return false for decision when input is a SURRENDER but table doesn't allow it" do
       @table.config[:player_surrender] = false
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('JD', '9H')
       @sv.validate_decision(@player.bet_box, Action::SURRENDER).must_equal([false,
         "This table does not allow player to surrender"])
@@ -660,7 +665,7 @@ module Blackjack
 
     it "should return false for decision when input is a SURRENDER but player already took a hit" do
       @table.config[:player_surrender] = true
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('4D', '9H', '3H')
       @sv.validate_decision(@player.bet_box, Action::SURRENDER).must_equal([false,
         "Player may surrender on initial two cards dealt"])
@@ -668,7 +673,7 @@ module Blackjack
 
     it "should return false for decision when input is a SURRENDER but player already split" do
       @table.config[:player_surrender] = true
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('4D', '4H')
       @player.bet_box.split
       proc {
@@ -687,13 +692,13 @@ module Blackjack
 
     it "should return true for decision when input is a SURRENDER and its legit" do
       @table.config[:player_surrender] = true
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('4D', '9H')
       @sv.validate_decision(@player.bet_box, Action::SURRENDER).must_equal([true, nil])
     end
 
     it "should return false for decision when input is a SPLIT and player is broke" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bank.debit(@player.bank.balance)
       @player.bet_box.hand.set('8D', '8H')
       @sv.validate_decision(@player.bet_box, Action::SPLIT).must_equal([false,
@@ -701,20 +706,20 @@ module Blackjack
     end
 
     it "should return false for decision when input is a SPLIT and player doesn't have pair" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('9D', '8H')
       @sv.validate_decision(@player.bet_box, Action::SPLIT).must_equal([false,
         "Player can only split cards that are identical in value"])
     end
 
     it "should return true for decision when input is a SPLIT and its legit" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('8D', '8H')
       @sv.validate_decision(@player.bet_box, Action::SPLIT).must_equal([true, nil])
     end
 
     it "should return false for decision when input is DOUBLE_DOWN and player is broke" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bank.debit(@player.bank.balance)
       @player.bet_box.hand.set('8D', '3H')
       @sv.validate_decision(@player.bet_box, Action::DOUBLE_DOWN).must_equal([false,
@@ -723,7 +728,7 @@ module Blackjack
 
     it "should return false for decision when input is DOUBLE_DOWN and player has bad double hand" do
       @table.config[:double_down_on] = [10,11]
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('AD', '4H')
       @sv.validate_decision(@player.bet_box, Action::DOUBLE_DOWN).must_equal([false,
         "Player can only double down on hands of 10, 11"])
@@ -731,7 +736,7 @@ module Blackjack
 
     it "should return true for decision when input is DOUBLE_DOWN and player has legit config hand" do
       @table.config[:double_down_on] = [10,11]
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('6D', '4H')
       @sv.validate_decision(@player.bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
       @player.bet_box.hand.set('6D', '5H')
@@ -740,13 +745,13 @@ module Blackjack
 
     it "should return true for decision when input is DOUBLE_DOWN and player has legit hand" do
       @table.config[:double_down_on] = []
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('AD', '5H')
       @sv.validate_decision(@player.bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
     end
 
     it "should return true for decision when input is HIT and player hand is hittable" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('4D', '5H')
       @sv.validate_decision(@player.bet_box, Action::HIT).must_equal([true, nil])
       @player.bet_box.hand.set('10D', 'KH')
@@ -756,14 +761,14 @@ module Blackjack
     end
 
     it "should return false for decision when input is HIT and player hand is not hittable" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('3D', '2H', '9D', '6C', 'AS')
       @sv.validate_decision(@player.bet_box, Action::HIT).must_equal([false,
         "Player hand can no longer be hit after hard 21"])
     end
 
     it "should return true decision when player wants to STAND" do
-      @player.make_bet(@player.bet_box, 10)
+      @player.make_bet(10)
       @player.bet_box.hand.set('KD', 'QH')
       @sv.validate_decision(@player.bet_box, Action::STAND).must_equal([true, nil])
     end
@@ -802,7 +807,7 @@ module Blackjack
     end
 
     it "is active when a player has made a bet" do
-      @player.make_bet(@bet_box, 50)
+      @player.make_bet(50, @bet_box)
       @bet_box.active?.must_equal(true)
     end
 
@@ -853,6 +858,7 @@ module Blackjack
       @bet_box.num_splits.must_equal(1)
       @bet_box.split_boxes.each do |bet_box|
         bet_box.active?.must_equal(true)
+        bet_box.hand.hard_sum.must_equal(8)
         @table.shoe.deal_one_up(bet_box.hand)
         bet_box.from_split?.must_equal(true) # this hand came from a split
         bet_box.split # split the split hand again
@@ -916,7 +922,7 @@ module Blackjack
       bet_amt = 50
       table = Table.new('player_table')
       @player.join(table)
-      @player.make_bet(@player.bet_box, bet_amt)
+      @player.make_bet(bet_amt)
       @player.bet_box.bet_amount.must_equal(bet_amt)
     end
 
@@ -1319,12 +1325,47 @@ module Blackjack
       @hand.hard_sum.must_equal 25
     end
 
-    it "should have a soft value of hard value when the soft_value is a bust" do
+    it "should have a soft value of hard value" do
       @hand.soft_sum.must_equal 25
     end
 
     it "should be busted" do
       @hand.bust?.must_equal true
+    end
+
+    it "should not be blackjack?" do
+      @hand.blackjack?.must_equal false
+    end
+
+    it "should not respond true to has_ace?" do
+      @hand.has_ace?.must_equal false
+    end
+
+    it "should not be soft?" do
+      @hand.soft?.must_equal false
+    end
+  end
+
+
+  describe BlackjackHand, "A hand that has an no aces and is 21" do
+    before do
+      @hand = BlackjackHand.make('7D', '7C', '7S')
+    end
+
+    it "should not respond to pair" do
+      @hand.pair?.must_equal false
+    end
+
+    it "should have a hard value of 21" do
+      @hand.hard_sum.must_equal 21
+    end
+
+    it "should have a soft value of hard value" do
+      @hand.soft_sum.must_equal 21
+    end
+
+    it "should not be busted" do
+      @hand.bust?.must_equal false
     end
 
     it "should not be blackjack?" do

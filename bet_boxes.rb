@@ -86,5 +86,9 @@ module Blackjack
     def each_active(&block)
       bet_boxes.each { |bet_box| bet_box.iter(&block) if bet_box.active? }
     end
+
+    def inspect
+      bet_boxes.inspect     
+    end
   end
 end
