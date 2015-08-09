@@ -77,7 +77,7 @@ module Blackjack
     def hit?
       !busted? &&                                           # don't hit if already busted
         ((hand.soft? && hand.hard_sum <= soft_hit_limit) || # hit if soft 16 (or if configured, soft 17) or less
-        (!hand_soft? && hand.hard_sum < 17))                # hit if hard hand < 17
+        (!hand.soft? && hand.hard_sum < 17))                # hit if hard hand < 17
     end
 
     def play_hand

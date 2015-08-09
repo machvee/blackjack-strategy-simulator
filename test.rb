@@ -4,14 +4,29 @@ require 'table'
 module Blackjack
 
   class TestShoe < Shoe
-    def initialize(*face_suits)
+    def initialize(dealer_fs, players_fs, remaining=[])
       #
       # this is a shoe that you can stack, that won't shuffle the
       # order so for testing purposes, we can pre-arrange what
       # cards will be dealt
       #
       super(split_and_shuffles: 0, num_decks_in_shoe: 1)
+      face_suits = []
+      players_fs.each do |pc|
+        face_suits << pc[0]
+      end
+      face_suits << dealer_fs[0]
+      players_fs.each do |pc|
+        face_suits << pc[1]
+      end
+      face_suits << dealer_fs[1]
+      face_suits += remaining
+
       decks.set(*face_suits)
+    end
+
+    def beyond_cut?
+      false
     end
   end
 
@@ -242,7 +257,16 @@ module Blackjack
   #
   describe Dealer, "A Blackjack Dealer" do
     before do
-      @table = Table.new('table_1')
+      @table = Table.new('table_1',
+        shoe: TestShoe.new(
+          ["AC", "5D"],
+          [
+            ['9H', '7C'],
+            ['7H', 'KC'],
+            ['AH', '4D']
+          ],
+          ['9D','6C','KD', '4H']
+        ))
       @players = %w{dave cortney erica}.inject([]) do |p, n|
         player = Player.new(n)
         player.join(@table)
@@ -257,7 +281,34 @@ module Blackjack
     it "should deal hands to players with bets made" do
       num_cards_before_deal = @table.shoe.decks.length
       @dealer.deal_one_card_face_up_to_each_active_bet_box
-      @table.shoe.decks.length.must_equal(num_cards_before_deal - @players.length)
+      @dealer.deal_up_card
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_hole_card
+      @table.shoe.decks.length.must_equal(num_cards_before_deal - ((@players.length*2) + 2))
+      @players[0].bet_box.hand.inspect.must_equal("[9H, 7C]")
+      @players[1].bet_box.hand.inspect.must_equal("[7H, KC]")
+      @players[2].bet_box.hand.inspect.must_equal("[AH, 4D]")
+      @dealer.hand.inspect.must_equal("[AC, 5D]")
+      @players.each do |p|
+        @dealer.check_player_hand_busted?(p.bet_box).must_equal(false)
+      end
+      @dealer.hand[1].face_down?.must_equal true
+      @dealer.flip_hole_card
+      @dealer.hand[1].face_down?.must_equal false
+      @dealer.deal_card_face_up_to(@players[0].bet_box)
+      @players[0].bet_box.hand.inspect.must_equal("[9H, 7C, 9D]")
+      @dealer.check_player_hand_busted?(@players[0].bet_box).must_equal(true)
+      @dealer.deal_card_face_up_to(@players[2].bet_box)
+      @players[2].bet_box.hand.inspect.must_equal("[AH, 4D, 6C]")
+      @dealer.hit?.must_equal(true)
+      @dealer.deal_card_to_hand
+      @dealer.hand.inspect.must_equal("[AC, 5D, KD]")
+      @dealer.hit?.must_equal(true)
+      @dealer.deal_card_to_hand
+      @dealer.hand.inspect.must_equal("[AC, 5D, KD, 4H]")
+      @dealer.hand.hard_sum.must_equal(20)
+      @dealer.hit?.must_equal(false)
+      @dealer.busted?.must_equal(false)
     end
   end
 
