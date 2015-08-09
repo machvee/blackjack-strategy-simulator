@@ -292,9 +292,9 @@ module Blackjack
       @players.each do |p|
         @dealer.check_player_hand_busted?(p.bet_box).must_equal(false)
       end
-      @dealer.hand[1].face_down?.must_equal true
+      @dealer.hole_card.face_down?.must_equal true
       @dealer.flip_hole_card
-      @dealer.hand[1].face_down?.must_equal false
+      @dealer.hole_card.face_down?.must_equal false
       @dealer.deal_card_face_up_to(@players[0].bet_box)
       @players[0].bet_box.hand.inspect.must_equal("[9H, 7C, 9D]")
       @dealer.check_player_hand_busted?(@players[0].bet_box).must_equal(true)
