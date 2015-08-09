@@ -52,6 +52,7 @@ module Blackjack
       # call to transfer losing bet_box bet to house
       #
       bet_box.box.transfer_to(table.house, bet_box.bet_amount)
+      self
     end
 
     def pay(bet_box, payout_odds)
@@ -68,6 +69,7 @@ module Blackjack
       for_every = payout_odds[1]
       amount = (bet_box.bet_amount / for_every) * pay_this
       table.house.transfer_to(bet_box.box, amount)
+      self
     end
 
     def busted?
@@ -89,6 +91,7 @@ module Blackjack
 
     def discard_hand
       hand.fold
+      self
     end
 
     def ask_player_play?(player)
@@ -107,7 +110,7 @@ module Blackjack
 
     def ask_player_decision(bet_box)
       prompt_player_strategy_and_validate(:decision, bet_box.player, bet_box) do
-        player.strategy.decision(bet_box, dealer.up_card, table.other_hands(bet_box.hand))
+        player.strategy.decision(bet_box, dealer.up_card.soft_value, table.other_hands(bet_box.hand))
       end
       self
     end

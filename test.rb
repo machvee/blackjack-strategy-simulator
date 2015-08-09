@@ -257,6 +257,119 @@ module Blackjack
   #
   describe Dealer, "A Blackjack Dealer" do
     before do
+      @bet_amount = 50
+      @table = Table.new('table_1',
+        dealer_hits_soft_17: true,
+        shoe: TestShoe.new(
+          ["AC", "6D"],
+          [
+            ['AH', '4D']
+          ]
+        ))
+      @player = Player.new('dave')
+      @player.join(@table)
+      @player.make_bet(@bet_amount)
+      @dealer = @table.dealer
+      @table.shoe.shuffle
+      @table.shoe.place_cut_card
+    end
+ 
+    it "should hit when table config says hit soft 17" do
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_up_card
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_hole_card
+      @dealer.hit?.must_equal(true)
+    end
+  end
+
+  describe Dealer, "A Blackjack Dealer" do
+    before do
+      @bet_amount = 50
+      @table = Table.new('table_1',
+        dealer_hits_soft_17: false,
+        shoe: TestShoe.new(
+          ["AC", "6D"],
+          [
+            ['AH', '4D']
+          ]
+        ))
+      @player = Player.new('dave')
+      @player.join(@table)
+      @player.make_bet(@bet_amount)
+      @dealer = @table.dealer
+      @table.shoe.shuffle
+      @table.shoe.place_cut_card
+    end
+ 
+    it "should not hit when table config says do not hit soft 17" do
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_up_card
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_hole_card
+      @dealer.hit?.must_equal(false)
+    end
+  end
+
+  describe Dealer, "A Blackjack Dealer" do
+    before do
+      @bet_amount = 50
+      @table = Table.new('table_1',
+        dealer_hits_soft_17: true,
+        shoe: TestShoe.new(
+          ["KC", "7D"],
+          [
+            ['AH', '4D']
+          ]
+        ))
+      @player = Player.new('dave')
+      @player.join(@table)
+      @player.make_bet(@bet_amount)
+      @dealer = @table.dealer
+      @table.shoe.shuffle
+      @table.shoe.place_cut_card
+    end
+ 
+    it "should stand hard 17 when table config says hit soft 17" do
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_up_card
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_hole_card
+      @dealer.hit?.must_equal(false)
+    end
+  end
+
+  describe Dealer, "A Blackjack Dealer" do
+    before do
+      @bet_amount = 50
+      @table = Table.new('table_1',
+        dealer_hits_soft_17: false,
+        shoe: TestShoe.new(
+          ["AD", "7D"],
+          [
+            ['AH', '4D']
+          ]
+        ))
+      @player = Player.new('dave')
+      @player.join(@table)
+      @player.make_bet(@bet_amount)
+      @dealer = @table.dealer
+      @table.shoe.shuffle
+      @table.shoe.place_cut_card
+    end
+ 
+    it "should stand hard 18" do
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_up_card
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_hole_card
+      @dealer.hit?.must_equal(false)
+    end
+  end
+
+  describe Dealer, "A Blackjack Dealer" do
+    before do
+      @bet_amount = 50
       @table = Table.new('table_1',
         shoe: TestShoe.new(
           ["AC", "5D"],
@@ -270,12 +383,47 @@ module Blackjack
       @players = %w{dave cortney erica}.inject([]) do |p, n|
         player = Player.new(n)
         player.join(@table)
-        player.make_bet(50)
+        player.make_bet(@bet_amount)
         p << player
       end
       @dealer = @table.dealer
       @table.shoe.shuffle
       @table.shoe.place_cut_card
+    end
+
+    it "should automate playing of hand" do
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_up_card
+      @dealer.deal_one_card_face_up_to_each_active_bet_box
+      @dealer.deal_hole_card
+      @dealer.deal_card_face_up_to(@players[0].bet_box)
+      @dealer.deal_card_face_up_to(@players[2].bet_box)
+      @dealer.play_hand
+      @dealer.hand.inspect.must_equal("[AC, 5D, KD, 4H]")
+      @dealer.hand.hard_sum.must_equal(20)
+      @dealer.hand.length.must_equal(4)
+      @dealer.discard_hand
+      @dealer.hand.length.must_equal(0)
+    end
+
+    it "should collect bets" do
+      sb = @table.house.balance
+      p = @players[0]
+      p.bet_box.bet_amount.must_equal(@bet_amount)
+      @dealer.collect(p.bet_box)
+      p.bet_box.bet_amount.must_equal(0)
+      @table.house.balance.must_equal(sb + @bet_amount)
+    end
+
+    it "should pay winnings" do
+      p = @players[0]
+      sb = @table.house.balance
+      sp = p.bet_box.bet_amount
+      p.bet_box.bet_amount.must_equal(@bet_amount)
+      @dealer.pay(p.bet_box, [7,2])
+      payout = (@bet_amount / 2) * 7
+      p.bet_box.bet_amount.must_equal(sp + payout)
+      @table.house.balance.must_equal(sb - payout)
     end
 
     it "should deal hands to players with bets made" do
@@ -294,6 +442,7 @@ module Blackjack
       end
       @dealer.hole_card.face_down?.must_equal true
       @dealer.flip_hole_card
+      @dealer.up_card.face_up?.must_equal true
       @dealer.hole_card.face_down?.must_equal false
       @dealer.deal_card_face_up_to(@players[0].bet_box)
       @players[0].bet_box.hand.inspect.must_equal("[9H, 7C, 9D]")
@@ -1229,7 +1378,7 @@ module Blackjack
     end
 
     it "should respond to pair" do
-      @jack_q.pair?.must_equal true
+      @jack_q.pair?.must_equal false
     end
 
     it "should have a value of 20" do
@@ -1252,7 +1401,7 @@ module Blackjack
     end
 
     it "should respond to pair" do
-      @k_10.pair?.must_equal true
+      @k_10.pair?.must_equal false
     end
 
     it "should have a value of 20" do
@@ -1270,6 +1419,33 @@ module Blackjack
 
     it "should not has_ace?" do
       @k_10.has_ace?.must_equal false
+    end
+  end
+
+  describe BlackjackHand, "A Hand of K K" do
+    before do
+      @k_k = BlackjackHand.make('KD', 'KS')
+    end
+
+    it "should respond to pair" do
+      @k_k.pair?.must_equal true
+    end
+
+    it "should have a value of 20" do
+      @k_k.soft_sum.must_equal 20
+      @k_k.hard_sum.must_equal 20
+    end
+
+    it "should not be busted" do
+      @k_k.bust?.must_equal false
+    end
+
+    it "should not be blackjack?" do
+      @k_k.blackjack?.must_equal false
+    end
+
+    it "should not has_ace?" do
+      @k_k.has_ace?.must_equal false
     end
   end
 
@@ -1682,6 +1858,24 @@ module Blackjack
       @shoe.reset_counters
       @shoe.cards_dealt.count.must_equal 0
       @shoe.num_shuffles.count.must_equal 0
+    end
+  end
+
+  describe BasicStrategy, "An automated player strategy from the basic hitting guidelines" do
+    before do
+      @table = Table.new('test')
+      @player = Player.new('dave')
+      @player.join(@table)
+      @bet_box = @player.bet_box
+      @basic_strategy = BasicStrategy.new(@table, @player)
+    end
+
+    it "should follow the basic strategy for hard betting" do
+      @bet_box.hand.set("10D", "KS")
+      [*1..10].each do |dealer_up_card_val|
+        @basic_strategy.decision(@bet_box, dealer_up_card_val).must_equal(Action::STAND)
+        YOU ARE HERE  ^ fails
+      end
     end
   end
 end

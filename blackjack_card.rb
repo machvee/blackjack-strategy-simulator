@@ -79,7 +79,9 @@ module Blackjack
     end
 
     def pair?
-      length == 2 && (cards[0].hard_value == cards[1].hard_value)
+      return false unless length == 2 
+      return false if cards[0].ten? && cards[0].face != cards[1].face
+      cards[0].hard_value == cards[1].hard_value
     end
 
     def soft?

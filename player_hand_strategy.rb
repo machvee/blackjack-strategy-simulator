@@ -14,6 +14,12 @@ module Blackjack
     EVEN_MONEY=10
   end
 
+  module Outcome
+    WON=1
+    LOST=2
+    PUSH=3
+  end
+
   class PlayerHandStrategy
     #
     # base class for player strategy on how to play his hand. 
@@ -83,6 +89,19 @@ module Blackjack
       #
     end
 
+    def outcome(win_lose_push, dealer_hand)
+      #
+      # win_lose_push:
+      #   Action::WON
+      #   Action::LOST
+      #   Action::PUSH
+      #
+      # dealer_hand:
+      #  allow player to examine dealers hand
+      #
+      self
+    end
+
     def error(strategy_step, message)
       #
       # Dealer will call this with a message string when/if the PlayerHandStrategy
@@ -148,6 +167,19 @@ module Blackjack
       return Action::SIT_OUT if @bet_count == @bets_to_make
       @bet_count += 1
       Action::BET
+    end
+
+    def outcome(win_lose_draw, dealer_hand)
+      dealer_hand.print
+      puts "Dealer has #{dealer_hand.hard_sum}"
+      case win_lose_draw
+        when Outcome::WON
+          puts "You WON"
+        when Outcome::LOST
+          puts "You LOST"
+        when Outcome::PUSH
+          puts "PUSH"
+      end
     end
 
     def insurance?(bet_box)
