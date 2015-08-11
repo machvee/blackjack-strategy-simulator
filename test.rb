@@ -1832,7 +1832,7 @@ module Blackjack
       @shoe.cards_dealt.count.must_equal 2
     end
 
-    it "shuffle up shoudl incr counter" do
+    it "shuffle up should incr counter" do
       @shoe.num_shuffles.count.must_equal 1
       @shuffs = 4
       @shuffs.times { @shoe.shuffle }
@@ -1870,11 +1870,30 @@ module Blackjack
       @basic_strategy = BasicStrategy.new(@table, @player)
     end
 
-    it "should follow the basic strategy for hard betting" do
-      @bet_box.hand.set("10D", "KS")
-      [*1..10].each do |dealer_up_card_val|
-        @basic_strategy.decision(@bet_box, dealer_up_card_val).must_equal(Action::STAND)
-        YOU ARE HERE  ^ fails
+    it "should follow the basic strategy for hard bet standing" do
+      %w{7D 8C 9H 10H QS}.each do |c2|
+        @bet_box.hand.set("10D", c2)
+        [*1..10].each do |dealer_up_card_val|
+          @basic_strategy.decision(@bet_box, dealer_up_card_val).must_equal(Action::STAND)
+        end
+      end
+    end
+
+    it "should follow the basic strategy for hard bet hitting" do
+      %w{2D 3C 4H 5H 6S}.each do |c2|
+        @bet_box.hand.set("10D", c2)
+        [*7..10].each do |dealer_up_card_val|
+          @basic_strategy.decision(@bet_box, dealer_up_card_val).must_equal(Action::HIT)
+        end
+      end
+    end
+
+    it "should follow the basic strategy for hard bet standing" do
+      %w{4H 5H 6S}.each do |c2|
+        @bet_box.hand.set("10D", c2)
+        [*4..6].each do |dealer_up_card_val|
+          @basic_strategy.decision(@bet_box, dealer_up_card_val).must_equal(Action::STAND)
+        end
       end
     end
   end

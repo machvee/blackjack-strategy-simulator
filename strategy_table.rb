@@ -103,7 +103,7 @@ module Blackjack
     end
 
     def encoded_actions_with_ace_rotated_to_front(codes)
-      codes[1..-2].unshift('-', codes.last).map {|code| CODE_TO_ACTION[code]}
+      codes[0..-2].unshift('-', codes.last).map {|code| CODE_TO_ACTION[code]}
     end
 
     def section_boundaries(section_name)
