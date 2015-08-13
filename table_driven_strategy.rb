@@ -7,10 +7,15 @@ module Blackjack
     def initialize(table, player, strategy_table)
       super(table, player)
       @strategy_table = strategy_table
+      @num_bets = 1
+      @bet_count = 0
     end
 
     def play?
-      player.bank.balance >= player.bank.initial_deposit/4
+      return Action::SIT_OUT if @bet_count == @num_bets
+      return Action::LEAVE if player.bank.balance < player.bank.initial_deposit/4
+      @bet_count += 1
+      return Action::BET
     end
 
     def bet_amount
@@ -31,6 +36,7 @@ module Blackjack
 
     def decision(bet_box, dealer_up_card, other_hands=[])
       strategy_table.decision(dealer_up_card, bet_box.hand)
+      @bet_count = 0
     end
 
     def error(strategy_step, message)

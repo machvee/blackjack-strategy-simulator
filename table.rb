@@ -4,6 +4,7 @@ require 'shoe'
 require 'strategy_validator'
 require 'dealer'
 require 'player'
+require 'command_prompter'
 require 'player_hand_strategy'
 require 'strategy_table'
 require 'table_driven_strategy'
@@ -64,6 +65,11 @@ module Blackjack
       @dealer = Dealer.new(self)
     end
 
+    def run
+      gp = GamePlay.new(self)
+      gp.run
+    end
+
     def join(player, desired_seat_position=nil)
       seat_position = find_empty_seat_position(desired_seat_position)
       if seat_position.nil?
@@ -89,6 +95,10 @@ module Blackjack
       seated_players[ind] = nil
       bet_boxes[ind].player_leaves
       self
+    end
+
+    def other_hands(omit_bet_box)
+      []
     end
 
     def seat_available?(desired_seat_position=nil)
@@ -117,6 +127,13 @@ module Blackjack
 
     def any_seated_players?
       !seated_players.compact.empty?
+    end
+
+    def each_player
+      seated_players.each do |player|
+        next if player.nil?
+        yield player
+      end
     end
 
     def inspect

@@ -123,6 +123,7 @@ module Blackjack
     # whether to Hit, Stand or Split, etc.
     #
     def initialize(table, player)
+      super
       @get_user_decision = CommandPrompter.new("Hit", "Stand", "Double", "sPlit")
       @map = {
         'h' => Action::HIT,
@@ -133,7 +134,7 @@ module Blackjack
       min_bet = table.config[:minimum_bet]
       max_bet = table.config[:maximum_bet]
       @main_bet_maker = CommandPrompter.new("Bet Amount:int:#{min_bet}:#{max_bet}")
-      @bets_to_make = 2
+      @bets_to_make = 1
       @bet_count = 0
     end
 
@@ -163,7 +164,7 @@ module Blackjack
     end
 
     def play?
-      return Action::LEAVE if player.bank.balance <= blayer.bank.initial_deposit/8
+      return Action::LEAVE if player.bank.balance <= player.bank.initial_deposit/8
       return Action::SIT_OUT if @bet_count == @bets_to_make
       @bet_count += 1
       Action::BET

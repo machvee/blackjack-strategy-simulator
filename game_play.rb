@@ -95,11 +95,12 @@ module Blackjack
 
       has_black_jack = dealer.hand.blackjack?
       dealer.flip_hole_card if has_black_jack
-      has_blackjack 
+      has_black_jack
     end
 
     def payout_any_blackjacks
       table.bet_boxes.each_active do |bet_box|
+        player = bet_box.player
         if bet_box.hand.blackjack?
           player.blackjack(bet_box)
           player.won_bet(bet_box)
@@ -155,12 +156,12 @@ module Blackjack
       #     SPLIT - must have 2 identical cards, and be under max splits
       #     SURRENDER - must have only 2 cards
       #
-      table.bet_boxes.each_active? do |bet_box|
+      table.bet_boxes.each_active do |bet_box|
         play_hand_until_end(bet_box)
       end
     end
 
-    def played_hand_until_end(bet_box)
+    def play_hand_until_end(bet_box)
       while(true) do
 
         break if bet_box.hand.twentyone?
@@ -184,7 +185,7 @@ module Blackjack
               dealer.deal_card_face_up_to(split_bet_box)
             end
             bet_box.iter do |split_bet_box|
-              played_hand_until_end(split_bet_box)
+              play_hand_until_end(split_bet_box)
             end
             break
           when Action::DOUBLE
@@ -241,7 +242,7 @@ module Blackjack
     end
 
     def wait_for_player_bets
-      players.each do |player|
+      table.each_player do |player|
         catch :player_leaves_table do
           table.bet_boxes.available_for(player) do |bet_box|
             case dealer.ask_player_play?(player)

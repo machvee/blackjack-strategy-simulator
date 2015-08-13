@@ -98,42 +98,40 @@ module Blackjack
       prompt_player_strategy_and_validate(:play, player) do
         player.strategy.play?
       end
-      self
     end
 
     def ask_player_insurance?(bet_box)
+      player = bet_box.player
       prompt_player_strategy_and_validate(:insurance, bet_box.player, bet_box) do
         player.strategy.insurance?(bet_box)
       end
-      self
     end
 
     def ask_player_decision(bet_box)
+      player = bet_box.player
       prompt_player_strategy_and_validate(:decision, bet_box.player, bet_box) do
-        player.strategy.decision(bet_box, dealer.up_card.soft_value, table.other_hands(bet_box.hand))
+        player.strategy.decision(bet_box, up_card, table.other_hands(bet_box))
       end
-      self
     end
 
     def ask_player_bet_amount(player)
       prompt_player_strategy_and_validate(:bet_amount, player) do
         player.strategy.bet_amount
       end
-      self
     end
 
     def ask_player_insurance_bet_amount(bet_box)
+      player = bet_box.player
       prompt_player_strategy_and_validate(:insurance_bet_amount, bet_box.player, bet_box) do
         player.strategy.insurance_bet_amount(bet_box)
       end
-      self
     end
 
     def ask_player_double_down_bet_amount(bet_box)
+      player = bet_box.player
       prompt_player_strategy_and_validate(:double_down_bet_amount, bet_box.player, bet_box) do
         player.strategy.double_down_bet_amount(bet_box)
       end
-      self
     end
 
     def up_card
