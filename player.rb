@@ -3,33 +3,37 @@ module Blackjack
 
     attr_reader   :name
     attr_reader   :table
-    attr_accessor :strategy
+    attr_reader   :strategy_class
+    attr_reader   :strategy
     attr_reader   :bank
     attr_reader   :stats
 
     DEFAULT_OPTIONS = {
-      start_bank: 500
+      start_bank: 500,
+      strategy_class: PromptPlayerHandStrategy
     }
 
     def initialize(name, options={})
-      options.merge!(DEFAULT_OPTIONS)
+      opts = DEFAULT_OPTIONS.merge(options)
       @name = name
       @hands = []
       @table = nil
-      @strategy = nil
-      @bank = Bank.new(options[:start_bank])
+      @strategy_class = opts[:strategy_class]
+      @bank = Bank.new(opts[:start_bank])
       @stats = PlayerStats.new(self)
     end
 
     def join(table, desired_seat_position=nil)
       @table = table
       table.join(self, desired_seat_position)
+      @strategy = strategy_class.new(table, self)
       self
     end
 
     def leave_table
       @table.leave(self)
       @table = nil
+      @strategy = nil
       self
     end
 

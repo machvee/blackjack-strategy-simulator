@@ -2,17 +2,18 @@ require 'counter_measures'
 require 'blackjack_card'
 require 'shoe'
 require 'strategy_validator'
-require 'dealer'
-require 'player'
+require 'prompt_player_hand_strategy'
 require 'command_prompter'
 require 'player_hand_strategy'
 require 'strategy_table'
 require 'table_driven_strategy'
-require 'player_stats'
 require 'split_boxes'
 require 'bet_boxes'
 require 'bet_box'
 require 'bank'
+require 'dealer'
+require 'player_stats'
+require 'player'
 require 'game_play'
 
 module Blackjack
@@ -134,6 +135,13 @@ module Blackjack
         next if player.nil?
         yield player
       end
+    end
+
+    def find_player(name)
+      each_player do |player|
+        return player if player.name == name
+      end
+      nil
     end
 
     def inspect

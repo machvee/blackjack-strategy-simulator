@@ -27,7 +27,7 @@ module Blackjack
       opening_deal
       unless dealer_has_blackjack?
         payout_any_blackjacks
-        players_play_hands
+        players_play_their_hands
         dealer_plays_hand
       end
       pay_out
@@ -129,7 +129,7 @@ module Blackjack
       table.bet_boxes.any_bets?
     end
 
-    def players_play_hands
+    def players_play_their_hands
       #
       # for each active? bet_box
       #
@@ -157,11 +157,14 @@ module Blackjack
       #     SURRENDER - must have only 2 cards
       #
       table.bet_boxes.each_active do |bet_box|
-        play_hand_until_end(bet_box)
+        player_plays_hand_until_end(bet_box)
       end
     end
 
-    def play_hand_until_end(bet_box)
+    def player_plays_hand_until_end(bet_box)
+ 
+      player = bet_box.player
+
       while(true) do
 
         break if bet_box.hand.twentyone?
@@ -185,7 +188,7 @@ module Blackjack
               dealer.deal_card_face_up_to(split_bet_box)
             end
             bet_box.iter do |split_bet_box|
-              play_hand_until_end(split_bet_box)
+              player_plays_hand_until_end(split_bet_box)
             end
             break
           when Action::DOUBLE
@@ -212,10 +215,10 @@ module Blackjack
       # 6. if < dealer hand, transfer bet from table to house
       # 7. discard player hand 
       #
-      dealers_has = dealer.hand.hard_sum
+      dealer_has = dealer.hand.hard_sum
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player
-        player_has = player.hand.hard_sum
+        player_has = bet_box.hand.hard_sum
         if dealer_has > player_has
           #
           # dealer wins
@@ -230,8 +233,9 @@ module Blackjack
           player.won_bet(bet_box)
         else
           #
-          # push no action
+          # push - player removes bet
           #
+          player.push_bet(bet_box)
         end
         bet_box.discard
       end

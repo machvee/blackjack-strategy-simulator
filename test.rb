@@ -748,13 +748,10 @@ module Blackjack
         def bet_amount
           25
         end
-
-        def decision(bet_box, dealer_up_card, other_hands)
-        end
       end
       names = %w{dave davey katie vader cass erica}
-      players = names.map {|n| Player.new(n)}
-      players.each {|p| p.strategy = TestStrategy.new(@table, p); p.join(@table)}
+      players = names.map {|n| Player.new(n, strategy_class: TestStrategy)}
+      players.each {|p| p.join(@table)}
       @table.num_players.must_equal(names.length)
       gp = GamePlay.new(@table)
       gp.wait_for_player_bets
@@ -1110,27 +1107,24 @@ module Blackjack
     end
 
     it "should be able to join a table" do
-      @table = MiniTest::Mock.new
-      @table.expect(:join, @player, [@player, nil])
+      @table = Table.new('t')
       @player.join(@table)
-      @table.verify
+      @table.find_player(@player.name).must_equal(@player)
     end
 
     it "should be able to join a table at a specific seat position" do
-      @table = MiniTest::Mock.new
-      @seat = 0
-      @table.expect(:join, @player, [@player, @seat])
+      @table = Table.new('t')
+      @seat = 3
       @player.join(@table, @seat)
-      @table.verify
+      @table.seat_position(@player).must_equal(@seat)
     end
 
     it "should be able to join, then leave a table" do
-      @table = MiniTest::Mock.new
-      @table.expect(:leave, @player, [@player])
-      @table.expect(:join, @player, [@player, nil])
+      @table = Table.new('t')
       @player.join(@table)
+      @table.find_player(@player.name).must_equal(@player)
       @player.leave_table
-      @table.verify
+      @table.find_player(@player.name).must_equal(nil)
     end
 
     it "should be able to make a bet" do
