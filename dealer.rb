@@ -9,7 +9,7 @@ module Blackjack
       @table = table
       @validator = StrategyValidator.new(table)
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
-      @hand = table.new_hand
+      @hand = table.new_dealer_hand
     end
 
     def deal_one_card_face_up_to_each_active_bet_box
@@ -38,7 +38,7 @@ module Blackjack
     end
 
     def flip_hole_card
-      hole_card.up if hole_card.face_down?
+      hand.flip
       self
     end
 
@@ -135,11 +135,11 @@ module Blackjack
     end
 
     def up_card
-      hand[0]
+      hand.up_card
     end
 
     def hole_card
-      hand[1]
+      hand.hole_card
     end
 
     private

@@ -77,7 +77,7 @@ module Blackjack
       #
       # override in subclass to decide what to do based on
       #   bet_box (hand and bet_amount)
-      #   dealer_up_card
+      #   dealer_up_card value
       #   other_hands
       #
       # valid responses:

@@ -4,10 +4,11 @@ module Blackjack
     attr_reader   :dealer
     attr_reader   :players
 
-    def initialize(table)
+    def initialize(table, options={})
       @table =  table
       @dealer = table.dealer
       @players = table.seated_players
+      @quiet = options[:quiet]||false
     end
 
     def run
@@ -17,6 +18,7 @@ module Blackjack
         play_a_hand_of_blackjack if any_player_bets?
         reset
       end
+      table.game_announcer.says("Table has no players.  Goodbye.")
     end
 
     def reset
@@ -30,7 +32,7 @@ module Blackjack
         players_play_their_hands
         dealer_plays_hand
       end
-      pay_out
+      pay_any_winners
     end
 
     def opening_deal
@@ -75,26 +77,37 @@ module Blackjack
       if dealer.up_card.ace?
         table.bet_boxes.each_active do |bet_box|
           player = bet_box.player
+
+          table.game_announcer.says("Dealer shows Ace, %s, Insurance?" % [player.name, bet_amount])
+
           response = dealer.ask_player_insurance?(bet_box)
           case response
             when Action::NO_INSURANCE
+              table.game_announcer.says("%s says No Insurance" % player.name)
               next
             when Action::INSURANCE
               insurance_bet_amt = dealer.ask_player_insurance_bet_amount(bet_box)
-              player.insurance_bet(insurance_bet_amt)
+              table.game_announcer.says("%s makes Insurance bet of %d" % [player.name, insurance_bet_amt])
+              player.make_insurance_bet(bet_box, insurance_bet_amt)
             when Action::EVEN_MONEY
               #
               # pay and clear this hand out now
               #
+              table.game_announcer.says("%s has Blackjack and takes Even Money" % player.name)
               player.won_bet(bet_box)
               dealer.pay(bet_box, [1,1])
               bet_box.discard
           end
         end
       end
-
+      
       has_black_jack = dealer.hand.blackjack?
-      dealer.flip_hole_card if has_black_jack
+      if has_black_jack
+        dealer.flip_hole_card
+        table.game_announcer.says("Dealer has %s - BLACKJACK!" % dealer.hand)
+      else
+        table.game_announcer.says("Dealer doesn't have Blackjack")
+      end
       has_black_jack
     end
 
@@ -120,8 +133,10 @@ module Blackjack
       # If so, shuffle the shoe and place card
       # 
       if table.shoe.needs_shuffle?
+        table.game_announcer.says("Shuffling...")
         table.shoe.shuffle
         table.shoe.place_cut_card
+        table.game_announcer.says("Cut card placed.")
       end
     end
 
@@ -205,7 +220,7 @@ module Blackjack
       end
     end
 
-    def pay_out
+    def pay_any_winners
       #
       # 1. for each active bet_box, check hand
       # 2. If dealer had blackjack
@@ -258,6 +273,7 @@ module Blackjack
               when Action::BET
                 bet_amount = dealer.ask_player_bet_amount(player)
                 player.make_bet(bet_amount, bet_box)
+                table.game_announcer.says("%s bets %s" % [player.name, bet_amount])
             end # case
           end # table.bet_boxes
         end # catch

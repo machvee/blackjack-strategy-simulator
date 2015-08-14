@@ -38,6 +38,7 @@ module Blackjack
     def ten?
       BlackjackCard.custom_value_of_face(face) == 10
     end
+
   end
 
 
@@ -132,6 +133,24 @@ module Blackjack
       freq = Hash[BlackjackCard::FACES.map{|f| BlackjackCard.custom_value_of_face(f)}.uniq.zip([0]*BlackjackCard::FACES.length)]
       map {|c| freq[c.face_value] += 1}
       freq.to_a
+    end
+  end
+
+  class DealerHand < BlackjackHand
+    def up_card
+      cards[0]
+    end
+
+    def hole_card
+      cards[1]
+    end
+
+    def peek
+      hole_card.face_value
+    end
+
+    def flip
+      hole_card.up if hole_card.face_down?
     end
   end
 

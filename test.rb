@@ -258,7 +258,7 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @bet_amount = 50
-      @table = Table.new('table_1',
+      @table = QuietTable.new('table_1',
         dealer_hits_soft_17: true,
         shoe: TestShoe.new(
           ["AC", "6D"],
@@ -286,7 +286,7 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @bet_amount = 50
-      @table = Table.new('table_1',
+      @table = QuietTable.new('table_1',
         dealer_hits_soft_17: false,
         shoe: TestShoe.new(
           ["AC", "6D"],
@@ -314,7 +314,7 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @bet_amount = 50
-      @table = Table.new('table_1',
+      @table = QuietTable.new('table_1',
         dealer_hits_soft_17: true,
         shoe: TestShoe.new(
           ["KC", "7D"],
@@ -342,7 +342,7 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @bet_amount = 50
-      @table = Table.new('table_1',
+      @table = QuietTable.new('table_1',
         dealer_hits_soft_17: false,
         shoe: TestShoe.new(
           ["AD", "7D"],
@@ -370,7 +370,7 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @bet_amount = 50
-      @table = Table.new('table_1',
+      @table = QuietTable.new('table_1',
         shoe: TestShoe.new(
           ["AC", "5D"],
           [
@@ -469,7 +469,7 @@ module Blackjack
   describe Table, "A Blackjack Table" do
     before do
       @table_name = 'table_1'
-      @table = Table.new('table_1')
+      @table = QuietTable.new('table_1')
     end
 
     it "should have a name" do
@@ -513,7 +513,7 @@ module Blackjack
         num_seats: 4
       }
 
-      @configured_table = Table.new("configured_table", @configuration)
+      @configured_table = QuietTable.new("configured_table", @configuration)
       [:blackjack_payout, :dealer_hits_soft_17, :shoe, :num_seats].each do |item|
         @configured_table.config[:item].must_equal @configuration[:item]
       end
@@ -521,17 +521,21 @@ module Blackjack
 
     it "should allow a player to join the table and find them an open seat" do
       @player = MiniTest::Mock.new
+      @player.expect(:name, "fugdup", [])
       seat_position = @table.join(@player)
       seat_position.must_be :>=, 0
       seat_position.must_be :<, @table.config[:num_seats]
+      @player.verify
     end
 
     it "should allow respond true to any_seated_players? when a player is seated" do 
       @player = MiniTest::Mock.new
+      @player.expect(:name, "fugdup", [])
       seat_position = @table.join(@player)
       seat_position.must_be :>=, 0
       seat_position.must_be :<, @table.config[:num_seats]
       @table.any_seated_players?.must_equal(true)
+      @player.verify
     end
 
     it "should allow respond false to any_seated_players? when table is empty" do 
@@ -541,8 +545,10 @@ module Blackjack
     it "should increment the players_seated counter when a player joins" do
       @table.players_seated.count.must_equal 0
       @player = MiniTest::Mock.new
+      @player.expect(:name, "fugdup", [])
       seat_position = @table.join(@player)
       @table.players_seated.count.must_equal 1
+      @player.verify
     end
 
     it "should auto-fill the table right to left" do
@@ -555,6 +561,7 @@ module Blackjack
 
     it "should allow a player to join the table at the empty seat of the players choice" do
       @player = MiniTest::Mock.new
+      @player.expect(:name, "fugdup", [])
       @fav_seat = @table.config[:num_seats]-1
       seat_position = @table.join(@player, @fav_seat)
       seat_position.must_equal @fav_seat
@@ -770,7 +777,7 @@ module Blackjack
 
   describe StrategyValidator, "A validator for strategy responses" do
     before do
-      @table = Table.new('t1')
+      @table = QuietTable.new('t1')
       @player = Player.new('dave')
       @player.join(@table)
       @sv = StrategyValidator.new(@table)
@@ -986,7 +993,7 @@ module Blackjack
   describe BetBox, "A BetBox" do
     before do
       @position = 0
-      @table = Table.new('bet_box_test_table')
+      @table = QuietTable.new('bet_box_test_table')
       @table.shoe.shuffle
       @table.shoe.place_cut_card
       @player = Player.new('dave')
@@ -1107,20 +1114,20 @@ module Blackjack
     end
 
     it "should be able to join a table" do
-      @table = Table.new('t')
+      @table = QuietTable.new('t')
       @player.join(@table)
       @table.find_player(@player.name).must_equal(@player)
     end
 
     it "should be able to join a table at a specific seat position" do
-      @table = Table.new('t')
+      @table = QuietTable.new('t')
       @seat = 3
       @player.join(@table, @seat)
       @table.seat_position(@player).must_equal(@seat)
     end
 
     it "should be able to join, then leave a table" do
-      @table = Table.new('t')
+      @table = QuietTable.new('t')
       @player.join(@table)
       @table.find_player(@player.name).must_equal(@player)
       @player.leave_table
@@ -1129,7 +1136,7 @@ module Blackjack
 
     it "should be able to make a bet" do
       bet_amt = 50
-      table = Table.new('player_table')
+      table = QuietTable.new('player_table')
       @player.join(table)
       @player.make_bet(bet_amt)
       @player.bet_box.bet_amount.must_equal(bet_amt)
@@ -1857,7 +1864,7 @@ module Blackjack
 
   describe BasicStrategy, "An automated player strategy from the basic hitting guidelines" do
     before do
-      @table = Table.new('test')
+      @table = QuietTable.new('test')
       @player = Player.new('dave')
       @player.join(@table)
       @bet_box = @player.bet_box
@@ -1867,8 +1874,9 @@ module Blackjack
     it "should follow the basic strategy for hard bet standing" do
       %w{7D 8C 9H 10H QS}.each do |c2|
         @bet_box.hand.set("10D", c2)
-        [*1..10].each do |dealer_up_card_val|
-          @basic_strategy.decision(@bet_box, dealer_up_card_val).must_equal(Action::STAND)
+        ['A', *2..10].each do |dealer_up_card_val|
+          up_card = BlackjackCard.from_face_suit("#{dealer_up_card_val}H")
+          @basic_strategy.decision(@bet_box, up_card).must_equal(Action::STAND)
         end
       end
     end
@@ -1877,7 +1885,8 @@ module Blackjack
       %w{2D 3C 4H 5H 6S}.each do |c2|
         @bet_box.hand.set("10D", c2)
         [*7..10].each do |dealer_up_card_val|
-          @basic_strategy.decision(@bet_box, dealer_up_card_val).must_equal(Action::HIT)
+          up_card = BlackjackCard.from_face_suit("#{dealer_up_card_val}H")
+          @basic_strategy.decision(@bet_box, up_card).must_equal(Action::HIT)
         end
       end
     end
@@ -1886,7 +1895,8 @@ module Blackjack
       %w{4H 5H 6S}.each do |c2|
         @bet_box.hand.set("10D", c2)
         [*4..6].each do |dealer_up_card_val|
-          @basic_strategy.decision(@bet_box, dealer_up_card_val).must_equal(Action::STAND)
+          up_card = BlackjackCard.from_face_suit("#{dealer_up_card_val}H")
+          @basic_strategy.decision(@bet_box, up_card).must_equal(Action::STAND)
         end
       end
     end

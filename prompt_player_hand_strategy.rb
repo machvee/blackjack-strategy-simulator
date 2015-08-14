@@ -34,6 +34,10 @@ module Blackjack
       @main_bet_maker.get_command.to_i
     end
 
+    def insurance?(bet_box)
+      Action::NO_INSURANCE
+    end
+
     def insurance_bet_amount(bet_box)
       max_bet = bet_box.bet_amount/2.0
       insurance_bet_maker = CommandPrompter.new("Insurance Bet Amount:int:1:#{max_bet}")
@@ -66,10 +70,6 @@ module Blackjack
       end
     end
 
-    def insurance?(bet_box)
-      Action::NO_INSURANCE
-    end
-
     def error(strategy_step, message)
       sep = "="*[80, (message.length)].min
       puts ''
@@ -82,12 +82,14 @@ module Blackjack
     private
 
     def show_other_hands(other_hands)
-      puts other_hands.inspect unless other_hands.empty?
+      #
+      # brief form so card counting can be done
+      #
+      puts other_hands
     end
 
-    def show_dealer_up_card(dealer_up_card)
-      puts "Dealer's showing:"
-      dealer_up_card.print
+    def show_dealer_up_card(up_card)
+      up_card.print
     end
 
     def show_player_hand(player_hand)

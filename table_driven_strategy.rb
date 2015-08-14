@@ -36,7 +36,7 @@ module Blackjack
 
     def decision(bet_box, dealer_up_card, other_hands=[])
       @bets_made = 0
-      strategy_table.decision(dealer_up_card, bet_box.hand)
+      strategy_table.decision(dealer_up_card.face_value, bet_box.hand)
     end
 
     def error(strategy_step, message)

@@ -27,12 +27,12 @@ module Blackjack
       shuffle
     end
 
-    def new_hand
+    def new_hand(hand_class=BlackjackHand)
       #
       # returns an empty BlackjackHand that will naturally discard
       # to the discard pile when folded
       #
-      BlackjackHand.new(discard_pile)
+      hand_class.new(discard_pile)
     end
 
     def place_cut_card(cut_offset=nil)

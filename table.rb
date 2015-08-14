@@ -15,6 +15,7 @@ require 'dealer'
 require 'player_stats'
 require 'player'
 require 'game_play'
+require 'game_announcer'
 
 module Blackjack
   class Table
@@ -36,7 +37,8 @@ module Blackjack
       minimum_bet:          25,
       maximum_bet:          5000,
       max_player_bets:      3,
-      max_player_splits:    nil # nil unlimited or n: one hand split up to n times
+      max_player_splits:    nil, # nil unlimited or n: one hand split up to n times
+      game_announcer_class: GameAnnouncer
     }
 
     attr_reader   :name
@@ -46,6 +48,7 @@ module Blackjack
     attr_reader   :bet_boxes
     attr_reader   :config
     attr_reader   :house
+    attr_reader   :game_announcer
 
     def initialize(name, options={})
       @name = name
@@ -64,6 +67,7 @@ module Blackjack
       @bet_boxes = BetBoxes.new(self, num_seats)
 
       @dealer = Dealer.new(self)
+      @game_announcer = config[:game_announcer_class].new(self)
     end
 
     def run
@@ -81,6 +85,8 @@ module Blackjack
         end
       end
       seat(seat_position, player)
+      game_announcer.says("Hey %s! Welcome to %s. You're in seat %d" % [player.name, name, seat_position])
+      seat_position
     end
 
     def seat(seat_position, player)
@@ -91,6 +97,8 @@ module Blackjack
     end
 
     def leave(player)
+      game_announcer.says("Goodbye #{player.name}, thanks for playing")
+
       ind = seated_players.index(player)
       raise "player #{player.name} isn't at table #{name}" if ind.nil?
       seated_players[ind] = nil
@@ -114,6 +122,10 @@ module Blackjack
       shoe.new_hand
     end
 
+    def new_dealer_hand
+      shoe.new_hand(DealerHand)
+    end
+
     def has_split_limit?
       !config[:max_player_splits].nil?
     end
@@ -135,6 +147,7 @@ module Blackjack
         next if player.nil?
         yield player
       end
+      self
     end
 
     def find_player(name)
@@ -165,6 +178,12 @@ module Blackjack
       else
         seated_players[desired_seat_position].nil? ? desired_seat_position : nil
       end
+    end
+  end
+
+  class QuietTable < Table
+    def initialize(name, options={})
+      super(name, options.merge(game_announcer_class: QuietGameAnnouncer))
     end
   end
 end
