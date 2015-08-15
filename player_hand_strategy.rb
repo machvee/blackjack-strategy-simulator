@@ -15,9 +15,11 @@ module Blackjack
   end
 
   module Outcome
+    NONE=0
     WON=1
     LOST=2
     PUSH=3
+    BUST=4
   end
 
   class PlayerHandStrategy

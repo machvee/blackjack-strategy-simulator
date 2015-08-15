@@ -95,42 +95,38 @@ module Blackjack
     end
 
     def ask_player_play?(player)
-      prompt_player_strategy_and_validate(:play, player) do
+      prompt_player_strategy_and_validate(:play, nil, player) do
         player.strategy.play?
       end
     end
 
     def ask_player_insurance?(bet_box)
-      player = bet_box.player
-      prompt_player_strategy_and_validate(:insurance, bet_box.player, bet_box) do
-        player.strategy.insurance?(bet_box)
+      prompt_player_strategy_and_validate(:insurance, bet_box) do
+        bet_box.player.strategy.insurance?(bet_box)
       end
     end
 
     def ask_player_decision(bet_box)
-      player = bet_box.player
-      prompt_player_strategy_and_validate(:decision, bet_box.player, bet_box) do
-        player.strategy.decision(bet_box, up_card, table.other_hands(bet_box))
+      prompt_player_strategy_and_validate(:decision, bet_box) do
+        bet_box.player.strategy.decision(bet_box, up_card, table.other_hands(bet_box))
       end
     end
 
     def ask_player_bet_amount(player)
-      prompt_player_strategy_and_validate(:bet_amount, player) do
+      prompt_player_strategy_and_validate(:bet_amount, nil, player) do
         player.strategy.bet_amount
       end
     end
 
     def ask_player_insurance_bet_amount(bet_box)
-      player = bet_box.player
-      prompt_player_strategy_and_validate(:insurance_bet_amount, bet_box.player, bet_box) do
-        player.strategy.insurance_bet_amount(bet_box)
+      prompt_player_strategy_and_validate(:insurance_bet_amount, bet_box) do
+        bet_box.player.strategy.insurance_bet_amount(bet_box)
       end
     end
 
     def ask_player_double_down_bet_amount(bet_box)
-      player = bet_box.player
-      prompt_player_strategy_and_validate(:double_down_bet_amount, bet_box.player, bet_box) do
-        player.strategy.double_down_bet_amount(bet_box)
+      prompt_player_strategy_and_validate(:double_down_bet_amount, bet_box) do
+        bet_box.player.strategy.double_down_bet_amount(bet_box)
       end
     end
 
@@ -144,17 +140,21 @@ module Blackjack
 
     private
 
-    def prompt_player_strategy_and_validate(strategy_step, player, bet_box=nil)
+    def prompt_player_strategy_and_validate(strategy_step, bet_box, opt_player=nil)
+      player = opt_player||bet_box.player
       while(true) do
         response = yield
-        success, message = validate_step_response(strategy_step, response, player, bet_box)
+        success, message = validate_step_response(strategy_step, response, bet_box, player)
         break if success
         player.strategy.error(strategy_step, message)
       end
+
+      table.game_announcer.play_by_play(strategy_step, player, response)
+
       response
     end
 
-    def validate_step_response(strategy_step, response, player, bet_box)
+    def validate_step_response(strategy_step, response, bet_box, player)
       valid_input, error_message = case strategy_step
         when :play
           @validator.validate_play?(player, response)

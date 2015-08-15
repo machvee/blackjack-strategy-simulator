@@ -258,7 +258,7 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @bet_amount = 50
-      @table = QuietTable.new('table_1',
+      @table = Table.new('table_1',
         dealer_hits_soft_17: true,
         shoe: TestShoe.new(
           ["AC", "6D"],
@@ -286,7 +286,7 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @bet_amount = 50
-      @table = QuietTable.new('table_1',
+      @table = Table.new('table_1',
         dealer_hits_soft_17: false,
         shoe: TestShoe.new(
           ["AC", "6D"],
@@ -314,7 +314,7 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @bet_amount = 50
-      @table = QuietTable.new('table_1',
+      @table = Table.new('table_1',
         dealer_hits_soft_17: true,
         shoe: TestShoe.new(
           ["KC", "7D"],
@@ -342,7 +342,7 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @bet_amount = 50
-      @table = QuietTable.new('table_1',
+      @table = Table.new('table_1',
         dealer_hits_soft_17: false,
         shoe: TestShoe.new(
           ["AD", "7D"],
@@ -370,7 +370,7 @@ module Blackjack
   describe Dealer, "A Blackjack Dealer" do
     before do
       @bet_amount = 50
-      @table = QuietTable.new('table_1',
+      @table = Table.new('table_1',
         shoe: TestShoe.new(
           ["AC", "5D"],
           [
@@ -469,7 +469,7 @@ module Blackjack
   describe Table, "A Blackjack Table" do
     before do
       @table_name = 'table_1'
-      @table = QuietTable.new('table_1')
+      @table = Table.new('table_1')
     end
 
     it "should have a name" do
@@ -513,7 +513,7 @@ module Blackjack
         num_seats: 4
       }
 
-      @configured_table = QuietTable.new("configured_table", @configuration)
+      @configured_table = Table.new("configured_table", @configuration)
       [:blackjack_payout, :dealer_hits_soft_17, :shoe, :num_seats].each do |item|
         @configured_table.config[:item].must_equal @configuration[:item]
       end
@@ -777,7 +777,7 @@ module Blackjack
 
   describe StrategyValidator, "A validator for strategy responses" do
     before do
-      @table = QuietTable.new('t1')
+      @table = Table.new('t1')
       @player = Player.new('dave')
       @player.join(@table)
       @sv = StrategyValidator.new(@table)
@@ -993,7 +993,7 @@ module Blackjack
   describe BetBox, "A BetBox" do
     before do
       @position = 0
-      @table = QuietTable.new('bet_box_test_table')
+      @table = Table.new('bet_box_test_table')
       @table.shoe.shuffle
       @table.shoe.place_cut_card
       @player = Player.new('dave')
@@ -1114,20 +1114,20 @@ module Blackjack
     end
 
     it "should be able to join a table" do
-      @table = QuietTable.new('t')
+      @table = Table.new('t')
       @player.join(@table)
       @table.find_player(@player.name).must_equal(@player)
     end
 
     it "should be able to join a table at a specific seat position" do
-      @table = QuietTable.new('t')
+      @table = Table.new('t')
       @seat = 3
       @player.join(@table, @seat)
       @table.seat_position(@player).must_equal(@seat)
     end
 
     it "should be able to join, then leave a table" do
-      @table = QuietTable.new('t')
+      @table = Table.new('t')
       @player.join(@table)
       @table.find_player(@player.name).must_equal(@player)
       @player.leave_table
@@ -1136,7 +1136,7 @@ module Blackjack
 
     it "should be able to make a bet" do
       bet_amt = 50
-      table = QuietTable.new('player_table')
+      table = Table.new('player_table')
       @player.join(table)
       @player.make_bet(bet_amt)
       @player.bet_box.bet_amount.must_equal(bet_amt)
@@ -1864,7 +1864,7 @@ module Blackjack
 
   describe BasicStrategy, "An automated player strategy from the basic hitting guidelines" do
     before do
-      @table = QuietTable.new('test')
+      @table = Table.new('test')
       @player = Player.new('dave')
       @player.join(@table)
       @bet_box = @player.bet_box

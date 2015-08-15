@@ -181,9 +181,9 @@ module Blackjack
     end
   end
 
-  class QuietTable < Table
+  class TableWithAnnouncer < Table
     def initialize(name, options={})
-      super(name, options.merge(game_announcer_class: QuietGameAnnouncer))
+      super(name, options.merge(game_announcer_class: StdoutGameAnnouncer))
     end
   end
 end

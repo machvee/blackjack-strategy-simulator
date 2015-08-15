@@ -83,17 +83,14 @@ module Blackjack
           response = dealer.ask_player_insurance?(bet_box)
           case response
             when Action::NO_INSURANCE
-              table.game_announcer.says("%s says No Insurance" % player.name)
               next
             when Action::INSURANCE
               insurance_bet_amt = dealer.ask_player_insurance_bet_amount(bet_box)
-              table.game_announcer.says("%s makes Insurance bet of %d" % [player.name, insurance_bet_amt])
               player.make_insurance_bet(bet_box, insurance_bet_amt)
             when Action::EVEN_MONEY
               #
               # pay and clear this hand out now
               #
-              table.game_announcer.says("%s has Blackjack and takes Even Money" % player.name)
               player.won_bet(bet_box)
               dealer.pay(bet_box, [1,1])
               bet_box.discard
@@ -190,6 +187,7 @@ module Blackjack
           when Action::HIT
             dealer.deal_card_face_up_to(bet_box)
             if dealer.check_player_hand_busted?(bet_box)
+              table.game_announcer.hand_outcome(bet_box, Outcome::BUST)
               player.busted(bet_box)
               dealer.collect(bet_box)
               bet_box.discard
@@ -238,18 +236,21 @@ module Blackjack
           #
           # dealer wins
           #
+          table.game_announcer.hand_outcome(bet_box, Outcome::LOST)
           player.lost_bet(bet_box)
           dealer.collect(bet_box)
         elsif player_has > dealer_has
           #
           # player wins
           #
+          table.game_announcer.hand_outcome(bet_box, Outcome::WIN)
           dealer.pay(bet_box, [1,1])
           player.won_bet(bet_box)
         else
           #
           # push - player removes bet
           #
+          table.game_announcer.hand_outcome(bet_box, Outcome::PUSH)
           player.push_bet(bet_box)
         end
         bet_box.discard
@@ -273,7 +274,6 @@ module Blackjack
               when Action::BET
                 bet_amount = dealer.ask_player_bet_amount(player)
                 player.make_bet(bet_amount, bet_box)
-                table.game_announcer.says("%s bets %s" % [player.name, bet_amount])
             end # case
           end # table.bet_boxes
         end # catch
