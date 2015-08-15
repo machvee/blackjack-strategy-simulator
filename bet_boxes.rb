@@ -33,6 +33,14 @@ module Blackjack
       bet_boxes[table.seat_position(player)]
     end
 
+    def num_available_for(player)
+      count = 0
+      available_for(player) do |b|
+        count += 1
+      end
+      count
+    end
+
     def available_for(player)
       #
       # search for consective bet boxes until options[:max_player_bets] is reached

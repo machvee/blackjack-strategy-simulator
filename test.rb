@@ -398,6 +398,7 @@ module Blackjack
       @dealer.deal_hole_card
       @dealer.deal_card_face_up_to(@players[0].bet_box)
       @dealer.deal_card_face_up_to(@players[2].bet_box)
+      @dealer.flip_hole_card
       @dealer.play_hand
       @dealer.hand.inspect.must_equal("[AC, 5D, KD, 4H]")
       @dealer.hand.hard_sum.must_equal(20)
@@ -436,13 +437,14 @@ module Blackjack
       @players[0].bet_box.hand.inspect.must_equal("[9H, 7C]")
       @players[1].bet_box.hand.inspect.must_equal("[7H, KC]")
       @players[2].bet_box.hand.inspect.must_equal("[AH, 4D]")
-      @dealer.hand.inspect.must_equal("[AC, 5D]")
+      @dealer.hand.inspect.must_equal("[AC, XX]")
       @players.each do |p|
         @dealer.check_player_hand_busted?(p.bet_box).must_equal(false)
       end
       @dealer.hole_card.face_down?.must_equal true
       @dealer.flip_hole_card
       @dealer.up_card.face_up?.must_equal true
+      @dealer.hand.inspect.must_equal("[AC, 5D]")
       @dealer.hole_card.face_down?.must_equal false
       @dealer.deal_card_face_up_to(@players[0].bet_box)
       @players[0].bet_box.hand.inspect.must_equal("[9H, 7C, 9D]")
@@ -744,8 +746,8 @@ module Blackjack
 
     it "should allow use of the game play class with many players" do
       class TestStrategy < PlayerHandStrategy
-        def play?
-          Action::BET
+        def num_bets
+          1
         end
 
         def insurance?(bet_box)
@@ -783,27 +785,27 @@ module Blackjack
       @sv = StrategyValidator.new(@table)
     end
 
-    it "for the play response, it should return false with non-play response" do
-      @sv.validate_play?(@player, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
+    it "for the num_bets response, it should return false with very negative" do
+      @sv.validate_num_bets(@player, -2).must_equal([false, "You must enter a number between 1-3"])
     end
 
-    it "for the play response, it should return true with valid LEAVE response" do
-      @sv.validate_play?(@player, Action::LEAVE).must_equal([true, nil])
+    it "for the num_bets response, it should return true with valid LEAVE response" do
+      @sv.validate_num_bets(@player, Action::LEAVE).must_equal([true, nil])
     end
 
-    it "for the play response, it should return true with valid BET response" do
-      @sv.validate_play?(@player, Action::BET).must_equal([true, nil])
+    it "for the num_bets response, it should return true with valid number of bets" do
+      @sv.validate_num_bets(@player, 2).must_equal([true, nil])
     end
 
-    it "for the play response, it should return true with valid SIT_OUT response" do
-      @sv.validate_play?(@player, Action::SIT_OUT).must_equal([true, nil])
+    it "for the num_bets response, it should return true with valid SIT_OUT response" do
+      @sv.validate_num_bets(@player, Action::SIT_OUT).must_equal([true, nil])
     end
 
-    it "for the play response, it should return false when player is broke and they want to BET" do
+    it "for the num_bets response, it should return false when player is broke and they want to BET" do
       @player.bank.debit(@player.bank.balance)
       @player.bank.balance.must_equal(0)
-      @sv.validate_play?(@player, Action::BET).must_equal([false,
-        "Player has insufficient funds to make a #{@table.config[:minimum_bet]} minimum bet"])
+      @sv.validate_num_bets(@player, 2).must_equal([false,
+        "Player has insufficient funds to make 2 bets of 25"])
     end
 
   

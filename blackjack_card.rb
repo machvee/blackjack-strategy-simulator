@@ -152,6 +152,10 @@ module Blackjack
     def flip
       hole_card.up if hole_card.face_down?
     end
+
+    def flipped?
+      hole_card.face_up?
+    end
   end
 
   class BlackjackDeck < Cards::Deck

@@ -39,11 +39,13 @@ module Blackjack
 
     def flip_hole_card
       hand.flip
+      table.game_announcer.dealer_hand_status
       self
     end
 
     def deal_card_to_hand
       table.shoe.deal_one_up(hand)
+      table.game_announcer.dealer_hand_status
       self
     end
 
@@ -69,7 +71,7 @@ module Blackjack
       for_every = payout_odds[1]
       amount = (bet_box.bet_amount / for_every) * pay_this
       table.house.transfer_to(bet_box.box, amount)
-      self
+      amount
     end
 
     def busted?
@@ -94,9 +96,9 @@ module Blackjack
       self
     end
 
-    def ask_player_play?(player)
-      prompt_player_strategy_and_validate(:play, nil, player) do
-        player.strategy.play?
+    def ask_player_num_bets(player)
+      prompt_player_strategy_and_validate(:num_bets, nil, player) do
+        player.strategy.num_bets
       end
     end
 
@@ -112,8 +114,8 @@ module Blackjack
       end
     end
 
-    def ask_player_bet_amount(player)
-      prompt_player_strategy_and_validate(:bet_amount, nil, player) do
+    def ask_player_bet_amount(player, bet_box)
+      prompt_player_strategy_and_validate(:bet_amount, bet_box, player) do
         player.strategy.bet_amount
       end
     end
@@ -132,6 +134,10 @@ module Blackjack
 
     def up_card
       hand.up_card
+    end
+
+    def showing
+      up_card.ace? ? 'A' : up_card.hard_value.to_s
     end
 
     def hole_card
@@ -156,8 +162,8 @@ module Blackjack
 
     def validate_step_response(strategy_step, response, bet_box, player)
       valid_input, error_message = case strategy_step
-        when :play
-          @validator.validate_play?(player, response)
+        when :num_bets
+          @validator.validate_num_bets(player, response)
         when :insurance
           @validator.validate_insurance?(bet_box, response)
         when :bet_amount

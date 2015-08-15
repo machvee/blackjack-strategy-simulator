@@ -18,7 +18,7 @@ module Blackjack
     def player_hand_status(bet_box)
     end
 
-    def hand_outcome(hand, action)
+    def hand_outcome(hand, action, winnings=nil)
     end
 
     def play_by_play(step, player, response)
@@ -30,8 +30,12 @@ module Blackjack
 
   class StdoutGameAnnouncer < GameAnnouncer
     def dealer_hand_status
-      bust_str = dealer.hand.bust? ? " BUST!" : ""
-      says "Dealer has " + hand_val_str(dealer.hand) + bust_str
+      if dealer.hand.flipped?
+        bust_str = dealer.hand.bust? ? " BUST!" : ""
+        says "Dealer has " + hand_val_str(dealer.hand) + bust_str
+      else
+        says "Dealer's showing a %s %s" % [dealer.showing, dealer.hand]
+      end
     end
 
     def player_hand_status(bet_box)
@@ -41,17 +45,22 @@ module Blackjack
     def hand_outcome(bet_box, outcome, winnings=nil)
       msg = case outcome
         when Outcome::WON
+          "%s WINS %d" % [ bet_box.player.name, winnings ]
         when Outcome::LOST
+          "%s LOST" % [ bet_box.player.name]
         when Outcome::PUSH
+          "%s PUSH" % [ bet_box.player.name]
         when Outcome::BUST
+          "%s BUSTS" % [ bet_box.player.name]
         when Outcome::NONE
+          nil
       end
       says msg
     end
 
     def play_by_play(step, player, response)
       msg = case step
-        when :play
+        when :num_bets
           case response
             when Action::SIT_OUT
               "%s sits this one out" % player.name
@@ -81,6 +90,10 @@ module Blackjack
               " STANDS"
             when Action::SPLIT
               " SPLITS"
+            when Action::DOUBLE_DOWN
+              " DOUBLE DOWNS"
+            when Action::SURRENDER
+              " SURRENDERS"
           end
         else
           nil
@@ -99,11 +112,13 @@ module Blackjack
     end
 
     def hand_val_str(hand)
-      if !hand.soft? || (hand.soft? && (hand.hard_sum == hand.soft_sum))
+      if hand.blackjack?
+        "BLACKJACK!"
+      elsif !hand.soft? || (hand.soft? && (hand.hard_sum == hand.soft_sum))
         hand.hard_sum.to_s
       else
         "#{hand.soft_sum}/#{hand.hard_sum}"
-      end
+      end + " #{hand}"
     end
   end
 

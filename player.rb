@@ -70,6 +70,11 @@ module Blackjack
       self
     end
 
+    def busted(bet_box)
+      stats.busts.incr
+      self
+    end
+
     def make_insurance_bet(bet_box, bet_amount)
       bet_box.insurance_bet(bet_amount)
       stats.insurances.incr

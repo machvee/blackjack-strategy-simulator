@@ -27,6 +27,9 @@ module Blackjack
 
     def play_a_hand_of_blackjack
       opening_deal
+
+      table.game_announcer.dealer_hand_status
+
       unless dealer_has_blackjack?
         payout_any_blackjacks
         players_play_their_hands
@@ -78,7 +81,7 @@ module Blackjack
         table.bet_boxes.each_active do |bet_box|
           player = bet_box.player
 
-          table.game_announcer.says("Dealer shows Ace, %s, Insurance?" % [player.name, bet_amount])
+          table.game_announcer.says("Insurance?" % [player.name, bet_amount])
 
           response = dealer.ask_player_insurance?(bet_box)
           case response
@@ -96,12 +99,13 @@ module Blackjack
               bet_box.discard
           end
         end
+      elsif !dealer.up_card.ten?
+        return false
       end
-      
+
       has_black_jack = dealer.hand.blackjack?
       if has_black_jack
         dealer.flip_hole_card
-        table.game_announcer.says("Dealer has %s - BLACKJACK!" % dealer.hand)
       else
         table.game_announcer.says("Dealer doesn't have Blackjack")
       end
@@ -114,7 +118,8 @@ module Blackjack
         if bet_box.hand.blackjack?
           player.blackjack(bet_box)
           player.won_bet(bet_box)
-          dealer.pay(bet_box, table.config[:blackjack_payout])
+          winnings = dealer.pay(bet_box, table.config[:blackjack_payout])
+          table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
           bet_box.discard
         end
       end
@@ -179,13 +184,11 @@ module Blackjack
 
       while(true) do
 
-        break if bet_box.hand.twentyone?
-
-        response = dealer.ask_player_decision(bet_box)
+        response = bet_box.hand.twentyone? ? Action::STAND : dealer.ask_player_decision(bet_box)
 
         case response
           when Action::HIT
-            dealer.deal_card_face_up_to(bet_box)
+            deal_player_card(bet_box)
             if dealer.check_player_hand_busted?(bet_box)
               table.game_announcer.hand_outcome(bet_box, Outcome::BUST)
               player.busted(bet_box)
@@ -194,6 +197,7 @@ module Blackjack
               break
             end
           when Action::STAND
+            table.game_announcer.player_hand_status(bet_box)
             break
           when Action::SPLIT
             bet_box.split
@@ -204,9 +208,9 @@ module Blackjack
               player_plays_hand_until_end(split_bet_box)
             end
             break
-          when Action::DOUBLE
+          when Action::DOUBLE_DOWN
             player.make_double_down_bet(bet_box)
-            dealer.deal_card_face_up_to(bet_box)
+            deal_player_card(bet_box)
             break
           when Action::SURRENDER
             player.surrendered(bet_box)
@@ -216,6 +220,11 @@ module Blackjack
             break
         end
       end
+    end
+
+    def deal_player_card(bet_box)
+      dealer.deal_card_face_up_to(bet_box)
+      table.game_announcer.player_hand_status(bet_box)
     end
 
     def pay_any_winners
@@ -243,8 +252,8 @@ module Blackjack
           #
           # player wins
           #
-          table.game_announcer.hand_outcome(bet_box, Outcome::WIN)
-          dealer.pay(bet_box, [1,1])
+          winning_amount = dealer.pay(bet_box, [1,1])
+          table.game_announcer.hand_outcome(bet_box, Outcome::WON, winning_amount)
           player.won_bet(bet_box)
         else
           #
@@ -258,26 +267,27 @@ module Blackjack
     end
 
     def dealer_plays_hand
-      dealer.play_hand
+      dealer.flip_hole_card
+      dealer.play_hand if any_player_bets?
     end
 
     def wait_for_player_bets
       table.each_player do |player|
-        catch :player_leaves_table do
-          table.bet_boxes.available_for(player) do |bet_box|
-            case dealer.ask_player_play?(player)
-              when Action::LEAVE
-                player.leave_table
-                throw :player_leaves_table
-              when Action::SIT_OUT
-                break
-              when Action::BET
-                bet_amount = dealer.ask_player_bet_amount(player)
-                player.make_bet(bet_amount, bet_box)
-            end # case
-          end # table.bet_boxes
-        end # catch
-      end # players
+        num_bets = dealer.ask_player_num_bets(player)
+        case num_bets
+          when Action::LEAVE
+            player.leave_table
+            next
+          else
+            bet_counter = 0
+            table.bet_boxes.available_for(player) do |bet_box|
+              break if bet_counter == num_bets
+              bet_amount = dealer.ask_player_bet_amount(player, bet_box)
+              player.make_bet(bet_amount, bet_box)
+              bet_counter += 1
+            end 
+        end 
+      end
     end
 
   end

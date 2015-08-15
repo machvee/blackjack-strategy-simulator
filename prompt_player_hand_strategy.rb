@@ -7,16 +7,7 @@ module Blackjack
     #
     def initialize(table, player, options={})
       super
-      @get_user_decision = CommandPrompter.new("Hit", "Stand", "Double", "sPlit")
-      @map = {
-        'h' => Action::HIT,
-        's' => Action::STAND,
-        'd' => Action::DOUBLE_DOWN,
-        'p' => Action::SPLIT
-      }
-      min_bet = table.config[:minimum_bet]
-      max_bet = table.config[:maximum_bet]
-      @main_bet_maker = CommandPrompter.new("Bet Amount:int:#{min_bet}:#{max_bet}")
+      setup_prompters
       @bets_to_make = options[:bets_to_make_each_play]||1
       @bet_count = 0
     end
@@ -41,20 +32,19 @@ module Blackjack
     def insurance_bet_amount(bet_box)
       max_bet = bet_box.bet_amount/2.0
       insurance_bet_maker = CommandPrompter.new("Insurance Bet Amount:int:1:#{max_bet}")
+      insurance_bet_maker.default_value = max_bet
       insurance_bet_maker.get_command.to_i
     end
 
     def double_down_bet_amount(bet_box)
       max_bet = bet_box.bet_amount
       double_down_bet_maker = CommandPrompter.new("Double Down Bet Amount:int:1:#{max_bet}")
+      double_down_bet_maker.default_value = max_bet
       double_down_bet_maker.get_command.to_i
     end
 
-    def play?
-      return Action::LEAVE if player.bank.balance <= player.bank.initial_deposit/8
-      return Action::SIT_OUT if @bet_count == @bets_to_make
-      @bet_count += 1
-      Action::BET
+    def num_bets
+      player.bank.balance <= player.bank.initial_deposit/8 ? Action::LEAVE : @bets_to_make
     end
 
     def outcome(win_lose_draw, dealer_hand)
@@ -80,6 +70,22 @@ module Blackjack
     end
 
     private
+
+    def setup_prompters
+      @get_user_decision = CommandPrompter.new("Hit", "Stand", "Double", "sPlit")
+      @get_user_decision.default_value = "H"
+      @map = {
+        'h' => Action::HIT,
+        's' => Action::STAND,
+        'd' => Action::DOUBLE_DOWN,
+        'p' => Action::SPLIT
+      }
+
+      min_bet = table.config[:minimum_bet]
+      max_bet = table.config[:maximum_bet]
+      @main_bet_maker = CommandPrompter.new("Bet Amount:int:#{min_bet}:#{max_bet}")
+      @main_bet_maker.default_value = min_bet
+    end
 
     def show_other_hands(other_hands)
       #

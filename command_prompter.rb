@@ -7,10 +7,13 @@ module Blackjack
     attr_reader :input
     attr_reader :output
 
+    attr_accessor :default_value
+
     def initialize(*valid_cmd_names)
       #
       # usage:
       #   p = CommandPrompter.new("Bet Amount:int:1:10", "Hit", "Stand", "sPlit", "Double")
+      #   p.default(25)
       #   p.get_command do |cmd|
       #     case cmd
       #        when "h"
@@ -24,10 +27,11 @@ module Blackjack
       #   User sees:
       #
       #     Bet Amount (1 - 10), [H]it, [S]tand, s[P]lit, [D]ouble
-      #     => 
+      #     ==25==>  
       #
       @input = $stdin
       @output = $stdout
+      @default_value = nil
 
       parse_params_and_configure(valid_cmd_names)
     end
@@ -95,6 +99,9 @@ module Blackjack
 
     def get_input
       typed = input.gets.chomp
+      if typed.empty? && !default_value.nil?
+        typed = default_value.to_s
+      end
       [typed, typed.downcase]
     end
 
@@ -103,7 +110,11 @@ module Blackjack
     end
 
     def print_prompt
-      print "=> "
+      print prompt_str
+    end
+
+    def prompt_str
+      @_prstr ||= ("=>%s" % (default_value.nil? ? "" : "[#{default_value}] "))
     end
 
     def print_invalid_cmd(cmd)

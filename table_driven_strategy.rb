@@ -7,15 +7,10 @@ module Blackjack
     def initialize(table, player, strategy_table)
       super(table, player)
       @strategy_table = strategy_table
-      @num_bets = 1
-      @bets_made = 0
     end
 
-    def play?
-      return Action::SIT_OUT if @bets_made == @num_bets
-      return Action::LEAVE if player.bank.balance < player.bank.initial_deposit/4
-      @bets_made += 1
-      return Action::BET
+    def num_bets
+      player.bank.balance < player.bank.initial_deposit/4 ? Action::LEAVE : 1
     end
 
     def bet_amount

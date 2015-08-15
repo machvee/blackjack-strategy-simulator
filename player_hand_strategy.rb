@@ -1,17 +1,17 @@
 module Blackjack
 
   module Action
-    LEAVE=0
-    SIT_OUT=1
-    BET=2
-    HIT=3
-    STAND=4
-    SPLIT=5
-    DOUBLE_DOWN=6
-    SURRENDER=7
-    INSURANCE=8
-    NO_INSURANCE=9
-    EVEN_MONEY=10
+    LEAVE=-1
+    SIT_OUT=0
+    BET=1
+    HIT=2
+    STAND=3
+    SPLIT=4
+    DOUBLE_DOWN=5
+    SURRENDER=6
+    INSURANCE=7
+    NO_INSURANCE=8
+    EVEN_MONEY=9
   end
 
   module Outcome
@@ -35,16 +35,16 @@ module Blackjack
     attr_reader  :player
 
     def initialize(table, player, options={})
-      @table = player
+      @table = table
       @player = player
     end
 
-    def play?
+    def num_bets
       #
       # Invoked for available_for(player) bet_boxes which lets players make one or more bets
-      # return Action::BET to put chips in the bet_box
-      # return Action::SIT_OUT to not make a bet in the bet_box
+      # return Action::SIT_OUT to make NO bets in any bet_box
       # return Action::LEAVE to take bets and leave table before next hand dealt
+      # return 1 - table.config[:max_player_bets] to make one or more bets at the table
       #
     end
 

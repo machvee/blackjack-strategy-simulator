@@ -97,7 +97,7 @@ module Cards
     end
 
     def to_s
-      face + suit
+      face_up? ? face + suit : 'XX'
     end
 
     def inspect
