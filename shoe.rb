@@ -107,7 +107,7 @@ module Blackjack
     end
 
     def beyond_cut?
-      cutoff && decks.count < cutoff
+      cutoff && decks.count <= cutoff
     end
 
     def cut_card_placement_range

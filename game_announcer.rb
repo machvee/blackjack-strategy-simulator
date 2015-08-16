@@ -12,6 +12,9 @@ module Blackjack
       @dealer = table.dealer
     end
 
+    def overview
+    end
+
     def dealer_hand_status
     end
 
@@ -29,6 +32,13 @@ module Blackjack
   end
 
   class StdoutGameAnnouncer < GameAnnouncer
+    def overview
+      says "#{table.name}: #{table.shoe.remaining_until_shuffle} cards remain"
+      table.each_player do |player|
+        says "  #{player}"
+      end
+    end
+
     def dealer_hand_status
       if dealer.hand.flipped?
         bust_str = dealer.hand.bust? ? " BUST!" : ""

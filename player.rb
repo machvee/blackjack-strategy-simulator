@@ -121,7 +121,18 @@ module Blackjack
     end
 
     def inspect
-      "#{name} - $#{bank.balance}"
+      to_s
+    end
+
+    def to_s
+      "#{name} - $#{bank.balance} (#{up_down})"
+    end
+
+    def up_down
+      amt = bank.balance - bank.initial_deposit 
+      return "EVEN" if amt.zero?
+      return "+#{amt}" if amt > 0
+      return "-#{amt.abs}"
     end
   end
 end

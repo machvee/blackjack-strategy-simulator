@@ -4,6 +4,8 @@ module Blackjack
     attr_reader   :dealer
     attr_reader   :players
 
+    EVEN_MONEY_PAYOUT = [1,1]
+
     def initialize(table, options={})
       @table =  table
       @dealer = table.dealer
@@ -13,6 +15,7 @@ module Blackjack
     def run
       while players_at_table?
         shuffle_check
+        announce_game_state
         wait_for_player_bets
         play_a_hand_of_blackjack if any_player_bets?
         reset
@@ -94,9 +97,7 @@ module Blackjack
               # pay and clear this hand out now
               #
               if bet_box.hand.blackjack?
-                player.won_bet(bet_box)
-                winnings = dealer.pay(bet_box, [1,1])
-                table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
+                player_won(bet_box, EVEN_MONEY_PAYOUT)
                 bet_box.discard
               end
           end
@@ -118,9 +119,7 @@ module Blackjack
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player
         if bet_box.hand.blackjack?
-          winnings = dealer.pay(bet_box, table.config[:blackjack_payout])
-          table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
-          player.won_bet(bet_box)
+          player_won(bet_box, table.config[:blackjack_payout])
           player.blackjack(bet_box)
           bet_box.discard
         end
@@ -247,9 +246,7 @@ module Blackjack
           #
           # player wins
           #
-          winning_amount = dealer.pay(bet_box, [1,1])
-          table.game_announcer.hand_outcome(bet_box, Outcome::WON, winning_amount)
-          player.won_bet(bet_box)
+          player_won(bet_box, EVEN_MONEY_PAYOUT)
         elsif dealer_has > player_has
           #
           # dealer wins
@@ -285,6 +282,12 @@ module Blackjack
 
     def announce_hand(bet_box)
       table.game_announcer.player_hand_status(bet_box)
+    end
+
+    def player_won(bet_box, payout)
+      winnings = dealer.pay(bet_box, payout)
+      table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
+      bet_box.player.won_bet(bet_box)
     end
 
     def wait_for_player_bets

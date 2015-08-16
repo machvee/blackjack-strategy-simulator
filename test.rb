@@ -1798,7 +1798,7 @@ module Blackjack
 
     it "should deal cards and report needs_shuffle? true when reached cut card" do
       @shoe.place_cut_card
-      deal_this_many = @shoe.remaining - @shoe.cutoff
+      deal_this_many = @shoe.remaining - @shoe.cutoff - 1
       deal_this_many.times do
         @destination = MiniTest::Mock.new
         top_card = @shoe.decks.first
