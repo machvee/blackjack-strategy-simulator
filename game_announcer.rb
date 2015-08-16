@@ -124,7 +124,7 @@ module Blackjack
     def hand_val_str(hand)
       if hand.blackjack?
         "BLACKJACK!"
-      elsif !hand.soft? || (hand.soft? && (hand.hard_sum == hand.soft_sum))
+      elsif !hand.soft? || (hand.soft? && (hand.hard_sum == hand.soft_sum || hand.hard_sum >= 17))
         hand.hard_sum.to_s
       else
         "#{hand.soft_sum}/#{hand.hard_sum}"
