@@ -107,7 +107,7 @@ module Blackjack
     end
 
     def beyond_cut?
-      cutoff && decks.count <= cutoff
+      cutoff && decks.count < cutoff
     end
 
     def cut_card_placement_range
@@ -144,7 +144,6 @@ module Blackjack
 
     def deal_one(destination, orientation)
       raise "needs cut card placed" if @cutoff.nil?
-      raise "needs shuffle" if needs_shuffle?
       decks.deal(destination, 1, orientation)
       cards_dealt.incr
       self

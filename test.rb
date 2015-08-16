@@ -777,6 +777,48 @@ module Blackjack
     end
   end
 
+  describe GamePlay, "A game execution service class" do
+    before do
+      shoe = TestShoe.new(
+          ["2H", "5C"],
+          [
+            ['3C', '3H']
+          ],
+          ['KH', '9D', 'QH']
+      )
+      @table = Table.new('test', shoe: shoe)
+      @table.shoe.shuffle
+      @table.shoe.place_cut_card
+      @player = Player.new('p')
+      @player.join(@table)
+      @player.make_bet(50)
+      @game_play = GamePlay.new(@table)
+      @game_play.opening_deal
+    end
+
+    it "should play correctly for players who have split their hand" do
+      @player.bet_box.hand.hard_sum.must_equal(6)
+      @player.bet_box.split
+      vals = [13,12].each
+      @table.bet_boxes.each_active do |bb|
+        @table.dealer.deal_card_face_up_to(bb)
+        bb.hand.hard_sum.must_equal(vals.next)
+      end
+
+      @table.bet_boxes.each_active do |bb|
+        next if bb.hand.hard_sum == 13
+        @table.dealer.deal_card_face_up_to(bb)
+        bb.hand.hard_sum.must_equal(22)
+        @table.dealer.collect(bb)
+        bb.discard
+      end
+
+      @table.dealer.flip_hole_card
+
+      @game_play.pay_any_winners
+    end
+  end
+
   describe StrategyValidator, "A validator for strategy responses" do
     before do
       @table = Table.new('t1')
@@ -1798,7 +1840,7 @@ module Blackjack
 
     it "should deal cards and report needs_shuffle? true when reached cut card" do
       @shoe.place_cut_card
-      deal_this_many = @shoe.remaining - @shoe.cutoff - 1
+      deal_this_many = @shoe.remaining - @shoe.cutoff 
       deal_this_many.times do
         @destination = MiniTest::Mock.new
         top_card = @shoe.decks.first

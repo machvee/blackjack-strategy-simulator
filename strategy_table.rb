@@ -95,7 +95,7 @@ module Blackjack
       formatted_table[start..finish].each do |line|
         sline = line.split("|")
         half = sline.first.split("-").first
-        pair_half_val = (half == 'A' ? 1 : half.to_i)
+        pair_half_val = (half =~ /A/ ? 1 : half.to_i)
         parsed_output[:pairs][pair_half_val] = encoded_actions_with_ace_rotated_to_front(sline.last.split(" "))
       end
 

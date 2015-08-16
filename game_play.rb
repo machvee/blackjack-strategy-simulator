@@ -29,6 +29,7 @@ module Blackjack
 
     def play_a_hand_of_blackjack
       opening_deal
+      announce_hands
 
       unless dealer_has_blackjack?
         payout_any_blackjacks
@@ -51,7 +52,6 @@ module Blackjack
       dealer.deal_up_card
       dealer.deal_one_card_face_up_to_each_active_bet_box
       dealer.deal_hole_card
-      announce_hands
     end
 
     def dealer_has_blackjack?
@@ -136,7 +136,7 @@ module Blackjack
       # If so, shuffle the shoe and place card
       # 
       if table.shoe.needs_shuffle?
-        table.game_announcer.says("Shuffling...")
+        table.game_announcer.says("Shuffling [%d]..." % table.shoe.num_shuffles.count)
         table.shoe.shuffle
         table.shoe.place_cut_card
         table.game_announcer.says("Cut card placed.")
@@ -276,12 +276,12 @@ module Blackjack
       table.bet_boxes.each_active { |bet_box| announce_hand(bet_box) }
     end
 
-    def announce_game_state
-      table.game_announcer.overview
-    end
-
     def announce_hand(bet_box)
       table.game_announcer.player_hand_status(bet_box)
+    end
+
+    def announce_game_state
+      table.game_announcer.overview
     end
 
     def player_won(bet_box, payout)

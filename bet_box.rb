@@ -134,7 +134,7 @@ module Blackjack
     end
 
     def iter(&block)
-      split? ? split_boxes.iter(&block) : block.call(self)
+      split? ? split_boxes.iter(&block) : block.call(self) if active?
     end
 
     def reset
