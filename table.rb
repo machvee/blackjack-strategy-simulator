@@ -25,8 +25,8 @@ module Blackjack
     counters :players_seated
 
     DEFAULT_HOUSE_BANK_AMOUNT=250_000
-
     DEFAULT_MAX_SEATS = 6
+    DEFAULT_SHOE_CLASS = SixDeckShoe
 
     DEFAULT_CONFIG = {
       num_seats:            DEFAULT_MAX_SEATS,
@@ -38,7 +38,8 @@ module Blackjack
       maximum_bet:          5000,
       max_player_bets:      3,
       max_player_splits:    nil, # nil unlimited or n: one hand split up to n times
-      game_announcer_class: GameAnnouncer
+      game_announcer_class: GameAnnouncer,
+      shoe:                 nil  # pass in a custom from which to deal
     }
 
     attr_reader   :name
@@ -164,7 +165,7 @@ module Blackjack
     private
 
     def new_shoe
-      config[:shoe] || SixDeckShoe.new
+      config[:shoe] || DEFAULT_SHOE_CLASS.new
     end
 
     def num_seats

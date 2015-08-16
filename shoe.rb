@@ -8,21 +8,21 @@ module Blackjack
 
     attr_reader  :decks
     attr_reader  :cutoff
-    attr_reader  :options
+    attr_reader  :config
     attr_reader  :discard_pile
 
     counters  :num_shuffles, :cards_dealt
 
     DEFAULT_OPTIONS = {
-      cut_card_segment: 0.25,
+      cut_card_segment: 0.25, # cut_offset must be in this last % of the deck
       cut_card_offset:  0.05,
       split_and_shuffles: 25,
       num_decks_in_shoe:   1
     }
 
     def initialize(options={})
-      @options = DEFAULT_OPTIONS.merge(options)
-      @decks = BlackjackDeck.new(@options[:num_decks_in_shoe])
+      @config = DEFAULT_OPTIONS.merge(options)
+      @decks = BlackjackDeck.new(config[:num_decks_in_shoe])
       @discard_pile = Cards::Cards.new(decks)
       shuffle
     end
@@ -36,9 +36,13 @@ module Blackjack
     end
 
     def place_cut_card(cut_offset=nil)
+      #
+      # cut_offset is the number of cards from the *back of the deck to place
+      # the cut card.  A specific cut_offset must be valid.
+      #
       @cutoff = cut_offset||random_cut_offset
-      raise "invalid cut card placement" if cutoff <=0 || cutoff >= (decks.length-1)
-      self
+      raise "invalid cut card placement [#{cut_card_placement_range}]" unless valid_cut_offset?(cutoff)
+      cutoff
     end
 
     def needs_shuffle?
@@ -55,9 +59,16 @@ module Blackjack
 
     def remaining
       #
-      # number of cards remaining in shoe, included beyond cut_card
+      # total number of cards remaining in shoe even beyond the cut card
       #
       decks.length
+    end
+
+    def remaining_until_shuffle
+      #
+      # number of cards remaining in shoe until the cut card is reached
+      #
+      remaining - cutoff
     end
 
     def discarded
@@ -68,9 +79,9 @@ module Blackjack
     end
 
     def shuffle
-      discard_pile.fold
+      discard_pile.fold # brings discards back in to decks
       remove_cut_card
-      decks.shuffle_up(options[:split_and_shuffles])
+      decks.shuffle_up(config[:split_and_shuffles])
       num_shuffles.incr
       @force_shuffle = false
       self
@@ -87,6 +98,10 @@ module Blackjack
 
     private
 
+    def valid_cut_offset?(cut_offset)
+      cut_card_placement_range.include?(cut_offset)
+    end
+
     def remove_cut_card
       @cutoff = nil
     end
@@ -95,10 +110,36 @@ module Blackjack
       cutoff && decks.count < cutoff
     end
 
+    def cut_card_placement_range
+      #
+      # return an offset that is equal to the number of cards behind the
+      # cut card
+      #                +0.05   -0.05
+      #    +---------------------------+
+      #    |             |  25%  |     |
+      #    +-----------------+---------+
+      #                cutoff range
+      #
+      @_ccp_range ||= (
+        #
+        # e.g.
+        #   2 Decks shoe
+        #   num_cards = 104
+        #   cut_off_cetner = (104 * 0.25).floor = 26
+        #   offset = (104 * 0.05).floor = 5
+        #   (26-5)..(26+5)
+        #
+        #   21..31 is the valid cut_card_placement_range
+        #
+        num_cards = decks.length
+        cut_off_center = (num_cards * config[:cut_card_segment]).floor
+        offset = (num_cards * config[:cut_card_offset]).floor
+        (cut_off_center - offset)..(cut_off_center + offset)
+      )
+    end
+
     def random_cut_offset
-      num_cards = decks.length
-      offset_percentage = (num_cards * options[:cut_card_offset]).floor
-      (num_cards * options[:cut_card_segment]).floor + rand(-offset_percentage..offset_percentage)
+      rand(cut_card_placement_range)
     end
 
     def deal_one(destination, orientation)

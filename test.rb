@@ -511,7 +511,7 @@ module Blackjack
       @configuration = {
         blackjack_payout: [6,5],
         dealer_hits_soft_17: true,
-        shoe: OneDeckShoe.new,
+        shoe_class: OneDeckShoe,
         num_seats: 4
       }
 

@@ -226,7 +226,7 @@ module Blackjack
 
     def deal_player_card(bet_box)
       dealer.deal_card_face_up_to(bet_box)
-      table.game_announcer.player_hand_status(bet_box)
+      announce_hand(bet_box)
     end
 
     def pay_any_winners
@@ -276,9 +276,15 @@ module Blackjack
 
     def announce_hands
       table.game_announcer.dealer_hand_status
-      table.bet_boxes.each_active do |bet_box|
-        table.game_announcer.player_hand_status(bet_box)
-      end
+      table.bet_boxes.each_active { |bet_box| announce_hand(bet_box) }
+    end
+
+    def announce_game_state
+      table.game_announcer.overview
+    end
+
+    def announce_hand(bet_box)
+      table.game_announcer.player_hand_status(bet_box)
     end
 
     def wait_for_player_bets
