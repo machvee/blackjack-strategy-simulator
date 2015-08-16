@@ -94,7 +94,7 @@ module Blackjack
 
     def make_double_down_bet(bet_box, double_down_bet_amount)
       stats.double_downs.incr
-      player.bank.transfer_to(bet_box.box, double_down_bet_amount)
+      bank.transfer_to(bet_box.box, double_down_bet_amount)
       self
     end
 

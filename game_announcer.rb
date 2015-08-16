@@ -34,7 +34,7 @@ module Blackjack
         bust_str = dealer.hand.bust? ? " BUST!" : ""
         says "Dealer has " + hand_val_str(dealer.hand) + bust_str
       else
-        says "Dealer's showing a %s %s" % [dealer.showing, dealer.hand]
+        says "Dealer's showing %s %s" % [dealer.showing, dealer.hand]
       end
     end
 

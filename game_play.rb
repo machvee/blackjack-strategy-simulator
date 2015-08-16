@@ -8,7 +8,6 @@ module Blackjack
       @table =  table
       @dealer = table.dealer
       @players = table.seated_players
-      @quiet = options[:quiet]||false
     end
 
     def run
@@ -27,8 +26,6 @@ module Blackjack
 
     def play_a_hand_of_blackjack
       opening_deal
-
-      table.game_announcer.dealer_hand_status
 
       unless dealer_has_blackjack?
         payout_any_blackjacks
@@ -51,6 +48,7 @@ module Blackjack
       dealer.deal_up_card
       dealer.deal_one_card_face_up_to_each_active_bet_box
       dealer.deal_hole_card
+      announce_hands
     end
 
     def dealer_has_blackjack?
@@ -81,9 +79,10 @@ module Blackjack
         table.bet_boxes.each_active do |bet_box|
           player = bet_box.player
 
-          table.game_announcer.says("Insurance?" % [player.name, bet_amount])
+          table.game_announcer.says("%s, Insurance?" % player.name)
 
           response = dealer.ask_player_insurance?(bet_box)
+
           case response
             when Action::NO_INSURANCE
               next
@@ -94,9 +93,12 @@ module Blackjack
               #
               # pay and clear this hand out now
               #
-              player.won_bet(bet_box)
-              dealer.pay(bet_box, [1,1])
-              bet_box.discard
+              if bet_box.hand.blackjack?
+                player.won_bet(bet_box)
+                winnings = dealer.pay(bet_box, [1,1])
+                table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
+                bet_box.discard
+              end
           end
         end
       elsif !dealer.up_card.ten?
@@ -197,19 +199,19 @@ module Blackjack
               break
             end
           when Action::STAND
-            table.game_announcer.player_hand_status(bet_box)
             break
           when Action::SPLIT
             bet_box.split
             bet_box.iter do |split_bet_box|
-              dealer.deal_card_face_up_to(split_bet_box)
+              deal_player_card(split_bet_box)
             end
             bet_box.iter do |split_bet_box|
               player_plays_hand_until_end(split_bet_box)
             end
             break
           when Action::DOUBLE_DOWN
-            player.make_double_down_bet(bet_box)
+            double_down_bet_amt = dealer.ask_player_double_down_bet_amount(bet_box)
+            player.make_double_down_bet(bet_box, double_down_bet_amt)
             deal_player_card(bet_box)
             break
           when Action::SURRENDER
@@ -241,20 +243,20 @@ module Blackjack
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player
         player_has = bet_box.hand.hard_sum
-        if dealer_has > player_has
-          #
-          # dealer wins
-          #
-          table.game_announcer.hand_outcome(bet_box, Outcome::LOST)
-          player.lost_bet(bet_box)
-          dealer.collect(bet_box)
-        elsif player_has > dealer_has
+        if dealer.busted? || player_has > dealer_has
           #
           # player wins
           #
           winning_amount = dealer.pay(bet_box, [1,1])
           table.game_announcer.hand_outcome(bet_box, Outcome::WON, winning_amount)
           player.won_bet(bet_box)
+        elsif dealer_has > player_has
+          #
+          # dealer wins
+          #
+          table.game_announcer.hand_outcome(bet_box, Outcome::LOST)
+          player.lost_bet(bet_box)
+          dealer.collect(bet_box)
         else
           #
           # push - player removes bet
@@ -264,11 +266,19 @@ module Blackjack
         end
         bet_box.discard
       end
+      dealer.discard_hand
     end
 
     def dealer_plays_hand
       dealer.flip_hole_card
       dealer.play_hand if any_player_bets?
+    end
+
+    def announce_hands
+      table.game_announcer.dealer_hand_status
+      table.bet_boxes.each_active do |bet_box|
+        table.game_announcer.player_hand_status(bet_box)
+      end
     end
 
     def wait_for_player_bets

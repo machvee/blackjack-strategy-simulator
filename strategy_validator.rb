@@ -100,7 +100,7 @@ module Blackjack
       end
     end
 
-    def validate_insurance_bet(bet_box, bet_amount)
+    def validate_insurance_bet_amount(bet_box, bet_amount)
       max_legal_bet = bet_box.bet_amount / 2.0
       legal_bet_range = 1..max_legal_bet
       if !legal_bet_range.include?(bet_amount)
@@ -110,7 +110,7 @@ module Blackjack
       end
     end
 
-    def validate_double_down_bet(bet_box, bet_amount)
+    def validate_double_down_bet_amount(bet_box, bet_amount)
       max_legal_bet = bet_box.bet_amount
       legal_bet_range = 1..max_legal_bet
       if !legal_bet_range.include?(bet_amount)
