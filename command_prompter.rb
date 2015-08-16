@@ -1,6 +1,7 @@
 module Blackjack
   class CommandPrompter
     attr_reader :legend
+    attr_reader :prefix
     attr_reader :valid_inputs
     attr_reader :minimum_integer
     attr_reader :maximum_integer
@@ -9,7 +10,9 @@ module Blackjack
 
     attr_accessor :default_value
 
-    def initialize(*valid_cmd_names)
+    LEADER = ""
+
+    def initialize(prefix, *valid_cmd_names)
       #
       # usage:
       #   p = CommandPrompter.new("Bet Amount:int:1:10", "Hit", "Stand", "sPlit", "Double")
@@ -31,6 +34,7 @@ module Blackjack
       #
       @input = $stdin
       @output = $stdout
+      @prefix = prefix
       @default_value = nil
 
       parse_params_and_configure(valid_cmd_names)
@@ -58,11 +62,11 @@ module Blackjack
     private
 
     def print(str)
-      output.print str
+      output.print(LEADER + str)
     end
 
     def println(str)
-      output.puts str 
+      output.puts(LEADER + str)
     end
 
     def parse_params_and_configure(valid_cmd_names)
@@ -80,7 +84,7 @@ module Blackjack
               @minimum_integer = scmd[2].to_i
               if nc == 4
                 @maximum_integer = scmd[3].to_i
-                guide = " (#{minimum_integer} - #{maximum_integer})"
+                guide = " (#{minimum_integer}-#{maximum_integer})"
               else
                 guide = " ( >= #{minimum_integer})"
               end
@@ -94,7 +98,7 @@ module Blackjack
           commands << cmd.gsub(/([A-Z])/, "[\\1]")
         end
       end
-      @legend = commands.join(", ") + " or [Q]uit"
+      @legend = formatted_prefix + commands.join(", ") + " or [Q]uit"
     end
 
     def get_input
@@ -103,6 +107,10 @@ module Blackjack
         typed = default_value.to_s
       end
       [typed, typed.downcase]
+    end
+
+    def formatted_prefix
+      @_fp ||= "%s: " % prefix
     end
 
     def print_legend

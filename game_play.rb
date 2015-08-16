@@ -118,10 +118,10 @@ module Blackjack
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player
         if bet_box.hand.blackjack?
-          player.blackjack(bet_box)
-          player.won_bet(bet_box)
           winnings = dealer.pay(bet_box, table.config[:blackjack_payout])
           table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
+          player.won_bet(bet_box)
+          player.blackjack(bet_box)
           bet_box.discard
         end
       end

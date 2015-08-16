@@ -26,21 +26,18 @@ module Blackjack
     end
 
     def insurance?(bet_box)
-      Action::NO_INSURANCE
+      bet_box.hand.blackjack? ? Action::EVEN_MONEY : Action::NO_INSURANCE
     end
 
     def insurance_bet_amount(bet_box)
       max_bet = bet_box.bet_amount/2.0
-      insurance_bet_maker = CommandPrompter.new("Insurance Bet Amount:int:1:#{max_bet}")
+      insurance_bet_maker = CommandPrompter.new(player.name, "Insurance Bet Amount:int:1:#{max_bet}")
       insurance_bet_maker.default_value = max_bet
       insurance_bet_maker.get_command.to_i
     end
 
     def double_down_bet_amount(bet_box)
-      max_bet = bet_box.bet_amount
-      double_down_bet_maker = CommandPrompter.new("Double Down Bet Amount:int:1:#{max_bet}")
-      double_down_bet_maker.default_value = max_bet
-      double_down_bet_maker.get_command.to_i
+      bet_box.bet_amount
     end
 
     def num_bets
@@ -72,7 +69,7 @@ module Blackjack
     private
 
     def setup_prompters
-      @get_user_decision = CommandPrompter.new("Hit", "Stand", "Double", "sPlit")
+      @get_user_decision = CommandPrompter.new(player.name, "Hit", "Stand", "Double", "sPlit")
       @get_user_decision.default_value = "H"
       @map = {
         'h' => Action::HIT,
@@ -83,7 +80,7 @@ module Blackjack
 
       min_bet = table.config[:minimum_bet]
       max_bet = table.config[:maximum_bet]
-      @main_bet_maker = CommandPrompter.new("Bet Amount:int:#{min_bet}:#{max_bet}")
+      @main_bet_maker = CommandPrompter.new(player.name, "Bet Amount:int:#{min_bet}:#{max_bet}")
       @main_bet_maker.default_value = min_bet
     end
 
