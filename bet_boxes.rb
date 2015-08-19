@@ -21,7 +21,14 @@ module Blackjack
     end
 
     def any_bets?
-      bet_boxes.any? {|bet_box| bet_box.bet_amount > 0}
+      @bet_found = false
+      each_active do |bet_box|
+        if bet_box.bet_amount > 0
+          @bet_found = true
+          break
+        end
+      end
+      @bet_found
     end
 
     def dedicated_to(player)

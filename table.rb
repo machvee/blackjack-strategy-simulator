@@ -22,7 +22,7 @@ module Blackjack
 
     include CounterMeasures
 
-    counters :players_seated
+    counters :players_seated, :rounds_played
 
     DEFAULT_HOUSE_BANK_AMOUNT=250_000
     DEFAULT_MAX_SEATS = 6
@@ -54,10 +54,18 @@ module Blackjack
     def initialize(name, options={})
       @name = name
       @config = DEFAULT_CONFIG.merge(options)
+
+      init_table
+    end
+
+    def run(options={})
+      gp = GamePlay.new(self)
+      gp.run(options)
+    end
+
+    def init_table
       @house = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
       @shoe = new_shoe
-      @shoe.force_shuffle
-
       @seated_players = Array.new(num_seats) {nil}
 
       #
@@ -66,14 +74,12 @@ module Blackjack
       # last
       #
       @bet_boxes = BetBoxes.new(self, num_seats)
-
       @dealer = Dealer.new(self)
       @game_announcer = config[:game_announcer_class].new(self)
     end
 
-    def run
-      gp = GamePlay.new(self)
-      gp.run
+    def reset
+      init_table
     end
 
     def join(player, desired_seat_position=nil)
@@ -165,7 +171,9 @@ module Blackjack
     private
 
     def new_shoe
-      config[:shoe] || DEFAULT_SHOE_CLASS.new
+      shoe = config[:shoe] || DEFAULT_SHOE_CLASS.new
+      shoe.force_shuffle
+      shoe
     end
 
     def num_seats
@@ -180,6 +188,8 @@ module Blackjack
         seated_players[desired_seat_position].nil? ? desired_seat_position : nil
       end
     end
+
+
   end
 
   class TableWithAnnouncer < Table

@@ -33,7 +33,7 @@ module Blackjack
 
   class StdoutGameAnnouncer < GameAnnouncer
     def overview
-      says "#{table.name}: #{table.shoe.remaining_until_shuffle} cards remain"
+      says "#{table.name}: Round #{table.rounds_played.count}, #{table.shoe.remaining_until_shuffle} cards remain"
       table.each_player do |player|
         says "  #{player}"
       end
@@ -55,7 +55,7 @@ module Blackjack
     def hand_outcome(bet_box, outcome, winnings=nil)
       msg = case outcome
         when Outcome::WON
-          "%s WINS %d" % [ bet_box.player.name, winnings ]
+          "%s WINS $%d" % [ bet_box.player.name, winnings ]
         when Outcome::LOST
           "%s LOST" % [ bet_box.player.name]
         when Outcome::PUSH
@@ -82,16 +82,16 @@ module Blackjack
         when :insurance
           case response
             when Action::NO_INSURANCE
-              "%s says No Insurance" % player.name
+              "%s says NO INSURANCE" % player.name
             when Action::EVEN_MONEY
-              "%s has Blackjack and takes Even Money" % player.name
+              "%s has Blackjack and takes EVEN MONEY" % player.name
             else
               nil
           end
         when :insurance_bet_amount
-           "%s takes Insurance for %d" % [player.name, response]
+           "%s takes INSURANCE for $%d" % [player.name, response]
         when :double_down_bet_amount
-           "%s double downs with %d" % [player.name, response]
+           "%s DOUBLE DOWNS with $%d" % [player.name, response]
         when :decision
           player.name + case response
             when Action::HIT

@@ -118,6 +118,10 @@ module Blackjack
       !parent_split_box.nil?
     end
 
+    def from_split_aces?
+      from_split? && hand[0].ace?
+    end
+
     def num_splits
       root_bet_box.split_counter
     end

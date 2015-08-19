@@ -12,19 +12,30 @@ module Blackjack
       @players = table.seated_players
     end
 
-    def run
+    def run(options={})
+      @hand_count = 0
+      @num_hands = (options[:num_hands]||"10000").to_i
       while players_at_table?
         shuffle_check
         announce_game_state
         wait_for_player_bets
         play_a_hand_of_blackjack if any_player_bets?
+
+        @hand_count += 1
         reset
+        break if @hand_count == @num_hands
       end
-      table.game_announcer.says("Table has no players.  Goodbye.")
+      exit_run
     end
 
     def reset
       table.bet_boxes.reset
+    end
+
+    def exit_run
+      table.game_announcer.says("Run complete. Goodbye.")
+      table.game_announcer.says("")
+      announce_game_state
     end
 
     def play_a_hand_of_blackjack
@@ -48,6 +59,8 @@ module Blackjack
       # 4. dealer from his left to right, deals one additional card face up to each active bet_box
       # 5. dealer deals himself one card face down (hole-card)
       #
+      table.rounds_played.incr
+
       dealer.deal_one_card_face_up_to_each_active_bet_box
       dealer.deal_up_card
       dealer.deal_one_card_face_up_to_each_active_bet_box
@@ -185,7 +198,7 @@ module Blackjack
 
       while(true) do
 
-        response = bet_box.hand.twentyone? ? Action::STAND : dealer.ask_player_decision(bet_box)
+        response = (bet_box.hand.twentyone? || bet_box.from_split_aces?) ? Action::STAND : dealer.ask_player_decision(bet_box)
 
         case response
           when Action::HIT
