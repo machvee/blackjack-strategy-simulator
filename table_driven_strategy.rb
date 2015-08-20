@@ -10,7 +10,7 @@ module Blackjack
     end
 
     def num_bets
-      player.bank.balance < player.bank.initial_deposit/4 ? Action::LEAVE : 1
+      player.bank.balance < table.config[:minimum_bet] ? Action::LEAVE : 1
     end
 
     def bet_amount
@@ -22,7 +22,7 @@ module Blackjack
     end
 
     def double_down_bet_amount(bet_box)
-      bet_box.bet_amount
+      [bet_box.bet_amount, bet_box.player.bank.balance].min
     end
 
     def insurance?(bet_box)
@@ -30,7 +30,6 @@ module Blackjack
     end
 
     def decision(bet_box, dealer_up_card, other_hands=[])
-      @bets_made = 0
       strategy_table.decision(dealer_up_card.face_value, bet_box.hand)
     end
 

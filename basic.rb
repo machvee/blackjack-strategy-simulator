@@ -3,13 +3,13 @@ include Blackjack
 
 table_opts = {
   shoe: SixDeckShoe.new,
-  minimum_bet: 10,
-  maximum_bet: 2000
+  minimum_bet: 25,
+  maximum_bet: 5000
 }
 
 player_opts = {
   strategy_class: BasicStrategy,
-  start_bank: 1000
+  start_bank: 2500
 }
 
 @table = TableWithAnnouncer.new("Aria High Roller Table", table_opts)
