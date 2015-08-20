@@ -50,7 +50,7 @@ module Blackjack
     end
 
     def player_hand_status(bet_box)
-      says "%s has %s" % [bet_box.player.name, hand_val_str(bet_box.hand)]
+      says "%s has %s" % [bet_box.player.name, hand_val_str(bet_box.hand, bet_box.from_split?)]
     end
 
     def hand_outcome(bet_box, outcome, winnings=nil)
@@ -122,8 +122,8 @@ module Blackjack
       puts "==> " + msg
     end
 
-    def hand_val_str(hand)
-      if hand.blackjack?
+    def hand_val_str(hand, from_split=false)
+      if hand.blackjack? && !from_split
         "BLACKJACK!"
       elsif !hand.soft? || (hand.soft? && (hand.hard_sum == hand.soft_sum || hand.hard_sum >= 17))
         hand.hard_sum.to_s

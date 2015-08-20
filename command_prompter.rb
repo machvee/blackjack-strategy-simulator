@@ -1,14 +1,13 @@
 module Blackjack
   class CommandPrompter
-    attr_reader :legend
-    attr_reader :prefix
-    attr_reader :valid_inputs
-    attr_reader :minimum_integer
-    attr_reader :maximum_integer
-    attr_reader :input
-    attr_reader :output
-
-    attr_accessor :default_value
+    attr_reader   :legend
+    attr_reader   :prefix
+    attr_reader   :valid_inputs
+    attr_reader   :minimum_integer
+    attr_reader   :maximum_integer
+    attr_reader   :input
+    attr_reader   :output
+    attr_accessor :suggestion
 
     LEADER = ""
 
@@ -16,7 +15,7 @@ module Blackjack
       #
       # usage:
       #   p = CommandPrompter.new("Bet Amount:int:1:10", "Hit", "Stand", "sPlit", "Double")
-      #   p.default(25)
+      #   p.suggestion = 25
       #   p.get_command do |cmd|
       #     case cmd
       #        when "h"
@@ -35,7 +34,7 @@ module Blackjack
       @input = $stdin
       @output = $stdout
       @prefix = prefix
-      @default_value = nil
+      @suggestion = nil
 
       parse_params_and_configure(valid_cmd_names)
     end
@@ -103,8 +102,8 @@ module Blackjack
 
     def get_input
       typed = input.gets.chomp
-      if typed.empty? && !default_value.nil?
-        typed = default_value.to_s
+      if typed.empty? && !suggestion.nil?
+        typed = suggestion.to_s
       end
       [typed, typed.downcase]
     end
@@ -122,7 +121,7 @@ module Blackjack
     end
 
     def prompt_str
-      @_prstr ||= ("=>%s" % (default_value.nil? ? "" : "[#{default_value}] "))
+      @_prstr ||= ("=>%s" % (suggestion.nil? ? "" : "[#{suggestion}] "))
     end
 
     def print_invalid_cmd(cmd)

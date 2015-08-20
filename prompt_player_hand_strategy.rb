@@ -1,4 +1,5 @@
 module Blackjack
+
   class PromptPlayerHandStrategy < PlayerHandStrategy
     #
     # this strategy will make a few automatic decisions, but
@@ -9,16 +10,10 @@ module Blackjack
       super
       setup_prompters
       @bets_to_make = options[:bets_to_make_each_play]||1
-      @bet_count = 0
     end
 
     def decision(bet_box, dealer_up_card, other_hands=[])
-      @bet_count = 0
-      player_hand = bet_box.hand
-      show_other_hands(other_hands)
-      show_dealer_up_card(dealer_up_card)
-      show_player_hand(player_hand)
-      prompt_for_action
+      prompt_for_action(bet_box, dealer_up_card, other_hands)
     end
 
     def bet_amount
@@ -32,7 +27,7 @@ module Blackjack
     def insurance_bet_amount(bet_box)
       max_bet = bet_box.bet_amount/2.0
       insurance_bet_maker = CommandPrompter.new(player.name, "Insurance Bet Amount:int:1:#{max_bet}")
-      insurance_bet_maker.default_value = max_bet
+      insurance_bet_maker.suggestion = max_bet
       insurance_bet_maker.get_command.to_i
     end
 
@@ -70,7 +65,6 @@ module Blackjack
 
     def setup_prompters
       @get_user_decision = CommandPrompter.new(player.name, "Hit", "Stand", "Double", "sPlit")
-      @get_user_decision.default_value = "H"
       @map = {
         'h' => Action::HIT,
         's' => Action::STAND,
@@ -81,7 +75,7 @@ module Blackjack
       min_bet = table.config[:minimum_bet]
       max_bet = table.config[:maximum_bet]
       @main_bet_maker = CommandPrompter.new(player.name, "Bet Amount:int:#{min_bet}:#{max_bet}")
-      @main_bet_maker.default_value = min_bet
+      @main_bet_maker.suggestion = min_bet
     end
 
     def show_other_hands(other_hands)
@@ -99,8 +93,34 @@ module Blackjack
       player_hand.print
     end
 
-    def prompt_for_action
+    def prompt_for_action(bet_box, dealer_up_card, other_hands=[])
+      show_other_hands(other_hands)
+      show_dealer_up_card(dealer_up_card)
+      show_player_hand(bet_box.hand)
       @map[@get_user_decision.get_command]
+    end
+  end
+
+  class PromptWithSuggestionStrategy < PromptPlayerHandStrategy
+
+    attr_reader   :suggestion_strategy
+
+    def initialize(table, player, options={})
+      super
+      @reverse_map = @map.invert 
+      @suggestion_strategy = options[:suggestion_strategy]
+    end
+
+    def prompt_for_action(bet_box, dealer_up_card, other_hands=[])
+      # YOU ARE HERE.   the suggestion is wrong
+      @get_user_decision.suggestion = @reverse_map[suggestion_strategy.decision(bet_box, dealer_up_card, other_hands)].upcase
+      super
+    end
+  end
+
+  class PromptWithBasicStrategyGuidance < PromptWithSuggestionStrategy
+    def initialize(table, player, options={})
+      super(table, player, options.merge(suggestion_strategy: BasicStrategy.new(table, player)))
     end
   end
 end
