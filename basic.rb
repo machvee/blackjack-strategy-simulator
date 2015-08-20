@@ -2,7 +2,7 @@ require 'table'
 include Blackjack
 
 table_opts = {
-  shoe: ContinuousShuffleShoe.new,
+  shoe: SixDeckShoe.new,
   minimum_bet: 10,
   maximum_bet: 2000
 }
