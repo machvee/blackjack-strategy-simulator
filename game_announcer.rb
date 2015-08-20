@@ -33,7 +33,8 @@ module Blackjack
 
   class StdoutGameAnnouncer < GameAnnouncer
     def overview
-      says "#{table.name}: Round #{table.rounds_played.count}, #{table.shoe.remaining_until_shuffle} cards remain"
+      marker_status = table.shoe.remaining_until_shuffle.nil? ?  "" : ", #{table.shoe.remaining_until_shuffle} cards remain until marker"
+      says "#{table.name}: Round #{table.rounds_played.count}#{marker_status}"
       table.each_player do |player|
         says "  #{player}"
       end

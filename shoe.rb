@@ -7,15 +7,15 @@ module Blackjack
     include CounterMeasures
 
     attr_reader  :decks
-    attr_reader  :cutoff
+    attr_reader  :markeroff
     attr_reader  :config
     attr_reader  :discard_pile
 
     counters  :num_shuffles, :cards_dealt
 
     DEFAULT_OPTIONS = {
-      cut_card_segment: 0.25, # cut_offset must be in this last % of the deck
-      cut_card_offset:  0.05,
+      marker_card_segment: 0.25, # marker_offset must be in this last % of the deck
+      marker_card_offset:  0.05,
       split_and_shuffles: 25,
       num_decks_in_shoe:   1
     }
@@ -35,18 +35,18 @@ module Blackjack
       hand_class.new(discard_pile)
     end
 
-    def place_cut_card(cut_offset=nil)
+    def place_marker_card(marker_offset=nil)
       #
-      # cut_offset is the number of cards from the *back of the deck to place
-      # the cut card.  A specific cut_offset must be valid.
+      # marker_offset is the number of cards from the *back of the deck to place
+      # the marker card.  A specific marker_offset must be valid.
       #
-      @cutoff = cut_offset||random_cut_offset
-      raise "invalid cut card placement [#{cut_card_placement_range}]" unless valid_cut_offset?(cutoff)
-      cutoff
+      @markeroff = marker_offset||random_marker_offset
+      raise "invalid marker card placement [#{marker_card_placement_range}]" unless valid_marker_offset?(markeroff)
+      markeroff
     end
 
     def needs_shuffle?
-      @force_shuffle || beyond_cut?
+      @force_shuffle || beyond_marker?
     end
 
     def deal_one_up(destination)
@@ -59,16 +59,16 @@ module Blackjack
 
     def remaining
       #
-      # total number of cards remaining in shoe even beyond the cut card
+      # total number of cards remaining in shoe even beyond the marker card
       #
       decks.length
     end
 
     def remaining_until_shuffle
       #
-      # number of cards remaining in shoe until the cut card is reached
+      # number of cards remaining in shoe until the marker card is reached
       #
-      remaining - cutoff
+      remaining - (markeroff.nil? ? 0 : markeroff)
     end
 
     def discarded
@@ -80,7 +80,7 @@ module Blackjack
 
     def shuffle
       discard_pile.fold # brings discards back in to decks
-      remove_cut_card
+      remove_marker_card
       decks.shuffle_up(config[:split_and_shuffles])
       num_shuffles.incr
       @force_shuffle = false
@@ -98,52 +98,56 @@ module Blackjack
 
     private
 
-    def valid_cut_offset?(cut_offset)
-      cut_card_placement_range.include?(cut_offset)
+    def valid_marker_offset?(marker_offset)
+      marker_card_placement_range.include?(marker_offset)
     end
 
-    def remove_cut_card
-      @cutoff = nil
+    def remove_marker_card
+      @markeroff = nil
     end
 
-    def beyond_cut?
-      cutoff && decks.count < cutoff
+    def beyond_marker?
+      #
+      # if the marker was never placed, the marker is the
+      # end of the deck
+      #
+      markeroff && (decks.count < markeroff)
     end
 
-    def cut_card_placement_range
+    def marker_card_placement_range
       #
       # return an offset that is equal to the number of cards behind the
-      # cut card
+      # marker card
       #                +0.05   -0.05
       #    +---------------------------+
       #    |             |  25%  |     |
       #    +-----------------+---------+
-      #                cutoff range
+      #                markeroff range
       #
-      @_ccp_range ||= (
+      @_mcp_range ||= (
         #
         # e.g.
         #   2 Decks shoe
         #   num_cards = 104
-        #   cut_off_cetner = (104 * 0.25).floor = 26
+        #   marker_off_cetner = (104 * 0.25).floor = 26
         #   offset = (104 * 0.05).floor = 5
         #   (26-5)..(26+5)
         #
-        #   21..31 is the valid cut_card_placement_range
+        #   21..31 is the valid marker_card_placement_range
         #
         num_cards = decks.length
-        cut_off_center = (num_cards * config[:cut_card_segment]).floor
-        offset = (num_cards * config[:cut_card_offset]).floor
-        (cut_off_center - offset)..(cut_off_center + offset)
+        marker_off_center = (num_cards * config[:marker_card_segment]).floor
+        offset = (num_cards * config[:marker_card_offset]).floor
+        (marker_off_center - offset)..(marker_off_center + offset)
       )
     end
 
-    def random_cut_offset
-      rand(cut_card_placement_range)
+    def random_marker_offset
+      rand(marker_card_placement_range)
     end
 
     def deal_one(destination, orientation)
-      raise "needs cut card placed" if @cutoff.nil?
+      raise "needs marker card placed" if @markeroff.nil?
       decks.deal(destination, 1, orientation)
       cards_dealt.incr
       self
@@ -177,6 +181,18 @@ module Blackjack
   class EightDeckShoe < Shoe
     def initialize(options={})
       super(options.merge(num_decks_in_shoe: 8))
+    end
+  end
+
+  class ContinuousShuffleShoe < FourDeckShoe
+    def needs_shuffle?
+      #
+      # this basically reshuffles the deck after each round
+      # is played
+      #
+      shuffle
+      place_marker_card
+      false
     end
   end
 end

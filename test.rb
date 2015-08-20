@@ -271,7 +271,7 @@ module Blackjack
       @player.make_bet(@bet_amount)
       @dealer = @table.dealer
       @table.shoe.shuffle
-      @table.shoe.place_cut_card
+      @table.shoe.place_marker_card
     end
  
     it "should hit when table config says hit soft 17" do
@@ -299,7 +299,7 @@ module Blackjack
       @player.make_bet(@bet_amount)
       @dealer = @table.dealer
       @table.shoe.shuffle
-      @table.shoe.place_cut_card
+      @table.shoe.place_marker_card
     end
  
     it "should not hit when table config says do not hit soft 17" do
@@ -327,7 +327,7 @@ module Blackjack
       @player.make_bet(@bet_amount)
       @dealer = @table.dealer
       @table.shoe.shuffle
-      @table.shoe.place_cut_card
+      @table.shoe.place_marker_card
     end
  
     it "should stand hard 17 when table config says hit soft 17" do
@@ -355,7 +355,7 @@ module Blackjack
       @player.make_bet(@bet_amount)
       @dealer = @table.dealer
       @table.shoe.shuffle
-      @table.shoe.place_cut_card
+      @table.shoe.place_marker_card
     end
  
     it "should stand hard 18" do
@@ -388,7 +388,7 @@ module Blackjack
       end
       @dealer = @table.dealer
       @table.shoe.shuffle
-      @table.shoe.place_cut_card
+      @table.shoe.place_marker_card
     end
 
     it "should automate playing of hand" do
@@ -788,7 +788,7 @@ module Blackjack
       )
       @table = Table.new('test', shoe: shoe)
       @table.shoe.shuffle
-      @table.shoe.place_cut_card
+      @table.shoe.place_marker_card
       @player = Player.new('p')
       @player.join(@table)
       @player.make_bet(50)
@@ -1039,7 +1039,7 @@ module Blackjack
       @position = 0
       @table = Table.new('bet_box_test_table')
       @table.shoe.shuffle
-      @table.shoe.place_cut_card
+      @table.shoe.place_marker_card
       @player = Player.new('dave')
       @player.join(@table, @position)
       @bet_box = @table.bet_boxes[@position]
@@ -1726,52 +1726,52 @@ module Blackjack
     end
 
     it "should have a functioning random cut card somewhere past half the deck" do
-      @shoe.place_cut_card
-      @shoe.cutoff.must_be :<, @shoe.remaining/3
+      @shoe.place_marker_card
+      @shoe.markeroff.must_be :<, @shoe.remaining/3
     end
 
     it "should not need shuffle upon initial cut card placement" do
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       @shoe.needs_shuffle?.must_equal false
     end
 
     it "should support options for cut card" do
       @num_decks = 10
       opts = {
-        cut_card_segment: 0.10,
-        cut_card_offset:  0.05,
+        marker_card_segment: 0.10,
+        marker_card_offset:  0.05,
         split_and_shuffles: 5,
         num_decks_in_shoe: @num_decks
       }
       @custom_shoe = Shoe.new(opts)
       @custom_shoe.shuffle
       100.times {
-        @custom_shoe.place_cut_card
-        @custom_shoe.cutoff.must_be :<=, @shoe.remaining/4
+        @custom_shoe.place_marker_card
+        @custom_shoe.markeroff.must_be :<=, @shoe.remaining/4
       }
       @custom_shoe.remaining.must_equal (@num_decks*52)
     end
 
     it "should let the cut card be placed at a specific offset" do
       @my_offset = 84
-      @shoe.place_cut_card(@my_offset)
-      @shoe.cutoff.must_equal @my_offset
+      @shoe.place_marker_card(@my_offset)
+      @shoe.markeroff.must_equal @my_offset
     end
 
-    it "shuffle up should set cutoff to nil" do
-      @shoe.place_cut_card
-      @shoe.cutoff.must_be :>, 0
+    it "shuffle up should set markeroff to nil" do
+      @shoe.place_marker_card
+      @shoe.markeroff.must_be :>, 0
       @shoe.shuffle
-      @shoe.cutoff.must_equal nil
+      @shoe.markeroff.must_equal nil
     end
 
     it "should allow a force_shuffle to be invoked, causing needs_shuffle? to be true" do
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       @shoe.needs_shuffle?.must_equal(false)
       @shoe.force_shuffle
       @shoe.needs_shuffle?.must_equal(true)
       @shoe.shuffle
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       @shoe.needs_shuffle?.must_equal(false)
     end
 
@@ -1780,14 +1780,14 @@ module Blackjack
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
       @destination.expect(:add, nil, [[top_card]])
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       @shoe.deal_one_up(@destination)
       @destination.verify
       @shoe.remaining.must_equal num_cards-1
     end
 
     it "should deal cards to hands one at a time face down" do
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       num_cards = @shoe.remaining
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
@@ -1798,7 +1798,7 @@ module Blackjack
     end
 
     it "should support a new hand getter to deal cards to" do
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       hand = @shoe.new_hand
       num_cards = 3
       num_cards.times { @shoe.deal_one_up(hand)}
@@ -1806,7 +1806,7 @@ module Blackjack
     end
 
     it "should support a discard pile that is wired to the hand when it folds and back to deck when shuffling" do
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       start_count = @shoe.remaining
       hand_counts = [11,4,7,3,2,9]
       hands = Array.new(hand_counts.length) {@shoe.new_hand}
@@ -1832,15 +1832,15 @@ module Blackjack
         @shoe.discarded.must_equal(total_cards_dealt)
 
         @shoe.shuffle
-        @shoe.place_cut_card
+        @shoe.place_marker_card
         @shoe.discarded.must_equal(0)
         @shoe.remaining.must_equal(start_count)
       end
     end
 
     it "should deal cards and report needs_shuffle? true when reached cut card" do
-      @shoe.place_cut_card
-      deal_this_many = @shoe.remaining - @shoe.cutoff 
+      @shoe.place_marker_card
+      deal_this_many = @shoe.remaining - @shoe.markeroff 
       deal_this_many.times do
         @destination = MiniTest::Mock.new
         top_card = @shoe.decks.first
@@ -1858,7 +1858,7 @@ module Blackjack
     end
 
     it "should deal cards to hands one at a time face up and keep counter" do
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       num_cards = @shoe.remaining
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
@@ -1868,7 +1868,7 @@ module Blackjack
       @shoe.cards_dealt.count.must_equal 1
       @destination.verify
       @shoe.shuffle
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
       @destination.expect(:add, nil, [[top_card]])
@@ -1881,7 +1881,7 @@ module Blackjack
       @shoe.num_shuffles.count.must_equal 1
       @shuffs = 4
       @shuffs.times { @shoe.shuffle }
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       @shoe.num_shuffles.count.must_equal 1 + @shuffs
     end
 
@@ -1889,7 +1889,7 @@ module Blackjack
       @shoe.num_shuffles.count.must_equal 1
       @shuffs = 4
       @shuffs.times { @shoe.shuffle }
-      @shoe.place_cut_card
+      @shoe.place_marker_card
       @shoe.num_shuffles.count.must_equal 1 + @shuffs
       num_cards = @shoe.remaining
       @destination = MiniTest::Mock.new

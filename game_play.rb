@@ -144,15 +144,11 @@ module Blackjack
     end
 
     def shuffle_check
-      #
-      # Does the shoe report, needs_shuffle?
-      # If so, shuffle the shoe and place card
-      # 
       if table.shoe.needs_shuffle?
         table.game_announcer.says("Shuffling [%d]..." % table.shoe.num_shuffles.count)
         table.shoe.shuffle
-        table.shoe.place_cut_card
-        table.game_announcer.says("Cut card placed.")
+        table.shoe.place_marker_card
+        table.game_announcer.says("Marker card placed.")
       end
     end
 
@@ -161,32 +157,6 @@ module Blackjack
     end
 
     def players_play_their_hands
-      #
-      # for each active? bet_box
-      #
-      # ask the player strategy what it wants
-      #   until one of the following happens:
-      #     a. player chooses STAND
-      #     b. player BUSTS (hard total > 21)
-      #     c. player HAS soft total of 21
-      #
-      #  Player strategy responses:
-      #     HIT
-      #       Dealer deals one card face up to the player's hand
-      #     STAND
-      #     DOUBLE
-      #     SPLIT
-      #       Dealer calls bet_box split, and deals one new card face up to
-      #       each new hand. play then iteraters over each new hand
-      #     SURRENDER
-      #       take discard hand and 1/2 the player bet
-      #       
-      #
-      #  Validate the player strategy response
-      #     DOUBLE - must have 2 cards and meet house rules
-      #     SPLIT - must have 2 identical cards, and be under max splits
-      #     SURRENDER - must have only 2 cards
-      #
       table.bet_boxes.each_active do |bet_box|
         player_plays_hand_until_end(bet_box)
       end
@@ -242,37 +212,16 @@ module Blackjack
     end
 
     def pay_any_winners
-      #
-      # 1. for each active bet_box, check hand
-      # 2. If dealer had blackjack
-      # 3.   if A-10, pay any insurance bets and even money. all other hands lose
-      # 4. if > dealer hand (or dealer BUSTED), pay 1-1 transfer house to table
-      # 5. if == dealer hand, no money transfer (PUSH)
-      # 6. if < dealer hand, transfer bet from table to house
-      # 7. discard player hand 
-      #
       dealer_has = dealer.hand.hard_sum
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player
         player_has = bet_box.hand.hard_sum
         if dealer.busted? || player_has > dealer_has
-          #
-          # player wins
-          #
           player_won(bet_box, EVEN_MONEY_PAYOUT)
         elsif dealer_has > player_has
-          #
-          # dealer wins
-          #
-          table.game_announcer.hand_outcome(bet_box, Outcome::LOST)
-          player.lost_bet(bet_box)
-          dealer.collect(bet_box)
+          player_lost(bet_box)
         else
-          #
-          # push - player removes bet
-          #
-          table.game_announcer.hand_outcome(bet_box, Outcome::PUSH)
-          player.push_bet(bet_box)
+          player_push(bet_box)
         end
         bet_box.discard
       end
@@ -297,10 +246,21 @@ module Blackjack
       table.game_announcer.overview
     end
 
+    def player_lost(bet_box)
+      bet_box.player.lost_bet(bet_box)
+      table.game_announcer.hand_outcome(bet_box, Outcome::LOST)
+      dealer.collect(bet_box)
+    end
+
     def player_won(bet_box, payout)
       winnings = dealer.pay(bet_box, payout)
       table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
       bet_box.player.won_bet(bet_box)
+    end
+
+    def player_push(bet_box)
+      table.game_announcer.hand_outcome(bet_box, Outcome::PUSH)
+      bet_box.player.push_bet(bet_box)
     end
 
     def wait_for_player_bets
