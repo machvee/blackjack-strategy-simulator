@@ -121,7 +121,7 @@ module Blackjack
     end
 
     def prompt_str
-      @_prstr ||= ("=>%s" % (suggestion.nil? ? "" : "[#{suggestion}] "))
+      "=>%s" % (suggestion.nil? ? "" : "[#{suggestion}] ")
     end
 
     def print_invalid_cmd(cmd)

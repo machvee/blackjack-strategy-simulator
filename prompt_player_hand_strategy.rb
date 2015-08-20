@@ -39,19 +39,6 @@ module Blackjack
       player.bank.balance <= player.bank.initial_deposit/8 ? Action::LEAVE : @bets_to_make
     end
 
-    def outcome(win_lose_draw, dealer_hand)
-      dealer_hand.print
-      puts "Dealer has #{dealer_hand.hard_sum}"
-      case win_lose_draw
-        when Outcome::WON
-          puts "You WON"
-        when Outcome::LOST
-          puts "You LOST"
-        when Outcome::PUSH
-          puts "PUSH"
-      end
-    end
-
     def error(strategy_step, message)
       sep = "="*[80, (message.length)].min
       puts ''
@@ -112,7 +99,6 @@ module Blackjack
     end
 
     def prompt_for_action(bet_box, dealer_up_card, other_hands=[])
-      # YOU ARE HERE.   the suggestion is wrong
       @get_user_decision.suggestion = @reverse_map[suggestion_strategy.decision(bet_box, dealer_up_card, other_hands)].upcase
       super
     end
