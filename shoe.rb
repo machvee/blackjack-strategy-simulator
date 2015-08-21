@@ -5,8 +5,6 @@ module Blackjack
   class Shoe
     class ShuffleRandomizer
 
-      VERY_BIG_NUMBER=211_308_446_428_030_893_163_806_025_912_754_102_464
-
       attr_reader :prng
       attr_reader :seed
 
