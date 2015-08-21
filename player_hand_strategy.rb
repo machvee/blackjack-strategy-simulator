@@ -14,6 +14,14 @@ module Blackjack
     EVEN_MONEY=9
   end
 
+  DECISIONS = {
+    Action::SPLIT => "SPLIT",
+    Action::HIT => "HIT",
+    Action::DOUBLE_DOWN => "DOUBLE_DOWN",
+    Action::SURRENDER => "SURRENDER",
+    Action::STAND => "STAND"
+  }
+
   module Outcome
     NONE=0
     WON=1
@@ -21,6 +29,14 @@ module Blackjack
     PUSH=3
     BUST=4
   end
+
+  OUTCOMES = {
+    Outcome::WON => "WON",
+    Outcome::LOST => "LOST",
+    Outcome::PUSH => "PUSH",
+    Outcome::BUST => "BUST",
+    Outcome::NONE => nil
+  }
 
   class PlayerHandStrategy
     #
