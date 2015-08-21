@@ -131,8 +131,8 @@ module Blackjack
     def up_down
       amt = bank.balance - bank.initial_deposit 
       return "EVEN" if amt.zero?
-      return "+#{amt}" if amt > 0
-      return "-#{amt.abs}"
+      return "+$#{amt}" if amt > 0
+      return "-$#{amt.abs}"
     end
   end
 end

@@ -95,8 +95,6 @@ module Blackjack
         table.bet_boxes.each_active do |bet_box|
           player = bet_box.player
 
-          table.game_announcer.says("%s, Insurance?" % player.name)
-
           response = dealer.ask_player_insurance?(bet_box)
 
           case response
@@ -174,18 +172,21 @@ module Blackjack
           when Action::HIT
             deal_player_card(bet_box)
             if dealer.check_player_hand_busted?(bet_box)
-              table.game_announcer.hand_outcome(bet_box, Outcome::BUST)
+              table.game_announcer.hand_outcome(bet_box, Outcome::BUST, bet_box.bet_amount)
               player.busted(bet_box)
               dealer.collect(bet_box)
               bet_box.discard
               break
             end
+            announce_hand(bet_box, response)
           when Action::STAND
+            announce_hand(bet_box, response)
             break
           when Action::SPLIT
             bet_box.split
             bet_box.iter do |split_bet_box|
               deal_player_card(split_bet_box)
+              announce_hand(bet_box, response)
             end
             bet_box.iter do |split_bet_box|
               player_plays_hand_until_end(split_bet_box)
@@ -195,8 +196,10 @@ module Blackjack
             double_down_bet_amt = dealer.ask_player_double_down_bet_amount(bet_box)
             player.make_double_down_bet(bet_box, double_down_bet_amt)
             deal_player_card(bet_box)
+            announce_hand(bet_box, response, double_down_bet_amt)
             break
           when Action::SURRENDER
+            table.game_announcer.says("%s SURRENDERS", player.name)
             player.surrendered(bet_box)
             bet_box.box.transfer_to(table.house, bet_amount/2.0)
             bet_box.box.transfer_to(player.bank, bet_amount/2.0)
@@ -208,7 +211,6 @@ module Blackjack
 
     def deal_player_card(bet_box)
       dealer.deal_card_face_up_to(bet_box)
-      announce_hand(bet_box)
     end
 
     def pay_any_winners
@@ -238,8 +240,8 @@ module Blackjack
       table.bet_boxes.each_active { |bet_box| announce_hand(bet_box) }
     end
 
-    def announce_hand(bet_box)
-      table.game_announcer.player_hand_status(bet_box)
+    def announce_hand(bet_box, decision=nil, opt_bet_amt=nil)
+      table.game_announcer.player_hand_status(bet_box, decision, opt_bet_amt)
     end
 
     def announce_game_state
@@ -247,8 +249,8 @@ module Blackjack
     end
 
     def player_lost(bet_box)
+      table.game_announcer.hand_outcome(bet_box, Outcome::LOST, bet_box.bet_amount)
       bet_box.player.lost_bet(bet_box)
-      table.game_announcer.hand_outcome(bet_box, Outcome::LOST)
       dealer.collect(bet_box)
     end
 

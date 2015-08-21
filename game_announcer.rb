@@ -18,10 +18,10 @@ module Blackjack
     def dealer_hand_status
     end
 
-    def player_hand_status(bet_box)
+    def player_hand_status(bet_box, decision, opt_bet_amt=nil)
     end
 
-    def hand_outcome(hand, action, winnings=nil)
+    def hand_outcome(hand, action, amount=nil)
     end
 
     def play_by_play(step, player, response)
@@ -33,8 +33,8 @@ module Blackjack
 
   class StdoutGameAnnouncer < GameAnnouncer
     def overview
-      marker_status = table.shoe.remaining_until_shuffle.nil? ?  "" : ", #{table.shoe.remaining_until_shuffle} cards remain until marker"
-      says "#{table.name}: Round #{table.rounds_played.count}#{marker_status}"
+      marker_status = table.shoe.remaining_until_shuffle.nil? ?  "" : " #{table.shoe.remaining_until_shuffle} cards remain until marker"
+      says "#{table.name}: #{marker_status}"
       table.each_player do |player|
         says "  #{player}"
       end
@@ -45,24 +45,29 @@ module Blackjack
         bust_str = dealer.hand.bust? ? " BUST!" : ""
         says "Dealer has " + hand_val_str(dealer.hand) + bust_str
       else
-        says "Dealer's showing %s %s" % [dealer.showing, dealer.hand]
+        says "Hand #{table.rounds_played.count}: Dealer's showing %s %s" % [dealer.showing, dealer.hand]
       end
     end
 
-    def player_hand_status(bet_box)
-      says "%s has %s" % [bet_box.player.name, hand_val_str(bet_box.hand, bet_box.from_split?)]
+    def player_hand_status(bet_box, decision=nil, opt_bet_amt=nil)
+      says "%s %s %s%s" % [
+        bet_box.player.name,
+        decision.nil? ? "has" : DECISIONS[decision],
+        opt_bet_amt.nil? ? "" : "for $#{opt_bet_amt} : ",
+        hand_val_str(bet_box.hand, bet_box.from_split?)
+      ]
     end
 
-    def hand_outcome(bet_box, outcome, winnings=nil)
+    def hand_outcome(bet_box, outcome, amount=nil)
       msg = case outcome
         when Outcome::WON
-          "%s WINS $%d" % [ bet_box.player.name, winnings ]
+          "%s WINS +$%d" % [ bet_box.player.name, amount ]
         when Outcome::LOST
-          "%s LOST" % [ bet_box.player.name]
+          "%s LOST -$%d" % [ bet_box.player.name, amount]
         when Outcome::PUSH
           "%s PUSH" % [ bet_box.player.name]
         when Outcome::BUST
-          "%s BUSTS" % [ bet_box.player.name]
+          "%s HITS and BUSTS -$%d" % [ bet_box.player.name, amount]
         when Outcome::NONE
           nil
       end
@@ -74,12 +79,12 @@ module Blackjack
         when :num_bets
           case response
             when Action::SIT_OUT
-              "%s sits this one out" % player.name
+              "%s SITS OUT" % player.name
             else
               nil
           end
         when :bet_amount
-          "%s bets %s" % [player.name, response]
+          "%s BETS $%d" % [player.name, response]
         when :insurance
           case response
             when Action::NO_INSURANCE
@@ -91,21 +96,6 @@ module Blackjack
           end
         when :insurance_bet_amount
            "%s takes INSURANCE for $%d" % [player.name, response]
-        when :double_down_bet_amount
-           "%s DOUBLE DOWNS with $%d" % [player.name, response]
-        when :decision
-          player.name + case response
-            when Action::HIT
-              " HITS"
-            when Action::STAND
-              " STANDS"
-            when Action::SPLIT
-              " SPLITS"
-            when Action::DOUBLE_DOWN
-              " DOUBLE DOWNS"
-            when Action::SURRENDER
-              " SURRENDERS"
-          end
         else
           nil
       end

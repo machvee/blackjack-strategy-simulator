@@ -15,11 +15,11 @@ module Blackjack
   end
 
   DECISIONS = {
-    Action::SPLIT => "SPLIT",
-    Action::HIT => "HIT",
-    Action::DOUBLE_DOWN => "DOUBLE_DOWN",
-    Action::SURRENDER => "SURRENDER",
-    Action::STAND => "STAND"
+    Action::SPLIT => "SPLITS",
+    Action::HIT => "HITS",
+    Action::DOUBLE_DOWN => "DOUBLE_DOWNS",
+    Action::SURRENDER => "SURRENDERS",
+    Action::STAND => "STANDS"
   }
 
   module Outcome
