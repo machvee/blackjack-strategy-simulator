@@ -52,8 +52,8 @@ module Blackjack
     attr_reader  :soft_sum
     attr_reader  :hard_sum
 
-    def initialize(card_source, card_array=[])
-      super(card_source, card_array, BlackjackCard)
+    def initialize(card_source, card_array=[], prng=nil)
+      super(card_source, card_array, BlackjackCard, prng)
     end
 
     def update_value
@@ -159,8 +159,8 @@ module Blackjack
   end
 
   class BlackjackDeck < Cards::Deck
-    def initialize(num_decks=1)
-      super(num_decks, BlackjackCard::FACE_DOWN, BlackjackCard)
+    def initialize(num_decks=1, opt_prng=nil)
+      super(num_decks, BlackjackCard::FACE_DOWN, BlackjackCard, opt_prng)
     end
   end
 end

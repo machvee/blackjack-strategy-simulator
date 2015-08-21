@@ -3,6 +3,31 @@ require 'counter_measures'
 
 module Blackjack
   class Shoe
+    class ShuffleRandomizer
+
+      VERY_BIG_NUMBER=211_308_446_428_030_893_163_806_025_912_754_102_464
+
+      attr_reader :prng
+      attr_reader :seed
+
+      def initialize(opt_seed=nil)
+        # pass in an optional seed argument to guarantee
+        # that the Dice will always yield the
+        # same roll sequence (useful in testing and for comparing
+        # strategy to strategy).  Pass no seed argument to ensure
+        # that the Dice will have a 'psuedo-random' roll sequence 
+        #
+        iseed = opt_seed.nil? ? nil : opt_seed.to_i
+        @seed = iseed || gen_random_seed
+        @prng = Random.new(seed)
+      end
+
+      private
+      
+      def gen_random_seed
+        Random.new_seed
+      end
+    end
 
     include CounterMeasures
 
@@ -16,13 +41,15 @@ module Blackjack
     DEFAULT_OPTIONS = {
       marker_card_segment: 0.25, # marker_offset must be in this last % of the deck
       marker_card_offset:  0.05,
-      split_and_shuffles: 25,
-      num_decks_in_shoe:   1
+      split_and_shuffles:  25,
+      num_decks_in_shoe:   1,
+      shuffle_seed:        nil
     }
 
     def initialize(options={})
       @config = DEFAULT_OPTIONS.merge(options)
-      @decks = BlackjackDeck.new(config[:num_decks_in_shoe])
+      @prng = ShuffleRandomizer.new(config[:shuffle_seed]).prng
+      @decks = BlackjackDeck.new(config[:num_decks_in_shoe], @prng)
       @discard_pile = Cards::Cards.new(decks)
       shuffle
     end
@@ -143,7 +170,7 @@ module Blackjack
     end
 
     def random_marker_offset
-      rand(marker_card_placement_range)
+      @prng.rand(marker_card_placement_range)
     end
 
     def deal_one(destination, orientation)

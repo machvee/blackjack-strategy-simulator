@@ -215,11 +215,12 @@ module Cards
     attr_reader :card_class
     attr_reader :value # used by subclasses to hold hand value
 
-    def initialize(card_source, card_array=[], card_class=Card)
+    def initialize(card_source, card_array=[], card_class=Card, opt_prng=nil)
       @card_source = card_source
       @cards = []
       @card_class = card_class
       @value = nil
+      @opt_prng = opt_prng
       add(card_array)
     end
 
@@ -263,7 +264,7 @@ module Cards
     end
 
     def shuffle
-      @cards.shuffle!
+      @cards.shuffle!(random: prng)
       self
     end
 
@@ -291,7 +292,7 @@ module Cards
       # and divide and rejoin bottom to top
       #
       third = (length/3.0).floor
-      split_at = third + rand(third+1)
+      split_at = third + prng.rand(third+1)
       @cards = @cards.slice(split_at..-1) + @cards.slice(0,split_at)
       self
     end
@@ -368,6 +369,12 @@ module Cards
       end
       nil
     end
+
+    private
+
+    def prng
+      @_prng ||= (@opt_prng || Random.new)
+    end
   end
 
   class Deck < Cards
@@ -376,10 +383,10 @@ module Cards
     #               D E C K
     # ========================================
     #
-    def initialize(num_decks=1, direction=Card::FACE_DOWN, card_class=Card)
+    def initialize(num_decks=1, direction=Card::FACE_DOWN, card_class=Card, opt_prng=nil)
       cards = []
       num_decks.times {cards += card_class.all(direction)}
-      super(nil, cards, card_class)
+      super(nil, cards, card_class, opt_prng)
     end
   end
 end

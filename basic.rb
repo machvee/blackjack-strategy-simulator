@@ -1,8 +1,12 @@
 require 'table'
 include Blackjack
 
+shoe_opts = {
+  shuffle_seed: ARGV[1]
+}
+
 table_opts = {
-  shoe: SixDeckShoe.new,
+  shoe: SixDeckShoe.new(shoe_opts),
   minimum_bet: 25,
   maximum_bet: 5000
 }
