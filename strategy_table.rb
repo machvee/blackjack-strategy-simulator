@@ -21,13 +21,15 @@ module Blackjack
     end
 
     def decision(dealer_up_card_value, hand)
-      if hand.pair?
+      decision_from_table = if hand.pair?
         lookup_table[:pairs][hand[0].soft_value][dealer_up_card_value]
       elsif hand.soft? && hand.soft_sum <= 11
         lookup_table[:soft][hand.soft_sum][dealer_up_card_value]
       else
         lookup_table[:hard][hand.hard_sum][dealer_up_card_value]
       end
+
+      check_can_only_double_down_on_two_cards_and_return_decision(hand, decision_from_table)
     end
 
     def inspect
@@ -35,6 +37,15 @@ module Blackjack
     end
 
     private
+
+    def check_can_only_double_down_on_two_cards_and_return_decision(hand, decision)
+      return case decision
+        when Action::DOUBLE_DOWN
+          hand.length > 2 ? Action::HIT : Action::DOUBLE_DOWN
+        else
+          decision
+        end
+    end
 
     def parse_table
       #
