@@ -67,7 +67,10 @@ module Blackjack
         when Outcome::PUSH
           "%s PUSH" % [ bet_box.player.name]
         when Outcome::BUST
-          "%s HITS and BUSTS -$%d" % [ bet_box.player.name, amount]
+          "%s HITS %s, and BUSTS -$%d" % [
+            bet_box.player.name,
+                   hand_val_str(bet_box.hand, bet_box.from_split?),
+                                  amount]
         when Outcome::NONE
           nil
       end

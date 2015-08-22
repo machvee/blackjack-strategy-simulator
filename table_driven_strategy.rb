@@ -10,11 +10,25 @@ module Blackjack
     end
 
     def num_bets
-      player.bank.balance < table.config[:minimum_bet] ? Action::LEAVE : 1
+      #
+      # leave room in bank to double down on all hands bet
+      #
+      min_bet = table.config[:minimum_bet]
+      two_bet_total_plus_double_room = min_bet * 4
+      bal = player.bank.balance
+      @num_bet_boxes = 
+        if bal >= two_bet_total_plus_double_room
+          2
+        elsif bal < min_bet
+          Action::LEAVE
+        else
+          1
+        end
+      @num_bet_boxes
     end
 
     def bet_amount
-      table.config[:minimum_bet]
+      table.config[:minimum_bet] * @num_bet_boxes
     end
 
     def insurance_bet_amount(bet_box)
