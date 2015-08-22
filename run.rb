@@ -1,9 +1,19 @@
 require 'table'
 include Blackjack
 
-shoe_opts = ARGV[0] ? {shuffle_seed: ARGV[0].to_i} : {}
+opt_table_seed = ARGV[0] ? {random_seed: ARGV[0].to_i} : {}
 
-@table = TableWithAnnouncer.new("Blackjack Table 3", shoe: TwoDeckShoe.new(shoe_opts), minimum_bet: 10, maximum_bet: 2000)
-@dave = Player.new("Dave", strategy_class: PromptWithBasicStrategyGuidance)
+table_options = {
+  shoe_class: TwoDeckShoe,
+  minimum_bet: 10,
+  maximum_bet: 2000
+}.merge(opt_table_seed)
+
+player_options = {
+  strategy_class: PromptWithBasicStrategyGuidance
+}
+
+@table = TableWithAnnouncer.new("Blackjack Table 3", table_options)
+@dave = Player.new("Dave", player_options)
 @dave.join(@table)
 @table.run

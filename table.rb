@@ -20,26 +20,57 @@ require 'game_announcer'
 module Blackjack
   class Table
 
+    class GameRandomizer
+
+      attr_reader :prng
+      attr_reader :seed
+
+      def initialize(opt_seed=nil)
+        # pass in an optional seed argument to guarantee
+        # that the Dice will always yield the
+        # same roll sequence (useful in testing and for comparing
+        # strategy to strategy).  Pass no seed argument to ensure
+        # that the Dice will have a 'psuedo-random' roll sequence 
+        #
+        iseed = opt_seed.nil? ? nil : opt_seed.to_i
+        @seed = iseed || gen_random_seed
+        @prng = Random.new(seed)
+      end
+
+      private
+      
+      def gen_random_seed
+        Random.new_seed
+      end
+    end
+
     include CounterMeasures
 
     counters :players_seated, :rounds_played
 
-    DEFAULT_HOUSE_BANK_AMOUNT=250_000
-    DEFAULT_MAX_SEATS = 6
-    DEFAULT_SHOE_CLASS = SixDeckShoe
+    DEFAULT_HOUSE_BANK_AMOUNT = 250_000
+    DEFAULT_MAX_SEATS         = 6
+    DEFAULT_SHOE_CLASS        = SixDeckShoe
+    DEFAULT_GAME_ANNOUNCER    = GameAnnouncer
+    DEFAULT_BET_RANGE         = 25..5000
+    DEFAULT_MAX_PLAYER_BETS   = 3
+    DEFAULT_BLACKJACK_PAYOUT  = [3,2]
+    DEFAULT_DOUBLE_DOWN_ON    = []  # [] means ANY. or [9,10,11] or [10,11]
 
     DEFAULT_CONFIG = {
       num_seats:            DEFAULT_MAX_SEATS,
-      blackjack_payout:     [3,2], #  or [6,5]
+      blackjack_payout:     DEFAULT_BLACKJACK_PAYOUT,
       dealer_hits_soft_17:  false,
       player_surrender:     false,
-      double_down_on:       [], # [] means ANY. or [9,10,11] or [10,11]
-      minimum_bet:          25,
-      maximum_bet:          5000,
-      max_player_bets:      3,
+      double_down_on:       DEFAULT_DOUBLE_DOWN_ON,
+      minimum_bet:          DEFAULT_BET_RANGE.min,
+      maximum_bet:          DEFAULT_BET_RANGE.max,
+      max_player_bets:      DEFAULT_MAX_PLAYER_BETS,
       max_player_splits:    nil, # nil unlimited or n: one hand split up to n times
-      game_announcer_class: GameAnnouncer,
-      shoe:                 nil  # pass in a custom from which to deal
+      game_announcer_class: DEFAULT_GAME_ANNOUNCER,
+      random_seed:          nil,
+      shoe:                 nil, # pass in a custom from which to deal
+      shoe_class:           DEFAULT_SHOE_CLASS
     }
 
     attr_reader   :name
@@ -50,6 +81,7 @@ module Blackjack
     attr_reader   :config
     attr_reader   :house
     attr_reader   :game_announcer
+    attr_reader   :seed
 
     def initialize(name, options={})
       @name = name
@@ -65,7 +97,10 @@ module Blackjack
 
     def init_table
       @house = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
+      @prng = GameRandomizer.new(config[:random_seed]).prng
+      @seed = @prng.seed
       @shoe = new_shoe
+
       @seated_players = Array.new(num_seats) {nil}
 
       #
@@ -76,10 +111,6 @@ module Blackjack
       @bet_boxes = BetBoxes.new(self, num_seats)
       @dealer = Dealer.new(self)
       @game_announcer = config[:game_announcer_class].new(self)
-    end
-
-    def reset
-      init_table
     end
 
     def join(player, desired_seat_position=nil)
@@ -141,6 +172,14 @@ module Blackjack
       config[:max_player_splits]
     end
 
+    def rand(*args)
+      @prng.rand(*args)
+    end
+
+    def reset
+      init_table
+    end
+
     def num_players
       seated_players.count {|sp| !sp.nil?}
     end
@@ -171,7 +210,7 @@ module Blackjack
     private
 
     def new_shoe
-      shoe = config[:shoe] || DEFAULT_SHOE_CLASS.new
+      shoe = config[:shoe] || config[:shoe_class].new(random: @prng)
       shoe.force_shuffle
       shoe
     end
