@@ -1267,6 +1267,22 @@ module Blackjack
       }.must_raise RuntimeError
       @bank2.balance.must_equal(@initial_balance)
     end
+
+    it "should keep min and max" do
+      # debit 4 x 50 200, for a low_balance of @initial_deposit - 200
+      @bank1.debit(50)
+      @bank1.debit(50)
+      @bank1.debit(50)
+      @bank1.debit(50)
+      # credit 5 x 100 for 500, for a high_balance of @initial_deposit - 200 + 500
+      @bank1.credit(100)
+      @bank1.credit(100)
+      @bank1.credit(100)
+      @bank1.credit(100)
+      @bank1.credit(100)
+      @bank1.high_balance.must_equal(@initial_balance - 200 + 500)
+      @bank1.low_balance.must_equal(@initial_balance - 200)
+    end
   end
 
   describe BlackjackCard, "A Card" do 
