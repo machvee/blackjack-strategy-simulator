@@ -14,10 +14,10 @@ module Blackjack
       # leave room in bank to double down on all hands bet
       #
       min_bet = table.config[:minimum_bet]
-      two_bet_total_plus_double_room = min_bet * 4
+      two_bet_total_plus_room_to_double = min_bet * 8
       bal = player.bank.balance
       @num_bet_boxes = 
-        if bal >= two_bet_total_plus_double_room
+        if bal >= two_bet_total_plus_room_to_double
           2
         elsif bal < min_bet
           Action::LEAVE
