@@ -1,4 +1,6 @@
 module Blackjack
+  class StrategyQuitter < StandardError; end
+
   class GamePlay
     attr_reader   :table
     attr_reader   :dealer
@@ -15,25 +17,30 @@ module Blackjack
     def run(options={})
       @hand_count = 0
       @num_hands = (options[:num_hands]||"10000").to_i
-      while players_at_table?
-        shuffle_check
-        announce_game_state
-        wait_for_player_bets
-        play_a_hand_of_blackjack if any_player_bets?
+      begin
+        table.game_announcer.says("Hands: #@num_hands, Seed: #{table.seed}")
+        while players_at_table?
+          shuffle_check
+          announce_game_state
+          wait_for_player_bets
+          play_a_hand_of_blackjack if any_player_bets?
 
-        @hand_count += 1
-        reset
-        break if @hand_count == @num_hands
+          @hand_count += 1
+          reset
+          break if @hand_count == @num_hands
+        end
+        exit_run
+      rescue StrategyQuitter => q
+        exit_run("Run aborted")
       end
-      exit_run
     end
 
     def reset
       table.bet_boxes.reset
     end
 
-    def exit_run
-      table.game_announcer.says("Run complete. Goodbye.")
+    def exit_run(msg="Run complete")
+      table.game_announcer.says("#{msg}. Goodbye.")
       table.game_announcer.says("")
       announce_game_state
     end
@@ -192,7 +199,7 @@ module Blackjack
             break
           when Action::DOUBLE_DOWN
             double_down_bet_amt = dealer.ask_player_double_down_bet_amount(bet_box)
-            player.make_double_down_bet(bet_box, double_down_bet_amt)
+            bet_box.double_down(double_down_bet_amt)
             deal_player_card(bet_box)
             announce_hand(bet_box, response, double_down_bet_amt)
             break

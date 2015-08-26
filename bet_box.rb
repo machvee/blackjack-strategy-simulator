@@ -6,6 +6,7 @@ module Blackjack
     attr_reader :insurance
     attr_reader :hand
     attr_reader :position
+    attr_reader :doubled
 
     #
     # if this bet_box came from a previously split hand
@@ -72,6 +73,11 @@ module Blackjack
       self
     end
 
+    def double_down(double_down_bet_amt)
+      player.make_double_down_bet(self, double_down_bet_amt)
+      @doubled = true
+    end
+
     def take_down_bet
       box.transfer_to(player.bank, bet_amount)
       self
@@ -109,6 +115,10 @@ module Blackjack
       # was this hand split into two hands?
       #
       !split_boxes.nil?
+    end
+
+    def from_double_down?
+      doubled
     end
 
     def from_split?
@@ -155,6 +165,7 @@ module Blackjack
       discard
       @split_boxes = nil
       @parent_split_box = nil
+      @doubled = false
       self
     end
 

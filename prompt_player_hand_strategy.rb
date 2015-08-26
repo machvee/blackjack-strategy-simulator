@@ -11,6 +11,10 @@ module Blackjack
       setup_prompters
     end
 
+    def on_quit
+      raise StrategyQuitter
+    end
+
     def decision(bet_box, dealer_up_card, other_hands=[])
       prompt_for_action(bet_box, dealer_up_card, other_hands)
     end
@@ -25,7 +29,7 @@ module Blackjack
 
     def insurance_bet_amount(bet_box)
       max_bet = bet_box.bet_amount/2.0
-      insurance_bet_maker = CommandPrompter.new(player.name, "Insurance Bet Amount:int:1:#{max_bet}")
+      insurance_bet_maker = CommandPrompter.new(player.name, "Insurance Bet Amount:int:1:#{max_bet}", &method(:on_quit))
       insurance_bet_maker.suggestion = max_bet
       insurance_bet_maker.get_command.to_i
     end
@@ -50,7 +54,7 @@ module Blackjack
     private
 
     def setup_prompters
-      @get_user_decision = CommandPrompter.new(player.name, "Hit", "Stand", "Double", "sPlit")
+      @get_user_decision = CommandPrompter.new(player.name, "Hit", "Stand", "Double", "sPlit", &method(:on_quit))
       @map = {
         'h' => Action::HIT,
         's' => Action::STAND,
@@ -60,7 +64,7 @@ module Blackjack
 
       min_bet = table.config[:minimum_bet]
       max_bet = table.config[:maximum_bet]
-      @main_bet_maker = CommandPrompter.new(player.name, "Bet Amount:int:#{min_bet}:#{max_bet}")
+      @main_bet_maker = CommandPrompter.new(player.name, "Bet Amount:int:#{min_bet}:#{max_bet}", &method(:on_quit))
       @main_bet_maker.suggestion = min_bet
     end
 

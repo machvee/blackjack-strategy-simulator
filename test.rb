@@ -1219,7 +1219,7 @@ module Blackjack
       @player.stats.hands.count.must_equal(0)
       @player.stats.hands_won.count.must_equal(0)
       @player.stats.hands_lost.count.must_equal(0)
-      @player.stats.busts.count.must_equal(0)
+      @player.stats.hands_busted.count.must_equal(0)
       @player.stats.blackjacks.count.must_equal(0)
     end
 

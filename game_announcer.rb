@@ -33,8 +33,19 @@ module Blackjack
 
   class StdoutGameAnnouncer < GameAnnouncer
     def overview
-      marker_status = table.shoe.remaining_until_shuffle.nil? ?  "" : " #{table.shoe.remaining_until_shuffle} cards remain until marker"
+      remaining = table.shoe.remaining_until_shuffle
+      marker_status = if remaining.nil?
+        ""
+      elsif remaining == 0
+        "at marker card"
+      elsif remaining > 0
+        " #{remaining} cards remain until marker"
+      else
+        " #{remaining.abs} cards past marker"
+      end
+
       says "#{table.name}: #{marker_status}"
+
       table.each_player do |player|
         says "  #{player}"
       end

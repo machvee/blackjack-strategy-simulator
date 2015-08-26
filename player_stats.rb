@@ -3,13 +3,11 @@ module Blackjack
     include CounterMeasures
     attr_reader :player
 
-    counters :hands,         :hands_won,        :hands_lost,
-             :splits,        :splits_won,       :splits_lost,
-             :double_downs,  :double_downs_won, :double_downs_lost,
-             :soft_doubles,  :soft_doubles_won, :soft_doubles_lost,
+    counters :hands,         :hands_won,        :hands_lost,   :hands_pushed,   :hands_busted,
+             :splits,        :splits_won,       :splits_lost,  :splits_pushed,  :splits_busted,
+             :doubles,       :doubles_won,      :doubles_lost, :doubles_pushed,
              :insurances,    :insurances_won,   :insurances_lost,
-             :busts,         :blackjacks,       :surrenders,
-             :pushes
+             :blackjacks,    :surrenders,       :markers
 
     def initialize(player)
       @player = player

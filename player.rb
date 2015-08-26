@@ -35,6 +35,7 @@ module Blackjack
     def marker_for(amount)
       raise "you have to join a table in order to get a marker" if table.nil?
       table.get_marker(self, amount)
+      stats.markers.incr
     end
 
     def repay_any_markers(max_amount=nil)
@@ -58,17 +59,23 @@ module Blackjack
     def won_bet(bet_box)
       bet_box.take_winnings
       stats.hands_won.incr
+      stats.splits_won.incr if bet_box.from_split?
+      stats.doubles_won.incr if bet_box.from_double_down?
       self
     end
 
     def lost_bet(bet_box)
       stats.hands_lost.incr
+      stats.splits_lost.incr if bet_box.from_split?
+      stats.doubles_lost.incr if bet_box.from_double_down?
       self
     end
 
     def push_bet(bet_box)
       bet_box.take_down_bet
-      stats.pushes.incr
+      stats.hands_pushed.incr
+      stats.splits_pushed.incr if bet_box.from_split?
+      stats.doubles_pushed.incr if bet_box.from_double_down?
       self
     end
 
@@ -83,7 +90,8 @@ module Blackjack
     end
 
     def busted(bet_box)
-      stats.busts.incr
+      stats.hands_busted.incr
+      stats.splits_busted.incr if bet_box.from_split?
       self
     end
 
@@ -105,21 +113,15 @@ module Blackjack
     end
 
     def make_double_down_bet(bet_box, double_down_bet_amount)
-      stats.double_downs.incr
+      stats.doubles.incr
       bank.transfer_to(bet_box.box, double_down_bet_amount)
-      self
-    end
-
-    def won_double_down_bet(bet_box)
-      stats.double_downs_won.incr
       self
     end
 
     def make_split_bet(bet_box, bet_amount)
       bet_box.bet(self, bet_amount)
       stats.splits.incr
-      stats.splits.incr # double split count for two hand results
-      stats.hands.incr  # one additional hand is created for each split
+      stats.hands.incr
       self
     end
 

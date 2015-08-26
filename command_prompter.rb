@@ -11,7 +11,7 @@ module Blackjack
 
     LEADER = ""
 
-    def initialize(prefix, *valid_cmd_names)
+    def initialize(prefix, *valid_cmd_names, &quit_block)
       #
       # usage:
       #   p = CommandPrompter.new("Bet Amount:int:1:10", "Hit", "Stand", "sPlit", "Double")
@@ -35,6 +35,7 @@ module Blackjack
       @output = $stdout
       @prefix = prefix
       @suggestion = nil
+      @on_quit = quit_block if block_given?
 
       parse_params_and_configure(valid_cmd_names)
     end
@@ -129,7 +130,10 @@ module Blackjack
     end
 
     def quit_check(dcmd)
-      exit if dcmd == 'q'
+      if dcmd == 'q'
+        @on_quit.call unless @on_quit.nil?
+        exit
+      end
     end
 
     def valid_cmd?(dcmd)
