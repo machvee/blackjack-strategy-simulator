@@ -49,10 +49,16 @@ module Blackjack
 
     attr_reader  :table
     attr_reader  :player
+    attr_reader  :config
+
+    DEFAULT_OPTIONS = {
+      num_bets: 1
+    }
 
     def initialize(table, player, options={})
       @table = table
       @player = player
+      @config = DEFAULT_OPTIONS.merge(options)
     end
 
     def num_bets
@@ -62,6 +68,7 @@ module Blackjack
       # return Action::LEAVE to take bets and leave table before next hand dealt
       # return 1 - table.config[:max_player_bets] to make one or more bets at the table
       #
+      config[:num_bets]
     end
 
     def bet_amount

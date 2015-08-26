@@ -130,6 +130,16 @@ module Blackjack
       split? ? split_boxes.inject(1) {|count, bet_box| count += bet_box.split_counter} : 0
     end
 
+    def player_name
+      if dedicated? 
+        @reserved_for_player.name
+      elsif active?
+        @player.name
+      else
+        "unoccupied"
+      end + "[#{position}]"
+    end
+
     def discard
       raise "you can't discard until dealer or player removes bet" if bet_amount > 0
       hand.fold

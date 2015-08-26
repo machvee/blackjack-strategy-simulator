@@ -777,6 +777,38 @@ module Blackjack
     end
   end
 
+  describe GamePlay, "A full hand dealt" do
+    before do
+      shoe = TestShoe.new(
+          ["2H", "5C"], # dealer hand
+          [
+            ['3C', '3H'] #player hand
+          ],
+          # player is dealt 3,K stands.
+          # 3,9 HITs then 3,9,5 STANDs
+          # Dealer HITS Q for 17 STANDS
+          ['KH', '9D', '5D', 'QH']
+      )
+      @table_options = {
+        shoe: shoe,
+        minimum_bet: 10,
+        maximum_bet: 2000
+      }
+
+      @player_options = {
+        strategy_class: BasicStrategy
+      }
+    end
+
+    it "should play a single hand, dealing one split to player" do
+      @table = Table.new("test3", @table_options)
+      @dave = Player.new("Dave", @player_options)
+      @dave.join(@table)
+      @game_play = GamePlay.new(@table)
+      @game_play.run(num_hands: 1)
+    end
+  end
+
   describe GamePlay, "A game execution service class" do
     before do
       shoe = TestShoe.new(
@@ -1133,6 +1165,40 @@ module Blackjack
         bet_box.hand.length.must_equal(0)
       end
       counter.must_equal(4)
+    end
+  end
+
+  describe Markers, "A Player" do
+    before do
+      @table = Table.new('test')
+      @player = Player.new(@name='dave')
+    end
+
+    it "should allow a player to borrow" do
+      @player.join(@table)
+      @player.bank.balance.must_equal(500)
+      @player.marker_for(500)
+      @player.bank.balance.must_equal(500+500)
+    end
+
+    it "should allow a player to repay what they've borrowed" do
+      @player.join(@table)
+      @player.bank.balance.must_equal(500)
+      @player.marker_for(500)
+      @player.bank.balance.must_equal(500+500)
+      @player.repay_any_markers(500)
+      @player.bank.balance.must_equal(500)
+      @table.markers.for_player(@player).length == 0
+    end
+
+    it "should allow a player to repay an amount less than they've borrowed" do
+      @player.join(@table)
+      @player.bank.balance.must_equal(500)
+      @player.marker_for(500)
+      @player.bank.balance.must_equal(500+500)
+      @player.repay_any_markers(250)
+      @table.markers.for_player(@player).first[:amount].must_equal(500-250)
+      @player.bank.balance.must_equal(500+500-250)
     end
   end
 

@@ -187,8 +187,6 @@ module Blackjack
             bet_box.iter do |split_bet_box|
               deal_player_card(split_bet_box)
               announce_hand(split_bet_box, response)
-            end
-            bet_box.iter do |split_bet_box|
               player_plays_hand_until_end(split_bet_box)
             end
             break

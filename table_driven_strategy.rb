@@ -4,8 +4,8 @@ module Blackjack
 
     attr_reader  :strategy_table
 
-    def initialize(table, player, strategy_table)
-      super(table, player)
+    def initialize(table, player, strategy_table, options={})
+      super(table, player, options)
       @strategy_table = strategy_table
     end
 
@@ -13,22 +13,23 @@ module Blackjack
       #
       # leave room in bank to double down on all hands bet
       #
-      min_bet = table.config[:minimum_bet]
-      two_bet_total_plus_room_to_double = min_bet * 8
-      bal = player.bank.balance
-      @num_bet_boxes = 
-        if bal >= two_bet_total_plus_room_to_double
-          2
-        elsif bal < min_bet
-          Action::LEAVE
-        else
-          1
-        end
-      @num_bet_boxes
+      @minimum_bet = table.config[:minimum_bet]
+      current_balance = player.bank.balance
+
+      if config[:num_bets] > 1
+        @minimum_bet *= 2 # house requires you make double min bet 
+      end
+
+      if current_balance < (@minimum_bet * config[:num_bets])
+        player.marker_for(player.config[:start_bank])
+        table.game_announcer.says("%s gets a marker for $%d" % [player.name, player.config[:start_bank]])
+      end
+
+      config[:num_bets]
     end
 
     def bet_amount
-      table.config[:minimum_bet] * @num_bet_boxes
+      @minimum_bet
     end
 
     def insurance_bet_amount(bet_box)
@@ -44,7 +45,17 @@ module Blackjack
     end
 
     def decision(bet_box, dealer_up_card, other_hands=[])
-      strategy_table.decision(dealer_up_card.face_value, bet_box.hand)
+      dec = strategy_table.decision(dealer_up_card.face_value, bet_box.hand)
+      return case dec
+        when Action::SPLIT
+          # can't split if player doesn't have funds
+          player.bank.balance < bet_box.bet_amount ? Action::HIT : dec
+        when Action::DOUBLE_DOWN
+          # can't double down if player doesn't have funds
+          player.bank.balance == 0 ? Action::HIT : dec
+        else
+          dec
+      end
     end
 
     def error(strategy_step, message)
@@ -62,8 +73,8 @@ module Blackjack
   end
 
   class BasicStrategy < TableDrivenStrategy
-    def initialize(table, player)
-      super(table, player, BasicStrategyTable.new)
+    def initialize(table, player, options={})
+      super(table, player, BasicStrategyTable.new, options)
     end
   end
 end

@@ -14,6 +14,7 @@ require 'bank'
 require 'dealer'
 require 'player_stats'
 require 'player'
+require 'markers'
 require 'game_play'
 require 'game_announcer'
 
@@ -48,7 +49,7 @@ module Blackjack
 
     counters :players_seated, :rounds_played
 
-    DEFAULT_HOUSE_BANK_AMOUNT = 250_000
+    DEFAULT_HOUSE_BANK_AMOUNT = 1_500_000
     DEFAULT_MAX_SEATS         = 6
     DEFAULT_SHOE_CLASS        = SixDeckShoe
     DEFAULT_GAME_ANNOUNCER    = GameAnnouncer
@@ -82,6 +83,7 @@ module Blackjack
     attr_reader   :house
     attr_reader   :game_announcer
     attr_reader   :seed
+    attr_reader   :markers
 
     def initialize(name, options={})
       @name = name
@@ -97,6 +99,7 @@ module Blackjack
 
     def init_table
       @house = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
+      @markers = Markers.new(self)
       @prng = GameRandomizer.new(config[:random_seed]).prng
       @seed = @prng.seed
       @shoe = new_shoe
@@ -125,6 +128,14 @@ module Blackjack
       seat(seat_position, player)
       game_announcer.says("Hey %s! Welcome to %s. You're in seat %d" % [player.name, name, seat_position])
       seat_position
+    end
+
+    def get_marker(player, amount)
+      @markers.borrow(player, amount)
+    end
+
+    def repay_markers(player, max_amount)
+      @markers.repay_markers(player, max_amount)
     end
 
     def seat(seat_position, player)

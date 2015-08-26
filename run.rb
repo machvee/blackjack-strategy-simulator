@@ -10,7 +10,8 @@ table_options = {
 }.merge(opt_table_seed)
 
 player_options = {
-  strategy_class: PromptWithBasicStrategyGuidance
+  strategy_class: PromptWithBasicStrategyGuidance,
+  strategy_options: {num_hands: 2}
 }
 
 @table = TableWithAnnouncer.new("Blackjack Table 3", table_options)

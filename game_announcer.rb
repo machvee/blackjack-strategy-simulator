@@ -51,7 +51,7 @@ module Blackjack
 
     def player_hand_status(bet_box, decision=nil, opt_bet_amt=nil)
       says "%s %s %s%s" % [
-        bet_box.player.name,
+        bet_box.player_name,
         decision.nil? ? "has" : DECISIONS[decision],
         opt_bet_amt.nil? ? "" : "for $#{opt_bet_amt} : ",
         hand_val_str(bet_box.hand, bet_box.from_split?)
@@ -61,14 +61,14 @@ module Blackjack
     def hand_outcome(bet_box, outcome, amount=nil)
       msg = case outcome
         when Outcome::WON
-          "%s WINS +$%d" % [ bet_box.player.name, amount ]
+          "%s WINS +$%d" % [bet_box.player_name, amount ]
         when Outcome::LOST
-          "%s LOST -$%d" % [ bet_box.player.name, amount]
+          "%s LOST -$%d" % [bet_box.player_name, amount]
         when Outcome::PUSH
-          "%s PUSH" % [ bet_box.player.name]
+          "%s PUSH" % [bet_box.player_name]
         when Outcome::BUST
           "%s HITS %s, and BUSTS -$%d" % [
-            bet_box.player.name,
+            bet_box.player_name,
                    hand_val_str(bet_box.hand, bet_box.from_split?),
                                   amount]
         when Outcome::NONE

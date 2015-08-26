@@ -2,7 +2,8 @@ require 'table'
 include Blackjack
 
 num_hands = ARGV[0]||"1000"
-opt_table_seed = ARGV[1].nil? ? {} : {random_seed: ARGV[1].to_i}
+opt_num_bets = (ARGV[1].nil? || ARGV[1] == '-') ? 1 : ARGV[1].to_i
+opt_table_seed = ARGV[2].nil? ? {} : {random_seed: ARGV[2].to_i}
 
 run_options = {
   num_hands: num_hands
@@ -16,6 +17,7 @@ table_options = {
 
 player_options = {
   strategy_class: BasicStrategy,
+  strategy_options: {num_bets: opt_num_bets},
   start_bank: 2500
 }
 

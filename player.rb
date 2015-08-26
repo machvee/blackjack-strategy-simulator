@@ -7,31 +7,43 @@ module Blackjack
     attr_reader   :strategy
     attr_reader   :bank
     attr_reader   :stats
+    attr_reader   :config
 
     DEFAULT_OPTIONS = {
       start_bank: 500,
-      strategy_class: PromptPlayerHandStrategy
+      strategy_class: PromptPlayerHandStrategy,
+      strategy_options: {}
     }
 
     def initialize(name, options={})
-      opts = DEFAULT_OPTIONS.merge(options)
+      @config = DEFAULT_OPTIONS.merge(options)
       @name = name
       @hands = []
       @table = nil
-      @strategy_class = opts[:strategy_class]
-      @bank = Bank.new(opts[:start_bank])
+      @strategy_class = config[:strategy_class]
+      @bank = Bank.new(config[:start_bank])
       @stats = PlayerStats.new(self)
     end
 
     def join(table, desired_seat_position=nil)
       @table = table
       table.join(self, desired_seat_position)
-      @strategy = strategy_class.new(table, self)
+      @strategy = strategy_class.new(table, self, config[:strategy_options])
       self
     end
 
+    def marker_for(amount)
+      raise "you have to join a table in order to get a marker" if table.nil?
+      table.get_marker(self, amount)
+    end
+
+    def repay_any_markers(max_amount=nil)
+      table.repay_markers(self, max_amount)
+    end
+
     def leave_table
-      @table.leave(self)
+      repay_any_markers
+      table.leave(self)
       @table = nil
       @strategy = nil
       self

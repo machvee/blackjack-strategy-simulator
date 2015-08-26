@@ -9,7 +9,6 @@ module Blackjack
     def initialize(table, player, options={})
       super
       setup_prompters
-      @bets_to_make = options[:bets_to_make_each_play]||1
     end
 
     def decision(bet_box, dealer_up_card, other_hands=[])
@@ -36,7 +35,7 @@ module Blackjack
     end
 
     def num_bets
-      player.bank.balance <= player.bank.initial_deposit/8 ? Action::LEAVE : @bets_to_make
+      player.bank.balance <= player.bank.initial_deposit/8 ? Action::LEAVE : config[:num_bets]
     end
 
     def error(strategy_step, message)
