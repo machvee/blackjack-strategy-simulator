@@ -23,7 +23,7 @@ module Blackjack
     def decision(dealer_up_card_value, hand)
       decision_from_table = if hand.pair?
         lookup_table[:pairs][hand[0].soft_value][dealer_up_card_value]
-      elsif hand.soft? && hand.soft_sum <= 11
+      elsif hand.soft? && hand.soft_sum <= BlackjackCard::ACE_HARD_VALUE
         lookup_table[:soft][hand.soft_sum][dealer_up_card_value]
       else
         lookup_table[:hard][hand.hard_sum][dealer_up_card_value]
