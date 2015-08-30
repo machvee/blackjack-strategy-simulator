@@ -777,7 +777,7 @@ module Blackjack
     end
   end
 
-  describe GamePlay, "A full hand dealt" do
+  describe GamePlay, "A full hand dealt with a split" do
     before do
       shoe = TestShoe.new(
           ["2H", "5C"], # dealer hand
@@ -806,6 +806,44 @@ module Blackjack
       @dave.join(@table)
       @game_play = GamePlay.new(@table)
       @game_play.run(num_hands: 1)
+    end
+  end
+
+  describe GamePlay, "A full hand dealt with multiple splits" do
+    before do
+      shoe = TestShoe.new(
+          ["2H", "5C"], # dealer hand
+          [
+            ['3C', '3H'] #player hand
+          ],
+          # player is dealt 3,5,9 stands. #split hand 1
+          # player is dealt 3,3 SPLITs again # split hand 1
+          # player is dealt 3,9,8 STANDS # split hand 2
+          # player is dealt 3,Q STANDS # split hand 3
+          # Dealer HITS Q for 17 STANDS
+          ['5D', '9D', '3D', '9H', '8H', 'QD', 'QH']
+      )
+      @table_options = {
+        shoe: shoe,
+        minimum_bet: 10,
+        maximum_bet: 2000
+      }
+
+      @player_options = {
+        strategy_class: BasicStrategy
+      }
+    end
+
+    it "should play a single hand, dealing one split to player" do
+      @table = Table.new("test3", @table_options)
+      @dave = Player.new("Dave", @player_options)
+      @dave.join(@table)
+      @game_play = GamePlay.new(@table)
+      @game_play.run(num_hands: 1)
+      @dave.stats.split_hands.count.must_equal(3)
+      @dave.stats.split_hands_won.count.must_equal(1)
+      @dave.stats.split_hands_lost.count.must_equal(1)
+      @dave.stats.split_hands_pushed.count.must_equal(1)
     end
   end
 

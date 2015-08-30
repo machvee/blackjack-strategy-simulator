@@ -46,6 +46,7 @@ module Blackjack
     def create_left_box_from_parent_bet_box
       @bet_box_left = new_hand_from_parent
       player.make_split_bet(bet_box_left, bet_amount)
+      player.stats.split_hands.incr unless parent_bet_box.from_split?
     end
 
     def create_right_box_from_parent_bet_box
@@ -55,6 +56,7 @@ module Blackjack
       # split right bet box
       #
       bet_box_right.bet(player, bet_amount, parent_bet_box.box)
+      player.stats.split_hands.incr
     end
 
     def new_hand_from_parent

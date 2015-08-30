@@ -70,25 +70,25 @@ module Blackjack
     end
 
     def won_bet(bet_box)
+      stats.doubles_won.incr if bet_box.double_down?
       bet_box.take_winnings
       stats.hands_won.incr
-      stats.splits_won.incr if bet_box.from_split?
-      stats.doubles_won.incr if bet_box.double_down?
+      stats.split_hands_won.incr if bet_box.from_split?
       self
     end
 
     def lost_bet(bet_box)
       stats.hands_lost.incr
-      stats.splits_lost.incr if bet_box.from_split?
+      stats.split_hands_lost.incr if bet_box.from_split?
       stats.doubles_lost.incr if bet_box.double_down?
       self
     end
 
     def push_bet(bet_box)
+      stats.doubles_pushed.incr if bet_box.double_down?
       bet_box.take_down_bet
       stats.hands_pushed.incr
-      stats.splits_pushed.incr if bet_box.from_split?
-      stats.doubles_pushed.incr if bet_box.double_down?
+      stats.split_hands_pushed.incr if bet_box.from_split?
       self
     end
 
@@ -104,7 +104,7 @@ module Blackjack
 
     def busted(bet_box)
       stats.hands_busted.incr
-      stats.splits_busted.incr if bet_box.from_split?
+      stats.split_hands_busted.incr if bet_box.from_split?
       self
     end
 
@@ -133,7 +133,6 @@ module Blackjack
 
     def make_split_bet(bet_box, bet_amount)
       bet_box.bet(self, bet_amount)
-      stats.splits.incr
       stats.hands.incr
       self
     end
