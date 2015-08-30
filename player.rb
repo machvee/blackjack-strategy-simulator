@@ -6,6 +6,7 @@ module Blackjack
     attr_reader   :strategy_class
     attr_reader   :strategy
     attr_reader   :bank
+    attr_reader   :buy_in
     attr_reader   :stats
     attr_reader   :config
 
@@ -21,13 +22,15 @@ module Blackjack
       @hands = []
       @table = nil
       @strategy_class = config[:strategy_class]
-      @bank = Bank.new(config[:start_bank])
+      @bank = Bank.new(0)
+      @buy_in = 0
       @stats = PlayerStats.new(self)
     end
 
     def join(table, desired_seat_position=nil)
       @table = table
       table.join(self, desired_seat_position)
+      buy_chips(config[:start_bank])
       @strategy = strategy_class.new(table, self, config[:strategy_options])
       self
     end
@@ -35,11 +38,21 @@ module Blackjack
     def marker_for(amount)
       raise "you have to join a table in order to get a marker" if table.nil?
       table.get_marker(self, amount)
+      @buy_in += amount
       stats.markers.incr
+      self
+    end
+
+    def buy_chips(amount)
+      table.buy_chips(self, amount)
+      @buy_in += amount
+      self
     end
 
     def repay_any_markers(max_amount=nil)
-      table.repay_markers(self, max_amount)
+      amt_repaid = table.repay_markers(self, max_amount)
+      @buy_in -= amt_repaid
+      self
     end
 
     def leave_table
@@ -60,14 +73,14 @@ module Blackjack
       bet_box.take_winnings
       stats.hands_won.incr
       stats.splits_won.incr if bet_box.from_split?
-      stats.doubles_won.incr if bet_box.from_double_down?
+      stats.doubles_won.incr if bet_box.double_down?
       self
     end
 
     def lost_bet(bet_box)
       stats.hands_lost.incr
       stats.splits_lost.incr if bet_box.from_split?
-      stats.doubles_lost.incr if bet_box.from_double_down?
+      stats.doubles_lost.incr if bet_box.double_down?
       self
     end
 
@@ -75,7 +88,7 @@ module Blackjack
       bet_box.take_down_bet
       stats.hands_pushed.incr
       stats.splits_pushed.incr if bet_box.from_split?
-      stats.doubles_pushed.incr if bet_box.from_double_down?
+      stats.doubles_pushed.incr if bet_box.double_down?
       self
     end
 
@@ -114,7 +127,7 @@ module Blackjack
 
     def make_double_down_bet(bet_box, double_down_bet_amount)
       stats.doubles.incr
-      bank.transfer_to(bet_box.box, double_down_bet_amount)
+      bank.transfer_to(bet_box.double, double_down_bet_amount)
       self
     end
 
@@ -143,7 +156,7 @@ module Blackjack
     end
 
     def up_down
-      amt = bank.balance - bank.initial_deposit 
+      amt = bank.balance - buy_in
       return "EVEN" if amt.zero?
       return "+$#{amt}" if amt > 0
       return "-$#{amt.abs}"

@@ -28,6 +28,8 @@ module Blackjack
     LOST=2
     PUSH=3
     BUST=4
+    INSURANCE_WON=5
+    INSURANCE_LOST=6
   end
 
   OUTCOMES = {
@@ -35,6 +37,8 @@ module Blackjack
     Outcome::LOST => "LOST",
     Outcome::PUSH => "PUSH",
     Outcome::BUST => "BUST",
+    Outcome::INSURANCE_WON => "WON INSURANCE",
+    Outcome::INSURANCE_LOST => "LOST INSURANCE",
     Outcome::NONE => nil
   }
 

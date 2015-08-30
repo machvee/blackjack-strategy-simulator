@@ -28,15 +28,21 @@ module Blackjack
     end
 
     def credit(amount)
-      ledger.add(amount + balance)
-      credits.incr
+      if amount > 0
+        ledger.add(amount + balance)
+        credits.incr
+      end
+      self
     end
 
     def debit(amount)
       raise "insufficient funds to debit #{amount}. (current balance = #{balance})" \
         if balance - amount < 0
-      ledger.add(balance - amount)
-      debits.incr
+      if amount > 0
+        ledger.add(balance - amount)
+        debits.incr
+      end
+      self
     end
 
     def balance
@@ -55,6 +61,7 @@ module Blackjack
       reset_counters
       reset_measures
       ledger.add(initial_deposit)
+      self
     end
   end
 end

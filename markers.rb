@@ -23,7 +23,7 @@ module Blackjack
       # from the player account to the house
       #
       unpaid_markers = unpaid_markers_for_player(player)
-      return unless unpaid_markers.any?
+      return 0 unless unpaid_markers.any?
 
       limit_to_pay_back = max_amount.nil? ? player.bank.balance : max_amount
       total_amount_paid_back = 0
@@ -40,6 +40,7 @@ module Blackjack
         total_amount_paid_back += amt_to_pay
         break if total_amount_paid_back == limit_to_pay_back
       end
+      total_amount_paid_back
     end
 
     private

@@ -1,15 +1,91 @@
 module Blackjack
   class Dealer
 
+    class MoneyHandler
+      #
+      # all dealers interaction with house/player chips and cash
+      # is encapsulated here
+      #
+      attr_reader  :table
+      attr_reader  :dealer
+      attr_reader  :house
+      attr_reader  :cash
+
+      def initialize(table, dealer)
+        @dealer = dealer
+        @house = table.house
+        @cash = table.cash
+      end
+
+      def buy_chips(player, amount)
+        cash.credit(amount)
+        house.transfer_to(player.bank, amount)
+      end
+
+      def collect_bet(bet_box)
+        #
+        # call to transfer losing bet_box bet to house
+        #
+        collect_house_winnings(bet_box.box)
+        collect_house_winnings(bet_box.double) if bet_box.double_down?
+      end
+
+      def pay_bet(bet_box, payout_odds)
+        #
+        # transfer winnings from the house account to
+        # the bet_box.box based on the payout_odds and
+        # the bet_box bet_amount
+        #
+        # payout_odds is an array of ints
+        #  [3,2]  payout 3 for every 2
+        #  [1,1]  payout 1 for every 1
+        #
+        pay_account(bet_box.box, payout_odds) +
+        pay_account(bet_box.double, payout_odds)
+      end
+
+      def collect_insurance(bet_box)
+        collect_house_winnings(bet_box.insurance)
+      end
+
+      def pay_insurance(bet_box)
+        pay_account(bet_box.insurance, Table::INSURANCE_PAYOUT)
+      end
+
+      private
+      
+      def pay_account(account, payout_odds)
+        bet_amount = account.balance
+        return 0 if bet_amount.zero?
+        pay_this  = payout_odds[0]
+        for_every = payout_odds[1]
+        amount = (bet_amount / for_every) * pay_this
+        house.transfer_to(account, amount)
+        amount
+      end
+
+      def collect_house_winnings(from_account)
+        from_account.transfer_to(house, from_account.balance)
+        self
+      end
+
+    end
+
+    include CounterMeasures
+
     attr_accessor   :hand
     attr_reader     :table
+    attr_reader     :money
     attr_reader     :soft_hit_limit
+
+    counters        :hands_won, :hands_lost, :ace_up_blackjacks, :ten_up_blackjacks, :hands_pushed, :hands_busted
 
     def initialize(table)
       @table = table
       @validator = StrategyValidator.new(table)
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
       @hand = table.new_dealer_hand
+      @money = MoneyHandler.new(table, self)
     end
 
     def deal_one_card_face_up_to_each_active_bet_box
@@ -47,31 +123,6 @@ module Blackjack
       table.shoe.deal_one_up(hand)
       table.game_announcer.dealer_hand_status
       self
-    end
-
-    def collect(bet_box)
-      #
-      # call to transfer losing bet_box bet to house
-      #
-      bet_box.box.transfer_to(table.house, bet_box.bet_amount)
-      self
-    end
-
-    def pay(bet_box, payout_odds)
-      #
-      # transfer winnings from the house account to
-      # the bet_box.box based on the payout_odds and
-      # the bet_box bet_amount
-      #
-      # payout_odds is an array of ints
-      #  [3,2]  payout 3 for every 2
-      #  [1,1]  payout 1 for every 1
-      #
-      pay_this  = payout_odds[0]
-      for_every = payout_odds[1]
-      amount = (bet_box.bet_amount / for_every) * pay_this
-      table.house.transfer_to(bet_box.box, amount)
-      amount
     end
 
     def busted?
@@ -130,6 +181,23 @@ module Blackjack
       prompt_player_strategy_and_validate(:double_down_bet_amount, bet_box) do
         bet_box.player.strategy.double_down_bet_amount(bet_box)
       end
+    end
+
+    def player_lost(bet_box)
+      table.game_announcer.hand_outcome(bet_box, Outcome::LOST, bet_box.bet_amount)
+      bet_box.player.lost_bet(bet_box)
+      money.collect_bet(bet_box)
+    end
+
+    def player_won(bet_box, payout)
+      winnings = money.pay_bet(bet_box, payout)
+      table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
+      bet_box.player.won_bet(bet_box)
+    end
+
+    def player_push(bet_box)
+      table.game_announcer.hand_outcome(bet_box, Outcome::PUSH)
+      bet_box.player.push_bet(bet_box)
     end
 
     def up_card

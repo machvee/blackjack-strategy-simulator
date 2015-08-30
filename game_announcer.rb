@@ -72,9 +72,13 @@ module Blackjack
     def hand_outcome(bet_box, outcome, amount=nil)
       msg = case outcome
         when Outcome::WON
-          "%s WINS +$%d" % [bet_box.player_name, amount ]
+          "%s WINS +$%d" % [bet_box.player_name, amount]
         when Outcome::LOST
           "%s LOST -$%d" % [bet_box.player_name, amount]
+        when Outcome::INSURANCE_WON
+          "%s WINS INSURANCE +$%d" % [bet_box.player_name, amount]
+        when Outcome::INSURANCE_LOST
+          "%s LOST INSURANCE -$%d" % [bet_box.player_name, amount]
         when Outcome::PUSH
           "%s PUSH" % [bet_box.player_name]
         when Outcome::BUST

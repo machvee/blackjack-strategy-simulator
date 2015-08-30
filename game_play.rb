@@ -6,8 +6,6 @@ module Blackjack
     attr_reader   :dealer
     attr_reader   :players
 
-    EVEN_MONEY_PAYOUT = [1,1]
-
     def initialize(table, options={})
       @table =  table
       @dealer = table.dealer
@@ -99,36 +97,19 @@ module Blackjack
       # returns true if dealer had blackjack, else false
       #
       if dealer.up_card.ace?
-        table.bet_boxes.each_active do |bet_box|
-          player = bet_box.player
-
-          response = dealer.ask_player_insurance?(bet_box)
-
-          case response
-            when Action::NO_INSURANCE
-              next
-            when Action::INSURANCE
-              insurance_bet_amt = dealer.ask_player_insurance_bet_amount(bet_box)
-              player.make_insurance_bet(bet_box, insurance_bet_amt)
-            when Action::EVEN_MONEY
-              #
-              # pay and clear this hand out now
-              #
-              if bet_box.hand.blackjack?
-                player_won(bet_box, EVEN_MONEY_PAYOUT)
-                bet_box.discard
-              end
-          end
-        end
+        table.insurance.ask_players_if_they_want_insurance
       elsif !dealer.up_card.ten?
         return false
       end
 
       has_black_jack = dealer.hand.blackjack?
       if has_black_jack
+        dealer.up_card.ten? ? dealer.ten_up_blackjacks.incr : dealer.ace_up_blackjacks.incr
         dealer.flip_hole_card
+        table.insurance.payout_any_insurance_bets
       else
         table.game_announcer.says("Dealer doesn't have Blackjack")
+        table.insurance.collect_insurance_bets
       end
       has_black_jack
     end
@@ -137,7 +118,7 @@ module Blackjack
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player
         if bet_box.hand.blackjack?
-          player_won(bet_box, table.config[:blackjack_payout])
+          dealer.player_won(bet_box, table.config[:blackjack_payout])
           player.blackjack(bet_box)
           bet_box.discard
         end
@@ -150,10 +131,9 @@ module Blackjack
 
     def shuffle_check
       if table.shoe.needs_shuffle?
-        table.game_announcer.says("Shuffling [%d]..." % table.shoe.num_shuffles.count)
         table.shoe.shuffle
+        table.game_announcer.says("Shuffling [%d]...Marker card placed." % table.shoe.num_shuffles.count)
         table.shoe.place_marker_card
-        table.game_announcer.says("Marker card placed.")
       end
     end
 
@@ -181,7 +161,7 @@ module Blackjack
             if dealer.check_player_hand_busted?(bet_box)
               table.game_announcer.hand_outcome(bet_box, Outcome::BUST, bet_box.bet_amount)
               player.busted(bet_box)
-              dealer.collect(bet_box)
+              dealer.money.collect_bet(bet_box)
               bet_box.discard
               break
             end
@@ -220,15 +200,20 @@ module Blackjack
 
     def pay_any_winners
       dealer_has = dealer.hand.hard_sum
+      dealer.hands_busted.incr if dealer.busted?
+
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player
         player_has = bet_box.hand.hard_sum
         if dealer.busted? || player_has > dealer_has
-          player_won(bet_box, EVEN_MONEY_PAYOUT)
+          dealer.player_won(bet_box, Table::EVEN_MONEY_PAYOUT)
+          dealer.hands_lost.incr
         elsif dealer_has > player_has
-          player_lost(bet_box)
+          dealer.player_lost(bet_box)
+          dealer.hands_won.incr
         else
-          player_push(bet_box)
+          dealer.player_push(bet_box)
+          dealer.hands_pushed.incr
         end
         bet_box.discard
       end
@@ -251,23 +236,6 @@ module Blackjack
 
     def announce_game_state
       table.game_announcer.overview
-    end
-
-    def player_lost(bet_box)
-      table.game_announcer.hand_outcome(bet_box, Outcome::LOST, bet_box.bet_amount)
-      bet_box.player.lost_bet(bet_box)
-      dealer.collect(bet_box)
-    end
-
-    def player_won(bet_box, payout)
-      winnings = dealer.pay(bet_box, payout)
-      table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
-      bet_box.player.won_bet(bet_box)
-    end
-
-    def player_push(bet_box)
-      table.game_announcer.hand_outcome(bet_box, Outcome::PUSH)
-      bet_box.player.push_bet(bet_box)
     end
 
     def wait_for_player_bets

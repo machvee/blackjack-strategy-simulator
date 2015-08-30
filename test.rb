@@ -411,7 +411,7 @@ module Blackjack
       sb = @table.house.balance
       p = @players[0]
       p.bet_box.bet_amount.must_equal(@bet_amount)
-      @dealer.collect(p.bet_box)
+      @dealer.money.collect_bet(p.bet_box)
       p.bet_box.bet_amount.must_equal(0)
       @table.house.balance.must_equal(sb + @bet_amount)
     end
@@ -421,7 +421,7 @@ module Blackjack
       sb = @table.house.balance
       sp = p.bet_box.bet_amount
       p.bet_box.bet_amount.must_equal(@bet_amount)
-      @dealer.pay(p.bet_box, [7,2])
+      @dealer.money.pay_bet(p.bet_box, [7,2])
       payout = (@bet_amount / 2) * 7
       p.bet_box.bet_amount.must_equal(sp + payout)
       @table.house.balance.must_equal(sb - payout)
@@ -841,7 +841,7 @@ module Blackjack
         next if bb.hand.hard_sum == 13
         @table.dealer.deal_card_face_up_to(bb)
         bb.hand.hard_sum.must_equal(22)
-        @table.dealer.collect(bb)
+        @table.dealer.money.collect_bet(bb)
         bb.discard
       end
 
@@ -1211,8 +1211,8 @@ module Blackjack
       @player.name.must_equal(@name)
     end
 
-    it "should have a bank" do
-      @player.bank.balance.must_be :>, 0
+    it "should have an initial zero balance bank" do
+      @player.bank.balance.must_equal 0
     end
 
     it "should have stats" do

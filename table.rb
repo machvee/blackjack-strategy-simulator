@@ -11,6 +11,7 @@ require 'split_boxes'
 require 'bet_boxes'
 require 'bet_box'
 require 'bank'
+require 'insurance'
 require 'dealer'
 require 'player_stats'
 require 'player'
@@ -49,12 +50,14 @@ module Blackjack
 
     counters :players_seated, :rounds_played
 
+
     DEFAULT_HOUSE_BANK_AMOUNT = 1_500_000
     DEFAULT_MAX_SEATS         = 6
     DEFAULT_SHOE_CLASS        = SixDeckShoe
     DEFAULT_GAME_ANNOUNCER    = GameAnnouncer
     DEFAULT_BET_RANGE         = 25..5000
     DEFAULT_MAX_PLAYER_BETS   = 3
+    EVEN_MONEY_PAYOUT         = [1,1]
     DEFAULT_BLACKJACK_PAYOUT  = [3,2]
     DEFAULT_DOUBLE_DOWN_ON    = []  # [] means ANY. or [9,10,11] or [10,11]
 
@@ -79,11 +82,13 @@ module Blackjack
     attr_reader   :dealer
     attr_reader   :seated_players
     attr_reader   :bet_boxes
+    attr_reader   :insurance
     attr_reader   :config
     attr_reader   :house
     attr_reader   :game_announcer
     attr_reader   :seed
     attr_reader   :markers
+    attr_reader   :cash
 
     def initialize(name, options={})
       @name = name
@@ -95,10 +100,12 @@ module Blackjack
     def run(options={})
       gp = GamePlay.new(self)
       gp.run(options)
+      report_stats
     end
 
     def init_table
       @house = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
+      @cash = Bank.new(0)
       @markers = Markers.new(self)
       @prng = GameRandomizer.new(config[:random_seed]).prng
       @seed = @prng.seed
@@ -114,6 +121,7 @@ module Blackjack
       @bet_boxes = BetBoxes.new(self, num_seats)
       @dealer = Dealer.new(self)
       @game_announcer = config[:game_announcer_class].new(self)
+      @insurance = Insurance.new(self)
     end
 
     def join(player, desired_seat_position=nil)
@@ -136,6 +144,10 @@ module Blackjack
 
     def repay_markers(player, max_amount)
       @markers.repay_markers(player, max_amount)
+    end
+
+    def buy_chips(player, cash_amount)
+      dealer.money.buy_chips(player, cash_amount)
     end
 
     def seat(seat_position, player)
@@ -239,6 +251,23 @@ module Blackjack
       end
     end
 
+    def report_stats
+      table_stats
+      each_player do |player|
+        player_stats(player)
+      end
+    end
+
+    def table_stats
+      puts "==>  rounds played: #{rounds_played.count}"
+    end
+
+    def player_stats(player)
+      puts "==>  #{player.name}"
+      player.stats.counters.each_pair do |key, value|
+        puts "==>    #{key}: #{value}"
+      end
+    end
 
   end
 

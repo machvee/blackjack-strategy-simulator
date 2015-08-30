@@ -4,9 +4,9 @@ module Blackjack
     attr_reader :player
     attr_reader :box
     attr_reader :insurance
+    attr_reader :double
     attr_reader :hand
     attr_reader :position
-    attr_reader :doubled
 
     #
     # if this bet_box came from a previously split hand
@@ -20,8 +20,11 @@ module Blackjack
 
     def initialize(table, player_seat_position, parent_split_box=nil)
       @table = table
+
       @box = Bank.new(0)
       @insurance = Bank.new(0)
+      @double = Bank.new(0)
+
       @hand = table.new_hand
       @position = player_seat_position
       reset
@@ -75,11 +78,11 @@ module Blackjack
 
     def double_down(double_down_bet_amt)
       player.make_double_down_bet(self, double_down_bet_amt)
-      @doubled = true
     end
 
     def take_down_bet
-      box.transfer_to(player.bank, bet_amount)
+      box.transfer_to(player.bank, box.balance)
+      double.transfer_to(player.bank, double.balance) if double_down?
       self
     end
 
@@ -117,10 +120,6 @@ module Blackjack
       !split_boxes.nil?
     end
 
-    def from_double_down?
-      doubled
-    end
-
     def from_split?
       #
       # was this bet_box created from a split?
@@ -138,6 +137,10 @@ module Blackjack
 
     def split_counter
       split? ? split_boxes.inject(1) {|count, bet_box| count += bet_box.split_counter} : 0
+    end
+
+    def double_down?
+      double.balance > 0
     end
 
     def player_name
@@ -165,7 +168,6 @@ module Blackjack
       discard
       @split_boxes = nil
       @parent_split_box = nil
-      @doubled = false
       self
     end
 
@@ -184,6 +186,11 @@ module Blackjack
     end
 
     private
+
+    def reset_bank
+      @box.reset
+      @insurance.reset
+    end
 
     def root_bet_box
       #
