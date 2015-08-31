@@ -131,8 +131,8 @@ module Blackjack
 
     def shuffle_check
       if table.shoe.needs_shuffle?
-        table.shoe.shuffle
         table.game_announcer.says("Shuffling [%d]...Marker card placed." % table.shoe.num_shuffles.count)
+        table.shoe.shuffle
         table.shoe.place_marker_card
       end
     end
