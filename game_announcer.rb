@@ -39,9 +39,9 @@ module Blackjack
       elsif remaining == 0
         "at marker card"
       elsif remaining > 0
-        " #{remaining} cards remain until marker"
+        " #{remaining} cards remain"
       else
-        " #{remaining.abs} cards past marker"
+        " #{remaining.abs} cards beyond"
       end
 
       says "#{table.name}: #{marker_status}"

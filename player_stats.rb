@@ -16,5 +16,13 @@ module Blackjack
     def reset
       reset_counters
     end
+
+    def output
+      puts "==>  Stats for: #{player.name}"
+      hands = player.stats.hands.count
+      player.stats.counters.each_pair do |key, value|
+        puts "==>    %20.20s: %6d [%6.2f%%]" % [key, value, value/(hands*1.0) * 100.0]
+      end
+    end
   end
 end
