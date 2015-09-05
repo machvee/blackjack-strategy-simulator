@@ -66,6 +66,7 @@ module Blackjack
     def make_bet(bet_amount, alt_bet_box=nil)
       (alt_bet_box||bet_box).bet(self, bet_amount)
       stats.hands.incr
+      table.dealer.player_hands_dealt.incr
       self
     end
 
@@ -134,6 +135,7 @@ module Blackjack
     def make_split_bet(bet_box, bet_amount)
       bet_box.bet(self, bet_amount)
       stats.hands.incr
+      table.dealer.player_hands_dealt.incr
       self
     end
 

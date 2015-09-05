@@ -252,13 +252,14 @@ module Blackjack
     end
 
     def report_stats
-      table_stats
+      print_stats
+      dealer.print_stats
       each_player do |player|
         player.stats.output
       end
     end
 
-    def table_stats
+    def print_stats
       puts "==>  rounds played: #{rounds_played.count}"
     end
 
