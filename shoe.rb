@@ -92,6 +92,12 @@ module Blackjack
       decks.counts(markeroff)
     end
 
+    def current_ten_percentage
+      tens_remaining = counts[10]
+      r = remaining_until_shuffle
+      r == 0 ? 0.0 : (100.0 * (tens_remaining * 1.0)/r)
+    end
+
     def force_shuffle
       @force_shuffle = true
       self
