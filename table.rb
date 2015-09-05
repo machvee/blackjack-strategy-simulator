@@ -12,6 +12,8 @@ require 'bet_boxes'
 require 'bet_box'
 require 'bank'
 require 'insurance'
+require 'hand_stats'
+require 'hand_stats_bucket'
 require 'dealer'
 require 'player_stats'
 require 'player'
@@ -253,9 +255,9 @@ module Blackjack
 
     def report_stats
       print_stats
-      dealer.print_stats
+      dealer.stats.print
       each_player do |player|
-        player.stats.output
+        player.stats.print
       end
     end
 

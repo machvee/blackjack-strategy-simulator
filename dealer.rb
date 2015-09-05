@@ -77,11 +77,11 @@ module Blackjack
     attr_reader     :table
     attr_reader     :money
     attr_reader     :soft_hit_limit
-
-    counters        :player_hands_dealt, :hands_won, :hands_pushed, :hands_lost, :hands_busted, :ace_up_blackjacks, :ten_up_blackjacks
+    attr_reader     :stats
 
     def initialize(table)
       @table = table
+      @stats = HandStats.new("Dealer")
       @validator = StrategyValidator.new(table)
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
       @hand = table.new_dealer_hand
@@ -210,15 +210,6 @@ module Blackjack
 
     def hole_card
       hand.hole_card
-    end
-
-    def print_stats
-      puts "==>  Stats for:  Dealer"
-      hands = player_hands_dealt.count
-      counters.each_pair do |key, value|
-        puts "==>    %20.20s: %6d [%6.2f%%]" % [key, value, value/(hands*1.0) * 100.0]
-      end
-      puts ""
     end
 
     private

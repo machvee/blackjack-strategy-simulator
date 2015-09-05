@@ -65,36 +65,40 @@ module Blackjack
 
     def make_bet(bet_amount, alt_bet_box=nil)
       (alt_bet_box||bet_box).bet(self, bet_amount)
-      stats.hands.incr
-      table.dealer.player_hands_dealt.incr
+      stats.hands.dealt.incr
+      table.dealer.stats.dealt.incr
       self
     end
 
     def won_bet(bet_box)
-      stats.doubles_won.incr if bet_box.double_down?
+      stats.doubles.won.incr if bet_box.double_down?
       bet_box.take_winnings
-      stats.hands_won.incr
-      stats.split_hands_won.incr if bet_box.from_split?
+      stats.hands.won.incr
+      stats.splits.won.incr if bet_box.from_split?
       self
     end
 
     def lost_bet(bet_box)
-      stats.hands_lost.incr
-      stats.split_hands_lost.incr if bet_box.from_split?
-      stats.doubles_lost.incr if bet_box.double_down?
+      stats.hands.lost.incr
+      stats.splits.lost.incr if bet_box.from_split?
+      stats.doubles.lost.incr if bet_box.double_down?
       self
     end
 
     def push_bet(bet_box)
-      stats.doubles_pushed.incr if bet_box.double_down?
+      stats.doubles.pushed.incr if bet_box.double_down?
       bet_box.take_down_bet
-      stats.hands_pushed.incr
-      stats.split_hands_pushed.incr if bet_box.from_split?
+      stats.hands.pushed.incr
+      stats.splits.pushed.incr if bet_box.from_split?
       self
     end
 
-    def blackjack(bet_box)
-      stats.blackjacks.incr
+    def blackjack(bet_box, up_card)
+      if up_card.ace?
+        stats.hands.ace_up_blackjacks.incr
+      else
+        stats.hands.ten_up_blackjacks.incr 
+      end
       self
     end
 
@@ -104,8 +108,8 @@ module Blackjack
     end
 
     def busted(bet_box)
-      stats.hands_busted.incr
-      stats.split_hands_busted.incr if bet_box.from_split?
+      stats.hands.busted.incr
+      stats.splits.busted.incr if bet_box.from_split?
       self
     end
 
@@ -127,15 +131,15 @@ module Blackjack
     end
 
     def make_double_down_bet(bet_box, double_down_bet_amount)
-      stats.doubles.incr
+      stats.doubles.dealt.incr
       bank.transfer_to(bet_box.double, double_down_bet_amount)
       self
     end
 
     def make_split_bet(bet_box, bet_amount)
       bet_box.bet(self, bet_amount)
-      stats.hands.incr
-      table.dealer.player_hands_dealt.incr
+      stats.hands.dealt.incr
+      table.dealer.stats.dealt.incr
       self
     end
 
