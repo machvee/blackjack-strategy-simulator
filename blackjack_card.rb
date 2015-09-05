@@ -125,15 +125,6 @@ module Blackjack
 
       [soft, hard > TWENTYONE ? soft : hard]
     end
-
-    def counts
-      #
-      # return [[face, count_in_deck, face_val, count_in_deck]]
-      #
-      freq = Hash[BlackjackCard::FACES.map{|f| BlackjackCard.custom_value_of_face(f)}.uniq.zip([0]*BlackjackCard::FACES.length)]
-      map {|c| freq[c.face_value] += 1}
-      freq.to_a
-    end
   end
 
   class DealerHand < BlackjackHand
@@ -161,6 +152,19 @@ module Blackjack
   class BlackjackDeck < Cards::Deck
     def initialize(num_decks=1, opt_prng=nil)
       super(num_decks, BlackjackCard::FACE_DOWN, BlackjackCard, opt_prng)
+    end
+
+    def counts(marker_off=nil)
+      #
+      # return {face_val: count_in_deck, ..., face_val: count_in_deck} up until the marker_off is reached, if non-nil
+      #
+      freq = Hash[BlackjackCard::FACES.map{|f| BlackjackCard.custom_value_of_face(f)}.uniq.zip([0]*BlackjackCard::FACES.length)]
+      stop_at = marker_off.nil? ? length : length - marker_off
+      each_with_index do |c,i|
+        break if stop_at == i
+        freq[c.face_value] += 1
+      end
+      freq
     end
   end
 end

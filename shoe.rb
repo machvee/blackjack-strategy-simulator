@@ -88,6 +88,10 @@ module Blackjack
       self
     end
 
+    def counts
+      decks.counts(markeroff)
+    end
+
     def force_shuffle
       @force_shuffle = true
       self

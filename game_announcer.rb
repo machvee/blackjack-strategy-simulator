@@ -44,7 +44,10 @@ module Blackjack
         " #{remaining.abs} cards beyond"
       end
 
-      says "#{table.name}: #{marker_status}"
+      tens_remaining = table.shoe.counts[10]
+      ten_percentage = remaining == 0 ? "0.0" : (100.0 * (tens_remaining * 1.0)/remaining)
+
+      says "#{table.name}: #{marker_status}, %5.1f%% tens" % ten_percentage
 
       table.each_player do |player|
         says "  #{player}"
