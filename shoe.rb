@@ -5,6 +5,7 @@ module Blackjack
   class Shoe
     include CounterMeasures
 
+    attr_reader  :num_decks
     attr_reader  :decks
     attr_reader  :markeroff
     attr_reader  :config
@@ -23,7 +24,8 @@ module Blackjack
     def initialize(options={})
       @config = DEFAULT_OPTIONS.merge(options)
       @prng = config[:random]
-      @decks = BlackjackDeck.new(config[:num_decks_in_shoe], @prng)
+      @num_decks = config[:num_decks_in_shoe]
+      @decks = BlackjackDeck.new(num_decks, @prng)
       @discard_pile = Cards::Cards.new(decks)
       shuffle
     end

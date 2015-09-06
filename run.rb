@@ -4,7 +4,7 @@ include Blackjack
 opt_table_seed = ARGV[0] ? {random_seed: ARGV[0].to_i} : {}
 
 table_options = {
-  shoe_class: TwoDeckShoe,
+  shoe_class: SixDeckShoe,
   minimum_bet: 10,
   maximum_bet: 2000
 }.merge(opt_table_seed)

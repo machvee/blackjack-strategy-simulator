@@ -6,13 +6,15 @@ module Blackjack
     attr_reader :doubles
     attr_reader :splits
 
-    counters :insurances, :insurances_won, :insurances_lost, :surrenders, :markers
+    counters :surrenders, :markers
 
     def initialize(player)
       @player = player
-      @hands = HandStats.new("hands")
-      @doubles = HandStats.new("double downs")
-      @splits = HandStats.new("splits")
+
+      @hands = HandStats.new("Hands")
+      @doubles = HandStats.new("Doubles")
+      @splits = HandStats.new("Splits")
+      @insurances = HandStats.new("Insurances")
     end
 
     def reset
@@ -23,7 +25,7 @@ module Blackjack
     end
 
     def print
-      puts "==>  Stats for: #{player.name}"
+      puts "\n%s %s %s" % ["="*16, player.name, '='*16]
       hands.print
       doubles.print
       splits.print
@@ -33,9 +35,11 @@ module Blackjack
     private
 
     def print_misc
-      puts "==>    misc:"
+      return if counters.values.all?(&:zero?)
+      puts "==>   Misc:"
       counters.each_pair do |key, value|
-        puts "==>    %20.20s: %6d" % [key, value]
+        next if value == 0
+        puts "==>     %12.12s: %6d" % [key, value]
       end
     end
   end

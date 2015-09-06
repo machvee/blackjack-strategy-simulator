@@ -840,7 +840,7 @@ module Blackjack
       @dave.join(@table)
       @game_play = GamePlay.new(@table)
       @game_play.run(num_hands: 1)
-      @dave.stats.splits.dealt.count.must_equal(3)
+      @dave.stats.splits.played.count.must_equal(3)
       @dave.stats.splits.won.count.must_equal(1)
       @dave.stats.splits.lost.count.must_equal(1)
       @dave.stats.splits.pushed.count.must_equal(1)
@@ -1254,12 +1254,12 @@ module Blackjack
     end
 
     it "should have stats" do
-      @player.stats.hands.dealt.count.must_equal(0)
+      @player.stats.hands.played.count.must_equal(0)
       @player.stats.hands.won.count.must_equal(0)
       @player.stats.hands.lost.count.must_equal(0)
       @player.stats.hands.busted.count.must_equal(0)
-      @player.stats.hands.ace_up_blackjacks.count.must_equal(0)
-      @player.stats.hands.ten_up_blackjacks.count.must_equal(0)
+      @player.stats.hands.blackjacks_A.count.must_equal(0)
+      @player.stats.hands.blackjacks_10.count.must_equal(0)
     end
 
     it "should be able to join a table" do

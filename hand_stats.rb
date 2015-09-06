@@ -4,7 +4,7 @@ module Blackjack
 
     attr_reader  :name
 
-    counters :dealt, :won, :pushed, :lost, :busted, :ace_up_blackjacks, :ten_up_blackjacks
+    counters :played, :won, :pushed, :lost, :busted, :blackjacks_A, :blackjacks_10
 
     def initialize(name)
       @name = name
@@ -15,10 +15,10 @@ module Blackjack
     end
 
     def print
-      puts "==>  #{name}"
+      puts "==>   #{name}:"
       counters.each_pair do |key, value|
         next if value == 0
-        puts "==>    %20.20s: %6d [%6.2f%%]" % [key, value, value/(dealt.count*1.0) * 100.0]
+        puts "==>     %13.13s: %6d [%6.2f%%]" % [key, value, value/(played.count*1.0) * 100.0]
       end
       puts ""
     end

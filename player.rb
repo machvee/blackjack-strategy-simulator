@@ -65,8 +65,8 @@ module Blackjack
 
     def make_bet(bet_amount, alt_bet_box=nil)
       (alt_bet_box||bet_box).bet(self, bet_amount)
-      stats.hands.dealt.incr
-      table.dealer.stats.dealt.incr
+      stats.hands.played.incr
+      table.dealer.stats.played.incr
       self
     end
 
@@ -95,9 +95,9 @@ module Blackjack
 
     def blackjack(bet_box, up_card)
       if up_card.ace?
-        stats.hands.ace_up_blackjacks.incr
+        stats.hands.blackjacks_A.incr
       else
-        stats.hands.ten_up_blackjacks.incr 
+        stats.hands.blackjacks_10.incr 
       end
       self
     end
@@ -131,15 +131,15 @@ module Blackjack
     end
 
     def make_double_down_bet(bet_box, double_down_bet_amount)
-      stats.doubles.dealt.incr
+      stats.doubles.played.incr
       bank.transfer_to(bet_box.double, double_down_bet_amount)
       self
     end
 
     def make_split_bet(bet_box, bet_amount)
       bet_box.bet(self, bet_amount)
-      stats.hands.dealt.incr
-      table.dealer.stats.dealt.incr
+      stats.hands.played.incr
+      table.dealer.stats.played.incr
       self
     end
 

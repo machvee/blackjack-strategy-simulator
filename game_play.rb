@@ -104,7 +104,7 @@ module Blackjack
 
       has_black_jack = dealer.hand.blackjack?
       if has_black_jack
-        dealer.up_card.ten? ? dealer.stats.ten_up_blackjacks.incr : dealer.stats.ace_up_blackjacks.incr
+        dealer.up_card.ten? ? dealer.stats.blackjacks_10.incr : dealer.stats.blackjacks_A.incr
         dealer.flip_hole_card
         table.insurance.payout_any_insurance_bets
       else
@@ -131,7 +131,8 @@ module Blackjack
 
     def shuffle_check
       if table.shoe.needs_shuffle?
-        table.game_announcer.says("Shuffling [%d]...Marker card placed." % table.shoe.num_shuffles.count)
+        table.game_announcer.says("Shuffling %d Deck Shoe [%d]...Marker card placed." %
+          [table.shoe.num_decks, table.shoe.num_shuffles.count])
         table.shoe.shuffle
         table.shoe.place_marker_card
       end
