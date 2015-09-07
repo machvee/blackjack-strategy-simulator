@@ -545,11 +545,11 @@ module Blackjack
     end
 
     it "should increment the players_seated counter when a player joins" do
-      @table.players_seated.count.must_equal 0
+      @table.stats.players_seated.count.must_equal 0
       @player = MiniTest::Mock.new
       @player.expect(:name, "fugdup", [])
       seat_position = @table.join(@player)
-      @table.players_seated.count.must_equal 1
+      @table.stats.players_seated.count.must_equal 1
       @player.verify
     end
 

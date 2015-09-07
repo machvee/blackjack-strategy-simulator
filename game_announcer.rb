@@ -56,7 +56,7 @@ module Blackjack
         bust_str = dealer.hand.bust? ? " BUST!" : ""
         says "Dealer has " + hand_val_str(dealer.hand) + bust_str
       else
-        says "Hand #{table.rounds_played.count}: Dealer's showing %s %s" % [dealer.showing, dealer.hand]
+        says "Round ##{table.stats.rounds_played.count}: Dealer's showing %s %s" % [dealer.showing, dealer.hand]
       end
     end
 

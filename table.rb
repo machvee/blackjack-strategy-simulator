@@ -21,6 +21,7 @@ require 'player'
 require 'markers'
 require 'game_play'
 require 'game_announcer'
+require 'table_stats'
 
 module Blackjack
   class Table
@@ -48,11 +49,6 @@ module Blackjack
         Random.new_seed
       end
     end
-
-    include CounterMeasures
-
-    counters :players_seated, :rounds_played
-
 
     DEFAULT_HOUSE_BANK_AMOUNT = 1_500_000
     DEFAULT_MAX_SEATS         = 6
@@ -87,6 +83,7 @@ module Blackjack
     attr_reader   :bet_boxes
     attr_reader   :insurance
     attr_reader   :config
+    attr_reader   :stats
     attr_reader   :house
     attr_reader   :game_announcer
     attr_reader   :seed
@@ -107,6 +104,7 @@ module Blackjack
     end
 
     def init_table
+      @stats = TableStats.new(self)
       @house = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
       @cash = Bank.new(0)
       @markers = Markers.new(self)
@@ -156,7 +154,7 @@ module Blackjack
     def seat(seat_position, player)
       seated_players[seat_position] = player
       bet_boxes[seat_position].dedicate_to(player)
-      players_seated.incr
+      stats.players_seated.incr
       seat_position
     end
 
@@ -255,16 +253,12 @@ module Blackjack
     end
 
     def report_stats
-      print_stats
+      stats.print
       puts ""
       dealer.stats.print
       each_player do |player|
         player.stats.print
       end
-    end
-
-    def print_stats
-      puts "==>  rounds played: #{rounds_played.count}"
     end
 
   end

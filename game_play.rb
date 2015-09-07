@@ -56,15 +56,7 @@ module Blackjack
     end
 
     def opening_deal
-      # 
-      # 1. Players have put amounts of money in bet_boxes (or are sitting out) and
-      #    have indicated ready
-      # 2. dealer from his left to right, deals one card face up to each active? bet_box
-      # 3. dealer deals himself one card face up (up-card)
-      # 4. dealer from his left to right, deals one additional card face up to each active bet_box
-      # 5. dealer deals himself one card face down (hole-card)
-      #
-      table.rounds_played.incr
+      table.stats.rounds_played.incr
 
       dealer.deal_one_card_face_up_to_each_active_bet_box
       dealer.deal_up_card
@@ -73,29 +65,6 @@ module Blackjack
     end
 
     def dealer_has_blackjack?
-      #
-      # 1. If the dealers up-card is an Ace:
-      #     a. invokes each active bet_box player's PlayerStrategy#insurance?  Response can be
-      #        YES, NO, or EVEN_MONEY (the player must have 21)
-      #     b. if YES, the player makes an insurance bet up to 1/2 the amount in bet_box in the insurance box
-      #     c. if EVEN_MONEY, dealer pays the player the blackjack payout and player hand is discarded
-      #     d. all players must respond, and when they all have the dealer checks his hole-card and:
-      #     e. If has blackjack:
-      #          - hole-card is turned over
-      #          - each YES gets paid 1-1 and players transfer from table to bank
-      #          - each NO gets bet transferred from table to house
-      #          - all player's hands are discarded
-      #     f. If doesn't have blackjack
-      #          - each YES gets bet transferred from table to house
-      # 2. If the dealers up-card is a 10-point:
-      #     a. dealer checks hole-card, and if Ace, turns over and:
-      #          - if player has natural 21, PUSH, else bet transferred from table to house
-      #          - all player hands are discarded
-      # 3. If the dealer's up-card is not A or 10-point:
-      #     a. check each players hand for blackjack, pay them the BJ payout, and discard the players hand
-      #
-      # returns true if dealer had blackjack, else false
-      #
       if dealer.up_card.ace?
         table.insurance.ask_players_if_they_want_insurance
       elsif !dealer.up_card.ten?
