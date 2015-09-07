@@ -70,8 +70,9 @@ module Blackjack
     def remaining_until_shuffle
       #
       # number of cards remaining in shoe until the marker card is reached
+      # or 0 if beyond marker
       #
-      remaining - (markeroff.nil? ? 0 : markeroff)
+      [0, remaining - (markeroff.nil? ? 0 : markeroff)].max
     end
 
     def discarded

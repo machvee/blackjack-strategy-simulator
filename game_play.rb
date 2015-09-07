@@ -104,7 +104,7 @@ module Blackjack
 
       has_black_jack = dealer.hand.blackjack?
       if has_black_jack
-        dealer.up_card.ten? ? dealer.stats.blackjacks_10.incr : dealer.stats.blackjacks_A.incr
+        dealer.hand_stats.blackjacks.incr
         dealer.flip_hole_card
         table.insurance.payout_any_insurance_bets
       else
@@ -201,20 +201,20 @@ module Blackjack
 
     def pay_any_winners
       dealer_has = dealer.hand.hard_sum
-      dealer.stats.busted.incr if dealer.busted?
+      dealer.hand_stats.busted.incr if dealer.busted?
 
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player
         player_has = bet_box.hand.hard_sum
         if dealer.busted? || player_has > dealer_has
           dealer.player_won(bet_box, Table::EVEN_MONEY_PAYOUT)
-          dealer.stats.lost.incr
+          dealer.hand_stats.lost.incr
         elsif dealer_has > player_has
           dealer.player_lost(bet_box)
-          dealer.stats.won.incr
+          dealer.hand_stats.won.incr
         else
           dealer.player_push(bet_box)
-          dealer.stats.pushed.incr
+          dealer.hand_stats.pushed.incr
         end
         bet_box.discard
       end

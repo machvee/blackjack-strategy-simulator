@@ -840,10 +840,10 @@ module Blackjack
       @dave.join(@table)
       @game_play = GamePlay.new(@table)
       @game_play.run(num_hands: 1)
-      @dave.stats.splits.played.count.must_equal(3)
-      @dave.stats.splits.won.count.must_equal(1)
-      @dave.stats.splits.lost.count.must_equal(1)
-      @dave.stats.splits.pushed.count.must_equal(1)
+      @dave.split_stats.played.count.must_equal(3)
+      @dave.split_stats.won.count.must_equal(1)
+      @dave.split_stats.lost.count.must_equal(1)
+      @dave.split_stats.pushed.count.must_equal(1)
     end
   end
 
@@ -1172,7 +1172,7 @@ module Blackjack
     it "lets the player win a bet" do
       start_bank = @player.bank.balance
       bet_amt = 50
-      @bet_box.bet(@player, bet_amt)
+      @player.make_bet(bet_amt)
       @bet_box.box.credit(bet_amt)
       @player.won_bet(@bet_box)
       @bet_box.box.balance.must_equal(0)
@@ -1181,7 +1181,7 @@ module Blackjack
 
     it "allows a player to split the hand" do
       bet_amt = 50
-      @bet_box.bet(@player, bet_amt)
+      @player.make_bet(bet_amt)
       @player.bet_box.hand.set('8D', '8H')
       @bet_box.split
       @bet_box.split?.must_equal(true) # this hand was split
@@ -1251,15 +1251,6 @@ module Blackjack
 
     it "should have an initial zero balance bank" do
       @player.bank.balance.must_equal 0
-    end
-
-    it "should have stats" do
-      @player.stats.hands.played.count.must_equal(0)
-      @player.stats.hands.won.count.must_equal(0)
-      @player.stats.hands.lost.count.must_equal(0)
-      @player.stats.hands.busted.count.must_equal(0)
-      @player.stats.hands.blackjacks_A.count.must_equal(0)
-      @player.stats.hands.blackjacks_10.count.must_equal(0)
     end
 
     it "should be able to join a table" do

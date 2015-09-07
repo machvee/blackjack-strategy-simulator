@@ -81,7 +81,7 @@ module Blackjack
 
     def initialize(table)
       @table = table
-      @stats = HandStats.new("Dealer")
+      @stats = HistoHandStats.new("Dealer")
       @validator = StrategyValidator.new(table)
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
       @hand = table.new_dealer_hand
@@ -210,6 +210,10 @@ module Blackjack
 
     def hole_card
       hand.hole_card
+    end
+
+    def hand_stats
+      stats.stats_for(table.shoe.current_ten_percentage)
     end
 
     private
