@@ -107,7 +107,7 @@ module Blackjack
     end
 
     def inspect
-      self.class.name
+      decks.inspect
     end
 
     private
