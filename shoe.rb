@@ -7,7 +7,6 @@ module Blackjack
 
     attr_reader  :num_decks
     attr_reader  :decks
-    attr_reader  :markeroff
     attr_reader  :config
     attr_reader  :discard_pile
 
@@ -23,9 +22,8 @@ module Blackjack
 
     def initialize(options={})
       @config = DEFAULT_OPTIONS.merge(options)
-      @prng = config[:random]
       @num_decks = config[:num_decks_in_shoe]
-      @decks = BlackjackDeck.new(num_decks, @prng)
+      @decks = BlackjackDeck.new(num_decks, config)
       @discard_pile = Cards::Cards.new(decks)
       shuffle
     end
@@ -39,17 +37,11 @@ module Blackjack
     end
 
     def place_marker_card(marker_offset=nil)
-      #
-      # marker_offset is the number of cards from the *back of the deck to place
-      # the marker card.  A specific marker_offset must be valid.
-      #
-      @markeroff = marker_offset||random_marker_offset
-      raise "invalid marker card placement [#{marker_card_placement_range}]" unless valid_marker_offset?(markeroff)
-      markeroff
+      decks.place_marker_card(marker_offset) 
     end
 
     def needs_shuffle?
-      @force_shuffle || beyond_marker?
+      @force_shuffle || decks.beyond_marker?
     end
 
     def deal_one_up(destination)
@@ -72,7 +64,7 @@ module Blackjack
       # number of cards remaining in shoe until the marker card is reached
       # or 0 if beyond marker
       #
-      [0, remaining - (markeroff.nil? ? 0 : markeroff)].max
+      decks.remaining_until_shuffle
     end
 
     def discarded
@@ -84,7 +76,7 @@ module Blackjack
 
     def shuffle
       discard_pile.fold # brings discards back in to decks
-      remove_marker_card
+      decks.remove_marker_card
       decks.shuffle_up(config[:split_and_shuffles])
       num_shuffles.incr
       @force_shuffle = false
@@ -92,7 +84,7 @@ module Blackjack
     end
 
     def counts
-      decks.counts(markeroff)
+      decks.counts
     end
 
     def current_ten_percentage
@@ -112,56 +104,7 @@ module Blackjack
 
     private
 
-    def valid_marker_offset?(marker_offset)
-      marker_card_placement_range.include?(marker_offset)
-    end
-
-    def remove_marker_card
-      @markeroff = nil
-    end
-
-    def beyond_marker?
-      #
-      # if the marker was never placed, the marker is the
-      # end of the deck
-      #
-      markeroff && (decks.count < markeroff)
-    end
-
-    def marker_card_placement_range
-      #
-      # return an offset that is equal to the number of cards behind the
-      # marker card
-      #                +0.05   -0.05
-      #    +---------------------------+
-      #    |             |  25%  |     |
-      #    +-----------------+---------+
-      #                markeroff range
-      #
-      @_mcp_range ||= (
-        #
-        # e.g.
-        #   2 Decks shoe
-        #   num_cards = 104
-        #   marker_off_cetner = (104 * 0.25).floor = 26
-        #   offset = (104 * 0.05).floor = 5
-        #   (26-5)..(26+5)
-        #
-        #   21..31 is the valid marker_card_placement_range
-        #
-        num_cards = decks.length
-        marker_off_center = (num_cards * config[:marker_card_segment]).floor
-        offset = (num_cards * config[:marker_card_offset]).floor
-        (marker_off_center - offset)..(marker_off_center + offset)
-      )
-    end
-
-    def random_marker_offset
-      @prng.rand(marker_card_placement_range)
-    end
-
     def deal_one(destination, orientation)
-      raise "needs marker card placed" if @markeroff.nil?
       decks.deal(destination, 1, orientation)
       cards_dealt.incr
       self
@@ -205,7 +148,7 @@ module Blackjack
       # is played
       #
       shuffle
-      place_marker_card
+      decks.place_marker_card
       false
     end
   end

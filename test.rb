@@ -1839,7 +1839,7 @@ module Blackjack
 
     it "should have a functioning random cut card somewhere past half the deck" do
       @shoe.place_marker_card
-      @shoe.markeroff.must_be :<, @shoe.remaining/3
+      @shoe.decks.markeroff.must_be :<, @shoe.remaining/3
     end
 
     it "should not need shuffle upon initial cut card placement" do
@@ -1859,7 +1859,7 @@ module Blackjack
       @custom_shoe.shuffle
       100.times {
         @custom_shoe.place_marker_card
-        @custom_shoe.markeroff.must_be :<=, @shoe.remaining/4
+        @custom_shoe.decks.markeroff.must_be :<=, @shoe.remaining/4
       }
       @custom_shoe.remaining.must_equal (@num_decks*52)
     end
@@ -1867,14 +1867,14 @@ module Blackjack
     it "should let the cut card be placed at a specific offset" do
       @my_offset = 84
       @shoe.place_marker_card(@my_offset)
-      @shoe.markeroff.must_equal @my_offset
+      @shoe.decks.markeroff.must_equal @my_offset
     end
 
     it "shuffle up should set markeroff to nil" do
       @shoe.place_marker_card
-      @shoe.markeroff.must_be :>, 0
+      @shoe.decks.markeroff.must_be :>, 0
       @shoe.shuffle
-      @shoe.markeroff.must_equal nil
+      @shoe.decks.markeroff.must_equal nil
     end
 
     it "should allow a force_shuffle to be invoked, causing needs_shuffle? to be true" do
@@ -1952,7 +1952,7 @@ module Blackjack
 
     it "should deal cards and report needs_shuffle? true when reached cut card" do
       @shoe.place_marker_card
-      deal_this_many = @shoe.remaining - @shoe.markeroff 
+      deal_this_many = @shoe.remaining - @shoe.decks.markeroff 
       deal_this_many.times do
         @destination = MiniTest::Mock.new
         top_card = @shoe.decks.first
