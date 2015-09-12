@@ -255,7 +255,7 @@ module Blackjack
     def report_stats
       stats.print
       puts ""
-      dealer.stats.print
+      dealer.print_stats
       each_player do |player|
         player.stats.print
       end

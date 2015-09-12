@@ -15,8 +15,7 @@ module Blackjack
       reset_counters
     end
 
-    def print
-      puts "==>   #{name}:"
+    def print(key=nil)
       counters.each_pair do |key, value|
         next if value == 0
         puts "==>     %13.13s: %6d [%6.2f%%]" % [key, value, value/(played.count*1.0) * 100.0]

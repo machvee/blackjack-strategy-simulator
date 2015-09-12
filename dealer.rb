@@ -71,8 +71,6 @@ module Blackjack
 
     end
 
-    include CounterMeasures
-
     attr_accessor   :hand
     attr_reader     :table
     attr_reader     :money
@@ -214,6 +212,11 @@ module Blackjack
 
     def hand_stats
       stats.stats_for(table.shoe.current_ten_percentage)
+    end
+
+    def print_stats
+      puts "==> ========== Dealer ==========="
+      stats.print
     end
 
     private
