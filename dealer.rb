@@ -76,6 +76,7 @@ module Blackjack
     attr_reader     :money
     attr_reader     :soft_hit_limit
     attr_reader     :stats
+    attr_reader     :shoe
 
     def initialize(table)
       @table = table
@@ -83,6 +84,7 @@ module Blackjack
       @validator = StrategyValidator.new(table)
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
       @hand = table.new_dealer_hand
+      @shoe = table.shoe
       @money = MoneyHandler.new(table, self)
     end
 
@@ -94,11 +96,12 @@ module Blackjack
     end
 
     def deal_card_face_up_to(bet_box)
-      table.shoe.deal_one_up(bet_box.hand)
+      shoe.deal_one_up(bet_box.hand)
     end
 
     def deal_up_card
-      table.shoe.deal_one_up(hand)
+      shoe.hands_dealt.incr
+      shoe.deal_one_up(hand)
       self
     end
 
@@ -107,7 +110,7 @@ module Blackjack
     end
 
     def deal_hole_card
-      table.shoe.deal_one_down(hand)
+      shoe.deal_one_down(hand)
       self
     end
 
@@ -118,7 +121,7 @@ module Blackjack
     end
 
     def deal_card_to_hand
-      table.shoe.deal_one_up(hand)
+      shoe.deal_one_up(hand)
       table.game_announcer.dealer_hand_status
       self
     end
@@ -211,7 +214,7 @@ module Blackjack
     end
 
     def hand_stats
-      stats.stats_for(table.shoe.current_ten_percentage)
+      stats.stats_for(shoe.current_ten_percentage)
     end
 
     def print_stats

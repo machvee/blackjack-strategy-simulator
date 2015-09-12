@@ -57,6 +57,7 @@ module Blackjack
       #
       bet_box_right.bet(player, bet_amount, parent_bet_box.box)
       player.split_stats.played.incr
+      bet_box_right.table.shoe.hands_dealt.incr
     end
 
     def new_hand_from_parent

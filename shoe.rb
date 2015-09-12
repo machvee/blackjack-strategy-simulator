@@ -11,6 +11,7 @@ module Blackjack
     attr_reader  :discard_pile
 
     counters  :num_shuffles, :cards_dealt
+    measures  :hands_dealt
 
     DEFAULT_OPTIONS = {
       marker_card_segment: 0.25, # marker_offset must be in this last % of the deck
@@ -75,7 +76,8 @@ module Blackjack
     end
 
     def shuffle
-      discard_pile.fold # brings discards back in to decks
+      hands_dealt.commit
+      discard_pile.fold
       decks.remove_marker_card
       decks.shuffle_up(config[:split_and_shuffles])
       num_shuffles.incr

@@ -6,6 +6,10 @@ module Blackjack
     attr_reader   :dealer
     attr_reader   :players
 
+    include CounterMeasures
+
+    counters :hands_dealt
+
     def initialize(table, options={})
       @table =  table
       @dealer = table.dealer
@@ -13,28 +17,21 @@ module Blackjack
     end
 
     def run(options={})
-      @hand_count = 0
-      @num_hands = (options[:num_hands]||"10000").to_i
+      num_hands = (options[:num_hands]||"10000").to_i
+      hands_dealt.reset
       begin
-        table.game_announcer.says("Hands: #@num_hands, Seed: #{table.seed}")
+        table.game_announcer.says("Hands: #{num_hands}, Seed: #{table.seed}")
         while players_at_table?
           shuffle_check
           announce_game_state
           wait_for_player_bets
           play_a_hand_of_blackjack if any_player_bets?
-
-          @hand_count += 1
-          reset
-          break if @hand_count == @num_hands
+          break if hands_dealt.count == num_hands
         end
         exit_run
       rescue StrategyQuitter => q
         exit_run("Run aborted")
       end
-    end
-
-    def reset
-      table.bet_boxes.reset
     end
 
     def exit_run(msg="Run complete")
@@ -44,6 +41,7 @@ module Blackjack
     end
 
     def play_a_hand_of_blackjack
+      hands_dealt.incr
       opening_deal
       announce_hands
 
@@ -53,10 +51,13 @@ module Blackjack
         dealer_plays_hand
       end
       pay_any_winners
+      reset
     end
 
     def opening_deal
       table.stats.rounds_played.incr
+
+      table.bet_boxes.each_active {|b| table.shoe.hands_dealt.incr}
 
       dealer.deal_one_card_face_up_to_each_active_bet_box
       dealer.deal_up_card
@@ -100,8 +101,8 @@ module Blackjack
 
     def shuffle_check
       if table.shoe.needs_shuffle?
-        table.game_announcer.says("Shuffling %d Deck Shoe [%d]...Marker card placed." %
-          [table.shoe.num_decks, table.shoe.num_shuffles.count])
+        table.game_announcer.says("Shuffling %d Deck Shoe [%d] after %d hands...Marker card placed." %
+          [table.shoe.num_decks, table.shoe.num_shuffles.count, table.shoe.hands_dealt.tally])
         table.shoe.shuffle
         table.shoe.place_marker_card
       end
@@ -188,6 +189,10 @@ module Blackjack
         bet_box.discard
       end
       dealer.discard_hand
+    end
+
+    def reset
+      table.bet_boxes.reset
     end
 
     def dealer_plays_hand
