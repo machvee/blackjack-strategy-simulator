@@ -88,6 +88,14 @@ module Blackjack
       @money = MoneyHandler.new(table, self)
     end
 
+    def deal_first_up_card_to_each_active_bet_box
+      table.bet_boxes.each_active do |bet_box|
+        table.shoe.hands_dealt.incr
+        deal_card_face_up_to(bet_box)
+      end
+      self
+    end
+
     def deal_one_card_face_up_to_each_active_bet_box
       table.bet_boxes.each_active do |bet_box|
         deal_card_face_up_to(bet_box)

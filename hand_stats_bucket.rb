@@ -15,11 +15,13 @@ module Blackjack
     attr_reader :min
     attr_reader :max
     attr_reader :stats
+    attr_reader :range_string
 
     def initialize(name, min, max)
       @name = name
       @min = min
       @max = max
+      @range_string = "( %s - %s )" % ["%d" % min,"%d" % max]
       @stats = HandStats.new(name)
     end
 
@@ -29,13 +31,6 @@ module Blackjack
 
     def reset
       stats.reset
-    end
-
-    def print
-      return if stats.none?
-      puts "==> %s [%5.1f-%5.1f]" % [name, min, max]
-      stats.print
-      puts ""
     end
   end
 end

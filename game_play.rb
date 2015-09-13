@@ -57,9 +57,7 @@ module Blackjack
     def opening_deal
       table.stats.rounds_played.incr
 
-      table.bet_boxes.each_active {|b| table.shoe.hands_dealt.incr}
-
-      dealer.deal_one_card_face_up_to_each_active_bet_box
+      dealer.deal_first_up_card_to_each_active_bet_box
       dealer.deal_up_card
       dealer.deal_one_card_face_up_to_each_active_bet_box
       dealer.deal_hole_card

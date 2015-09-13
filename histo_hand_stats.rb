@@ -26,34 +26,31 @@ module Blackjack
     end
 
     def print
-      buckets.each {|b| b.print}
-      puts "="*25
-      print_totals
-    end
-
-    def totals
-      total_counters = Hash.new(0)
-      buckets.each do |b|
-        b.stats.counters.each_pair do |k,v|
-          total_counters[k] += v
+      puts print_header
+      played_total = totals_for(:played)
+      all_keys.each do |key|
+        line = "%13.13s" % key
+        buckets.each do |bucket|
+          line << bucket.stats.print_stat(key) + (" "*6)
         end
+        line << HandStats.format_stat(totals_for(key), played_total)
+        puts line
       end
-      total_counters
     end
 
-    def print_totals
-      t = totals
-      played = totals[:played]
-      return if played == 0
-      puts "==>   Total #{name}:"
-      t.each_pair do |key, value|
-        next if value == 0
-        puts "==>     %13.13s: %6d [%6.2f%%]" % [key, value, value/(played*1.0) * 100.0]
-      end
-      puts ""
+    def totals_for(key)
+      buckets.inject(0) {|counter, b| counter += b.stats.counters[key]}
     end
 
     private
+
+    def all_keys
+      @_ak ||= buckets.first.stats.counters.keys
+    end
+
+    def print_header
+      @_hdr ||= ("\n%-20.20s" % name.upcase) + buckets.inject([]) {|h, b| h << b.range_string}.push("  Total  ").join(" "*12)
+    end
 
     def new_bucket(index)
       bucket_range = MAX_RANGE / num_buckets
