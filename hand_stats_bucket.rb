@@ -26,7 +26,7 @@ module Blackjack
     end
 
     def within?(value)
-      min <= value && max >= value
+      value <= max
     end
 
     def reset

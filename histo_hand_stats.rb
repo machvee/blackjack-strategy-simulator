@@ -11,7 +11,7 @@ module Blackjack
     def initialize(name, num_buckets=DFLT_NUM_BUCKETS)
       @name = name
       @num_buckets = num_buckets
-      @buckets = Array.new(num_buckets+1) {|i| new_bucket(i)}
+      @buckets = Array.new(num_buckets) {|i| new_bucket(i)}
     end
 
     def stats_for(value)
@@ -54,7 +54,7 @@ module Blackjack
 
     def new_bucket(index)
       bucket_range = MAX_RANGE / num_buckets
-      HandStatsBucket.new(name, index*bucket_range, ((index+1)*bucket_range)-0.01)
+      HandStatsBucket.new(name, index*bucket_range, ((index+1)*bucket_range))
     end
   end
 end
