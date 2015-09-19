@@ -31,6 +31,13 @@ module Blackjack
     end
   end
 
+  class RoundsPlayedGameAnnouncer < GameAnnouncer
+    def overview
+      r = table.stats.rounds_played.count
+      puts r if r % 1000 == 0
+    end
+  end
+
   class StdoutGameAnnouncer < GameAnnouncer
     def overview
       remaining = table.shoe.remaining_until_shuffle
