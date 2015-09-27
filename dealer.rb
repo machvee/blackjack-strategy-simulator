@@ -226,7 +226,7 @@ module Blackjack
     end
 
     def print_stats
-      puts "==> ========== Dealer ==========="
+      puts ("*"*10) + " DEALER " + ("*"*10)
       stats.print
     end
 

@@ -4,14 +4,18 @@ module Blackjack
     attr_reader  :num_buckets
     attr_reader  :buckets
 
-    DFLT_NUM_BUCKETS = 5
+    DFLT_BUCKETS = [
+       [0,20],    # low % of 10's remaining in deck
+       [20,40],   # avg % of 10's remaining in deck
+       [40,100]   # higher % of 10's remaining in deck
+    ]
     MIN_RANGE=0.0
     MAX_RANGE=100.0
 
-    def initialize(name, num_buckets=DFLT_NUM_BUCKETS)
+    def initialize(name, bucket_ranges=DFLT_BUCKETS)
       @name = name
-      @num_buckets = num_buckets
-      @buckets = Array.new(num_buckets) {|i| new_bucket(i)}
+      @num_buckets = bucket_ranges.length
+      @buckets = Array.new(num_buckets) {|i| new_bucket(*bucket_ranges[i])}
     end
 
     def stats_for(value)
@@ -26,8 +30,10 @@ module Blackjack
     end
 
     def print
-      puts print_header
       played_total = totals_for(:played)
+      return if played_total.zero?
+
+      puts print_header
       all_keys.each do |key|
         line = "%13.13s" % key
         buckets.each do |bucket|
@@ -52,9 +58,8 @@ module Blackjack
       @_hdr ||= ("\n%-20.20s" % name.upcase) + buckets.inject([]) {|h, b| h << b.range_string}.push("  Total  ").join(" "*12)
     end
 
-    def new_bucket(index)
-      bucket_range = MAX_RANGE / num_buckets
-      HandStatsBucket.new(name, index*bucket_range, ((index+1)*bucket_range))
+    def new_bucket(min, max)
+      HandStatsBucket.new(name, min, max)
     end
   end
 end

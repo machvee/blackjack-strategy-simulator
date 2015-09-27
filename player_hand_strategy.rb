@@ -65,6 +65,26 @@ module Blackjack
       @config = DEFAULT_OPTIONS.merge(options)
     end
 
+    def new_hand
+      #
+      # hook for player to initialize stats, etc.
+      #
+      self
+    end
+
+    def outcome(win_lose_push, dealer_hand)
+      #
+      # win_lose_push:
+      #   Action::WON
+      #   Action::LOST
+      #   Action::PUSH
+      #
+      # dealer_hand:
+      #  allow player to examine dealers hand and to record stats, etc
+      #
+      self
+    end
+
     def num_bets
       #
       # Invoked for available_for(player) bet_boxes which lets players make one or more bets
@@ -116,19 +136,6 @@ module Blackjack
       #   Action::SPLIT
       #   Action::DOUBLE_DOWN
       #
-    end
-
-    def outcome(win_lose_push, dealer_hand)
-      #
-      # win_lose_push:
-      #   Action::WON
-      #   Action::LOST
-      #   Action::PUSH
-      #
-      # dealer_hand:
-      #  allow player to examine dealers hand
-      #
-      self
     end
 
     def error(strategy_step, message)

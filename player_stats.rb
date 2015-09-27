@@ -28,7 +28,7 @@ module Blackjack
     end
 
     def print
-      puts "\n%s %s %s" % ["="*16, player.name, '='*16]
+      puts "\n%s %s %s" % ["="*16, player.name.upcase, '='*16]
 
       hands.print
       doubles.print

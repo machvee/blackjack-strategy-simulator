@@ -1,4 +1,13 @@
 module Blackjack
+
+  class StrategyTableStats
+    #
+    # maintain chains of decisions as the StrategyTable is used throughout
+    # player hand play until the outcome is determined.  Then update the
+    # stats of each link in the chain with the outcome (won, lost, bust, push)
+    #
+  end
+
   class StrategyTable
     #
     # pass in a custom strategy table (in the exact format below), or
