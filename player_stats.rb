@@ -54,7 +54,7 @@ module Blackjack
     end
 
     def insurance_stats
-      stats.insurances.stats_for(current_ten_percentage)
+      insurances.stats_for(current_ten_percentage)
     end
 
     private

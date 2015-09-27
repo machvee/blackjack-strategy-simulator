@@ -1,9 +1,8 @@
 module Blackjack
+
   class Insurance
     attr_reader   :table
     attr_reader   :dealer
-
-    INSURANCE_PAYOUT = [2,1]
 
     def initialize(table)
       @table = table
@@ -37,7 +36,7 @@ module Blackjack
     def payout_any_insurance_bets
       table.bet_boxes.each_active do |bet_box|
         if bet_box.insurance.balance > 0
-          winnings = dealer.pay_insurance(bet_box)
+          winnings = dealer.money.pay_insurance(bet_box)
           table.game_announcer.hand_outcome(bet_box, Outcome::INSURANCE_WON, winnings)
           bet_box.player.won_insurance_bet(bet_box)
         end

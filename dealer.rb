@@ -44,7 +44,7 @@ module Blackjack
         pay_account(bet_box.double, payout_odds)
       end
 
-      def collect_insurance(bet_box)
+      def collect_insurance_bet(bet_box)
         collect_house_winnings(bet_box.insurance)
       end
 

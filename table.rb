@@ -58,6 +58,8 @@ module Blackjack
     DEFAULT_MAX_PLAYER_BETS   = 3
     EVEN_MONEY_PAYOUT         = [1,1]
     DEFAULT_BLACKJACK_PAYOUT  = [3,2]
+    INSURANCE_PAYOUT          = [2,1]
+
     DEFAULT_DOUBLE_DOWN_ON    = []  # [] means ANY. or [9,10,11] or [10,11]
 
     DEFAULT_CONFIG = {

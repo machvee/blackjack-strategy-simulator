@@ -33,7 +33,7 @@ module Blackjack
     end
 
     def insurance_bet_amount(bet_box)
-      0
+      bet_box.bet_amount/2
     end
 
     def double_down_bet_amount(bet_box)
@@ -41,7 +41,7 @@ module Blackjack
     end
 
     def insurance?(bet_box)
-      bet_box.hand.blackjack? ? Action::EVEN_MONEY : Action::NO_INSURANCE
+      bet_box.hand.blackjack? ? Action::EVEN_MONEY : Action::INSURANCE
     end
 
     def decision(bet_box, dealer_up_card, other_hands=[])
