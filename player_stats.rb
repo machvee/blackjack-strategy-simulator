@@ -7,6 +7,8 @@ module Blackjack
     attr_reader :splits
     attr_reader :insurances
 
+    attr_accessor :current_ten_percentage
+
     counters :surrenders, :markers
 
     def initialize(player)
@@ -16,6 +18,7 @@ module Blackjack
       @doubles = HistoHandStats.new("Doubles")
       @splits = HistoHandStats.new("Splits")
       @insurances = HistoHandStats.new("Insurances")
+      @current_ten_percentage = 0.0
     end
 
     def reset
@@ -36,6 +39,22 @@ module Blackjack
       insurances.print
 
       print_misc
+    end
+
+    def double_stats
+      doubles.stats_for(current_ten_percentage)
+    end
+
+    def split_stats
+      splits.stats_for(current_ten_percentage)
+    end
+
+    def hand_stats
+      hands.stats_for(current_ten_percentage)
+    end
+
+    def insurance_stats
+      stats.insurances.stats_for(current_ten_percentage)
     end
 
     private

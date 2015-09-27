@@ -72,7 +72,7 @@ module Blackjack
       self
     end
 
-    def outcome(win_lose_push, dealer_hand)
+    def outcome(win_lose_push, dealer_hand, amount)
       #
       # win_lose_push:
       #   Action::WON
@@ -81,6 +81,9 @@ module Blackjack
       #
       # dealer_hand:
       #  allow player to examine dealers hand and to record stats, etc
+      #
+      # amount
+      #   +/- amount this hand won/lost the player
       #
       self
     end

@@ -13,7 +13,7 @@ announcer_class = (num_hands > 25000 ? RoundsPlayedGameAnnouncer : StdoutGameAnn
 
 
 table_options = {
-  shoe_class: TwoDeckShoe,
+  shoe_class: SixDeckShoe,
   minimum_bet: 25,
   maximum_bet: 5000
 }.merge(opt_table_seed).merge(game_announcer_class: announcer_class)

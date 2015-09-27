@@ -840,10 +840,10 @@ module Blackjack
       @dave.join(@table)
       @game_play = GamePlay.new(@table)
       @game_play.run(num_hands: 1)
-      @dave.split_stats.played.count.must_equal(3)
-      @dave.split_stats.won.count.must_equal(1)
-      @dave.split_stats.lost.count.must_equal(1)
-      @dave.split_stats.pushed.count.must_equal(1)
+      @dave.stats.split_stats.played.count.must_equal(3)
+      @dave.stats.split_stats.won.count.must_equal(1)
+      @dave.stats.split_stats.lost.count.must_equal(1)
+      @dave.stats.split_stats.pushed.count.must_equal(1)
     end
   end
 

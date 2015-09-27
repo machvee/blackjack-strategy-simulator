@@ -53,6 +53,10 @@ module Blackjack
       !(dedicated? || active?)
     end
 
+    def total_player_bet
+      bet_amount + double.balance
+    end
+
     def active?
       #
       # A player has a bet in this bet box

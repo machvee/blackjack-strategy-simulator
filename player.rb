@@ -65,37 +65,37 @@ module Blackjack
 
     def make_bet(bet_amount, alt_bet_box=nil)
       (alt_bet_box||bet_box).bet(self, bet_amount)
-      @start_tens_percentage = table.shoe.current_ten_percentage
-      hand_stats.played.incr
+      stats.current_ten_percentage = table.shoe.current_ten_percentage
+      stats.hand_stats.played.incr
       table.dealer.hand_stats.played.incr
       self
     end
 
     def won_bet(bet_box)
-      double_stats.won.incr if bet_box.double_down?
+      stats.double_stats.won.incr if bet_box.double_down?
       bet_box.take_winnings
-      hand_stats.won.incr
-      split_stats.won.incr if bet_box.from_split?
+      stats.hand_stats.won.incr
+      stats.split_stats.won.incr if bet_box.from_split?
       self
     end
 
     def lost_bet(bet_box)
-      hand_stats.lost.incr
-      split_stats.lost.incr if bet_box.from_split?
-      double_stats.lost.incr if bet_box.double_down?
+      stats.hand_stats.lost.incr
+      stats.split_stats.lost.incr if bet_box.from_split?
+      stats.double_stats.lost.incr if bet_box.double_down?
       self
     end
 
     def push_bet(bet_box)
-      double_stats.pushed.incr if bet_box.double_down?
+      stats.double_stats.pushed.incr if bet_box.double_down?
       bet_box.take_down_bet
-      hand_stats.pushed.incr
-      split_stats.pushed.incr if bet_box.from_split?
+      stats.hand_stats.pushed.incr
+      stats.split_stats.pushed.incr if bet_box.from_split?
       self
     end
 
     def blackjack(bet_box, up_card)
-      hand_stats.blackjacks.incr
+      stats.hand_stats.blackjacks.incr
       self
     end
 
@@ -105,37 +105,37 @@ module Blackjack
     end
 
     def busted(bet_box)
-      hand_stats.busted.incr
-      split_stats.busted.incr if bet_box.from_split?
+      stats.hand_stats.busted.incr
+      stats.split_stats.busted.incr if bet_box.from_split?
       self
     end
 
     def make_insurance_bet(bet_box, bet_amount)
       bet_box.insurance_bet(bet_amount)
-      insurance_stats.played.incr
+      stats.insurance_stats.played.incr
       self
     end
 
     def won_insurance_bet(bet_box)
       bet_box.take_insurance
-      insurance_stats.won.incr
+      stats.insurance_stats.won.incr
       self
     end
 
     def lost_insurance_bet(bet_box)
-      insurance_stats.lost.incr
+      stats.insurance_stats.lost.incr
       self
     end
 
     def make_double_down_bet(bet_box, double_down_bet_amount)
-      double_stats.played.incr
+      stats.double_stats.played.incr
       bank.transfer_to(bet_box.double, double_down_bet_amount)
       self
     end
 
     def make_split_bet(bet_box, bet_amount)
       bet_box.bet(self, bet_amount)
-      hand_stats.played.incr
+      stats.hand_stats.played.incr
       table.dealer.hand_stats.played.incr
       self
     end
@@ -162,22 +162,6 @@ module Blackjack
       return "EVEN" if amt.zero?
       return "+$#{amt}" if amt > 0
       return "-$#{amt.abs}"
-    end
-
-    def double_stats
-      stats.doubles.stats_for(@start_tens_percentage)
-    end
-
-    def split_stats
-      stats.splits.stats_for(@start_tens_percentage)
-    end
-
-    def hand_stats
-      stats.hands.stats_for(@start_tens_percentage)
-    end
-
-    def insurance_stats
-      stats.insurances.stats_for(@start_tens_percentage)
     end
 
   end
