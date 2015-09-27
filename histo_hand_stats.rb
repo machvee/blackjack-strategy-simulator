@@ -35,11 +35,14 @@ module Blackjack
 
       puts print_header
       all_keys.each do |key|
+        key_total = totals_for(key)
+        next if key_total.zero?
+
         line = "%13.13s" % key
         buckets.each do |bucket|
           line << bucket.stats.print_stat(key) + (" "*6)
         end
-        line << HandStats.format_stat(totals_for(key), played_total)
+        line << HandStats.format_stat(key_total, played_total)
         puts line
       end
     end

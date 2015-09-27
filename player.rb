@@ -65,8 +65,7 @@ module Blackjack
 
     def make_bet(bet_amount, bet_box=default_bet_box)
       #
-      # called everytime a player puts money in a bet_box. For the 
-      # start bet and for one side of split bets
+      # called every time a player puts money in a bet_box at the start of a round
       #
       bet_box.bet(self, bet_amount)
       stats.current_ten_percentage = table.shoe.current_ten_percentage
@@ -134,13 +133,6 @@ module Blackjack
     def make_double_down_bet(bet_box, double_down_bet_amount)
       stats.double_stats.played.incr
       bank.transfer_to(bet_box.double, double_down_bet_amount)
-      self
-    end
-
-    def make_split_bet(bet_amount, bet_box)
-      bet_box.bet(self, bet_amount)
-      stats.hand_stats.played.incr
-      table.dealer.hand_stats.played.incr
       self
     end
 
