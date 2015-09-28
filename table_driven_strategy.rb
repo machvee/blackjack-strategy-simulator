@@ -41,7 +41,7 @@ module Blackjack
     end
 
     def insurance?(bet_box)
-      bet_box.hand.blackjack? ? Action::EVEN_MONEY : Action::INSURANCE
+      bet_box.hand.blackjack? ? Action::EVEN_MONEY : Action::NO_INSURANCE
     end
 
     def decision(bet_box, dealer_up_card, other_hands=[])

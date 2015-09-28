@@ -22,6 +22,7 @@ require 'markers'
 require 'game_play'
 require 'game_announcer'
 require 'table_stats'
+require 'decision_chain'
 
 module Blackjack
   class Table

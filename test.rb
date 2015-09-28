@@ -1174,7 +1174,7 @@ module Blackjack
       bet_amt = 50
       @player.make_bet(bet_amt)
       @bet_box.box.credit(bet_amt)
-      @player.won_bet(@bet_box)
+      @player.won_bet(@bet_box, bet_amt)
       @bet_box.box.balance.must_equal(0)
       @player.bank.balance.must_equal(start_bank + bet_amt)
     end

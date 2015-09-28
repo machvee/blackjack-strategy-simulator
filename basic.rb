@@ -14,14 +14,14 @@ announcer_class = (num_hands > 25000 ? RoundsPlayedGameAnnouncer : StdoutGameAnn
 
 table_options = {
   shoe_class: SixDeckShoe,
-  minimum_bet: 25,
-  maximum_bet: 5000
+  minimum_bet: 10,
+  maximum_bet: 2000
 }.merge(opt_table_seed).merge(game_announcer_class: announcer_class)
 
 player_options = {
   strategy_class: BasicStrategy,
   strategy_options: {num_bets: opt_num_bets},
-  start_bank: 2500
+  start_bank: 1000
 }
 
 @table = Table.new("Aria High Roller Table", table_options)

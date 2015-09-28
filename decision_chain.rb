@@ -1,15 +1,24 @@
 module Blackjack
-  class DecisionLink
-    def initialize
-    end
 
+  class DecisionLink
     def outcome(result, amount)
+      # result:
+      #   Outcome::WON
+      #   Outcome::LOST
+      #   Outcome::PUSH
+      #   Outcome::BUST
+      #
+      # amount player has won (winnings only) or lost (total bet amount)
+      #
     end
   end
 
   class DecisionChain
     attr_reader  :chain
-    def initialize
+    attr_reader  :player
+
+    def initialize(player)
+      @player = player
       @chain = []
     end
 

@@ -7,7 +7,7 @@ module Blackjack
     attr_reader :splits
     attr_reader :insurances
 
-    attr_accessor :current_ten_percentage
+    attr_reader :current_ten_percentage
 
     counters :surrenders, :markers
 
@@ -28,6 +28,11 @@ module Blackjack
       doubles.reset
       splits.reset
       insurances.reset
+    end
+
+    def init_hand
+      @current_ten_percentage = player.table.shoe.current_ten_percentage
+      @current_chain = DecisionChain.new(player)
     end
 
     def print

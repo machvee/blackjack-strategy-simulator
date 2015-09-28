@@ -68,14 +68,15 @@ module Blackjack
       # called every time a player puts money in a bet_box at the start of a round
       #
       bet_box.bet(self, bet_amount)
-      stats.current_ten_percentage = table.shoe.current_ten_percentage
+      stats.init_hand
       stats.hand_stats.played.incr
       table.dealer.hand_stats.played.incr
       self
     end
 
-    def won_bet(bet_box)
+    def won_bet(bet_box, winnings)
       stats.double_stats.won.incr if bet_box.double_down?
+      stats.hand_stats.amount.add(winnings)
       bet_box.take_winnings
       stats.hand_stats.won.incr
       stats.split_stats.won.incr if bet_box.from_split?
@@ -84,8 +85,16 @@ module Blackjack
 
     def lost_bet(bet_box)
       stats.hand_stats.lost.incr
+      stats.hand_stats.amount.sub(bet_box.total_player_bet)
       stats.split_stats.lost.incr if bet_box.from_split?
       stats.double_stats.lost.incr if bet_box.double_down?
+      self
+    end
+
+    def busted(bet_box)
+      stats.hand_stats.busted.incr
+      stats.split_stats.busted.incr if bet_box.from_split?
+      stats.hand_stats.amount.sub(bet_box.total_player_bet)
       self
     end
 
@@ -104,12 +113,6 @@ module Blackjack
 
     def surrendered(bet_box)
       stats.surrenders.incr
-      self
-    end
-
-    def busted(bet_box)
-      stats.hand_stats.busted.incr
-      stats.split_stats.busted.incr if bet_box.from_split?
       self
     end
 

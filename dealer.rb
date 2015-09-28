@@ -193,7 +193,7 @@ module Blackjack
     end
 
     def player_lost(bet_box)
-      table.game_announcer.hand_outcome(bet_box, Outcome::LOST, bet_box.bet_amount)
+      table.game_announcer.hand_outcome(bet_box, Outcome::LOST, bet_box.total_player_bet)
       bet_box.player.lost_bet(bet_box)
       money.collect_bet(bet_box)
     end
@@ -201,7 +201,7 @@ module Blackjack
     def player_won(bet_box, payout)
       winnings = money.pay_bet(bet_box, payout)
       table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
-      bet_box.player.won_bet(bet_box)
+      bet_box.player.won_bet(bet_box, winnings)
     end
 
     def player_push(bet_box)

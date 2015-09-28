@@ -21,9 +21,9 @@ module Blackjack
     def initialize(table, player_seat_position, parent_split_box=nil)
       @table = table
 
-      @box = Bank.new(0)
+      @box       = Bank.new(0)
       @insurance = Bank.new(0)
-      @double = Bank.new(0)
+      @double    = Bank.new(0)
 
       @hand = table.new_hand
       @position = player_seat_position
@@ -54,7 +54,7 @@ module Blackjack
     end
 
     def total_player_bet
-      bet_amount + double.balance
+      bet_amount + double_bet_amount
     end
 
     def active?
@@ -103,6 +103,10 @@ module Blackjack
 
     def insurance_bet_amount
       insurance.balance
+    end
+
+    def double_bet_amount
+      double.balance
     end
 
     def split
@@ -194,6 +198,7 @@ module Blackjack
     def reset_bank
       @box.reset
       @insurance.reset
+      @double.reset
     end
 
     def root_bet_box
