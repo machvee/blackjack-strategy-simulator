@@ -17,11 +17,19 @@ module Blackjack
     end
 
     def print_stat(counter_name, counter_value=nil)
+      print_stat_with_total(counter_name, counter_value)
+    end
+
+    def print_stat_with_total(counter_name, counter_value=nil)
       value = counter_value||counters[counter_name]
-      HandStats.format_stat(value, played.count)
+      HandStats.format_stat_with_total(value, played.count)
     end
 
     def self.format_stat(value, total)
+      self.format_stat_with_total(value, total)
+    end
+
+    def self.format_stat_with_total(value, total)
       total.zero? ? "          -      " : "%6d [%7.2f%%]" % [value, value/(total*1.0) * 100.0]
     end
 
