@@ -6,6 +6,7 @@ module Blackjack
     attr_reader :doubles
     attr_reader :splits
     attr_reader :insurances
+    attr_reader :bets
 
     attr_reader :current_ten_percentage
 
@@ -14,10 +15,11 @@ module Blackjack
     def initialize(player)
       @player = player
 
-      @hands = HistoHandStats.new("Hands")
-      @doubles = HistoHandStats.new("Doubles")
-      @splits = HistoHandStats.new("Splits")
-      @insurances = HistoHandStats.new("Insurances")
+      @hands = HistoStats.new("Hands", HandStats)
+      @doubles = HistoStats.new("Doubles", HandStats)
+      @splits = HistoStats.new("Splits", HandStats)
+      @insurances = HistoStats.new("Insurances", HandStats)
+      @bets = HistoStats.new("Bets", BetStats)
       @current_ten_percentage = 0.0
     end
 
@@ -28,6 +30,7 @@ module Blackjack
       doubles.reset
       splits.reset
       insurances.reset
+      bets.reset
     end
 
     def init_hand
@@ -38,10 +41,11 @@ module Blackjack
     def print
       puts "\n%s %s %s" % ["="*16, player.name.upcase, '='*16]
 
-      hands.print
-      doubles.print
-      splits.print
-      insurances.print
+      hands.percentage_print
+      doubles.percentage_print
+      splits.percentage_print
+      insurances.percentage_print
+      bets.print
 
       print_misc
     end
@@ -60,6 +64,10 @@ module Blackjack
 
     def insurance_stats
       insurances.stats_for(current_ten_percentage)
+    end
+
+    def bet_stats
+      bets.stats_for(current_ten_percentage)
     end
 
     private

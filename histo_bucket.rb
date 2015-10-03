@@ -1,5 +1,5 @@
 module Blackjack
-  class HandStatsBucket
+  class HistoBucket
     #
     #                       marker card V
     #
@@ -17,12 +17,12 @@ module Blackjack
     attr_reader :stats
     attr_reader :range_string
 
-    def initialize(name, min, max)
+    def initialize(name, min, max, stats)
       @name = name
       @min = min
       @max = max
       @range_string = "( %s - %s )" % ["%d" % min,"%d" % max]
-      @stats = HandStats.new(name)
+      @stats = stats 
     end
 
     def within?(value)

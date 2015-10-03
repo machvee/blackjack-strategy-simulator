@@ -5,7 +5,7 @@ module Blackjack
     attr_reader  :name
     attr_reader  :buckets
 
-    counters :played, :won, :pushed, :lost, :busted, :blackjacks, :amount
+    counters :played, :won, :pushed, :lost, :busted, :blackjacks
 
     def initialize(name)
       @name = name
