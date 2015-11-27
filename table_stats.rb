@@ -17,6 +17,7 @@ module Blackjack
     def print
       puts "==>  rounds played: #{rounds_played.count}"
       puts "==>  avg hands/shuffle: #{table.shoe.hands_dealt.average}"
+      puts "==>  seed: #{table.seed}"
     end
 
   end

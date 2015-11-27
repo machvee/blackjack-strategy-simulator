@@ -105,16 +105,6 @@ module Blackjack
       #
     end
 
-    def insurance_bet_amount(bet_box)
-      # The player may choose up to 1/2
-      # the MAIN bet amount for INSURANCE
-    end
-
-    def double_down_bet_amount(bet_box)
-      # The player may choose up to the full
-      # MAIN bet amount for DOUBLE_DOWN
-    end
-
     def insurance?(bet_box)
       #
       # override in sub-class to indicate:
@@ -123,6 +113,11 @@ module Blackjack
       # Action::NO_INSURANCE - willing to lose automatically if dealer has blackjack
       # Action::EVEN_MONEY - player_hand is blackjack, will take 1-1 immediate payout 
       #
+    end
+
+    def insurance_bet_amount(bet_box)
+      # The player may choose up to 1/2
+      # the MAIN bet amount for INSURANCE
     end
 
     def decision(bet_box, dealer_up_card, other_hands=[])
@@ -139,6 +134,11 @@ module Blackjack
       #   Action::SPLIT
       #   Action::DOUBLE_DOWN
       #
+    end
+
+    def double_down_bet_amount(bet_box)
+      # The player may choose up to the full
+      # MAIN bet amount for DOUBLE_DOWN
     end
 
     def error(strategy_step, message)

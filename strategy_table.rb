@@ -6,6 +6,15 @@ module Blackjack
     # player hand play until the outcome is determined.  Then update the
     # stats of each link in the chain with the outcome (won, lost, bust, push)
     #
+    attr_reader   :stats_table
+
+    def initialize
+      @stats_table = {
+        pairs:  [],
+        soft: [],
+        hard: []
+      }
+    end
   end
 
   class StrategyTable
@@ -30,12 +39,12 @@ module Blackjack
     end
 
     def decision(dealer_up_card_value, hand)
-      decision_from_table = if hand.pair?
-        lookup_table[:pairs][hand[0].soft_value][dealer_up_card_value]
+      table, decision_from_table = if hand.pair?
+        [:pairs, lookup_table[:pairs][hand[0].soft_value][dealer_up_card_value]]
       elsif hand.soft? && hand.soft_sum <= BlackjackCard::ACE_HARD_VALUE
-        lookup_table[:soft][hand.soft_sum][dealer_up_card_value]
+        [:soft, lookup_table[:soft][hand.soft_sum][dealer_up_card_value]]
       else
-        lookup_table[:hard][hand.hard_sum][dealer_up_card_value]
+        [:hard, lookup_table[:hard][hand.hard_sum][dealer_up_card_value]]
       end
 
       check_can_only_double_down_on_two_cards_and_return_decision(hand, decision_from_table)
@@ -48,6 +57,10 @@ module Blackjack
     private
 
     def check_can_only_double_down_on_two_cards_and_return_decision(hand, decision)
+      #
+      # Action::DOUBLE_DOWN becoomes Action::HIT when there are more than 2 cards
+      # in the player's hand
+      #
       return case decision
         when Action::DOUBLE_DOWN
           hand.length > 2 ? Action::HIT : Action::DOUBLE_DOWN
