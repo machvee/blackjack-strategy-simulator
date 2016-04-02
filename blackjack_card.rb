@@ -1,4 +1,5 @@
 require 'cards'
+require 'ascii_card'
 
 module Blackjack
   class BlackjackCard < Cards::Card
