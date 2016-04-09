@@ -80,7 +80,9 @@ module Blackjack
     end
 
     def show_player_hand(player_hand)
-      player_hand.print
+      hand_val = "#{player_hand.soft_sum}" +
+        (player_hand.soft_sum < player_hand.hard_sum ? "/#{player_hand.hard_sum}" : "")
+      player_hand.print(hand_val)
     end
 
     def prompt_for_action(bet_box, dealer_up_card, other_hands=[])

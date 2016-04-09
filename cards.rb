@@ -98,8 +98,8 @@ module Blackjack
         FACES.include?(face)
       end
 
-      def print
-        AsciiCard.print(self)
+      def print(opt_val=nil)
+        AsciiCard.print(self, opt_val)
       end
 
       def <=>(anOther)
@@ -312,8 +312,8 @@ module Blackjack
         end
       end
 
-      def print
-        AsciiCard.print(@cards)
+      def print(opt_val=nil)
+        AsciiCard.print(@cards, opt_val)
       end
 
       private

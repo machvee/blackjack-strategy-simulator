@@ -47,12 +47,12 @@ module Blackjack
         end
       end
 
-      def self.print(card_arg)
-        card_arg.is_a?(Array) ? print_cards(card_arg) : print_card(card_arg)
+      def self.print(card_arg, opt_val=nil)
+        card_arg.is_a?(Array) ? print_cards(card_arg, opt_val) : print_card(card_arg, opt_val)
         nil
       end
 
-      def self.print_card(card)
+      def self.print_card(card, opt_val=nil)
         NUM_PRINT_ROWS.times do |i|
           puts print_row(card, i)
         end
@@ -60,13 +60,19 @@ module Blackjack
 
       DFLT_MAX_CARDS_PRINTED_PER_LINE=7
 
-      def self.print_cards(cards, max_per_line=DFLT_MAX_CARDS_PRINTED_PER_LINE)
-        sep = "  "
+      def self.print_cards(cards, opt_val=nil, max_per_line=DFLT_MAX_CARDS_PRINTED_PER_LINE)
         cards.each_slice(max_per_line) do |set|
-          NUM_PRINT_ROWS.times do |i|
-            puts set.map {|card| print_row(card, i)}.join(sep)
-          end
+          print_set(set, opt_val)
         end
+      end
+
+      def self.print_set(set, opt_val=nil)
+        sep = "  "
+        iter = NUM_PRINT_ROWS-1
+        iter.times do |i|
+          puts set.map {|card| print_row(card, i)}.join(sep)
+        end
+        puts (set.map {|card| print_row(card, iter)}+[opt_val]).compact.join(sep)
       end
     end
   end
