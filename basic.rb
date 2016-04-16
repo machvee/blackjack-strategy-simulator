@@ -1,8 +1,13 @@
 require 'table'
 include Blackjack
+#
+# Usage:  ruby  basic.rb  [<num_hands>  <num_bets_each_play>  <rand_seed>]
+#
+DEFAULT_NUM_HANDS="1000"
+DEFAULT_NUM_BETS=1
 
-num_hands = (ARGV[0]||"1000").to_i
-opt_num_bets = (ARGV[1].nil? || ARGV[1] == '-') ? 1 : ARGV[1].to_i
+num_hands = (ARGV[0]||DEFAULT_NUM_HANDS).to_i
+opt_num_bets = (ARGV[1].nil? || ARGV[1] == '-') ? DEFAULT_NUM_BETS : ARGV[1].to_i
 opt_table_seed = ARGV[2].nil? ? {} : {random_seed: ARGV[2].to_i}
 
 run_options = {

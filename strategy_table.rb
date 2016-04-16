@@ -18,6 +18,9 @@ module Blackjack
   end
 
   class StrategyTable
+    # TODO: Need to refactor Strategy table to be a table of Rules
+    # Based on Game Conditions, a Rule is looked up in the table
+    # and returned with the decision the rule makes.
     #
     # pass in a custom strategy table (in the exact format below), or
     # default to the basic strategy table retrieved from the web
