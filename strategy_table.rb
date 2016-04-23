@@ -1,26 +1,6 @@
 module Blackjack
 
-  class StrategyTableStats
-    #
-    # maintain chains of decisions as the StrategyTable is used throughout
-    # player hand play until the outcome is determined.  Then update the
-    # stats of each link in the chain with the outcome (won, lost, bust, push)
-    #
-    attr_reader   :stats_table
-
-    def initialize
-      @stats_table = {
-        pairs:  [],
-        soft: [],
-        hard: []
-      }
-    end
-  end
-
   class StrategyTable
-    # TODO: Need to refactor Strategy table to be a table of Rules
-    # Based on Game Conditions, a Rule is looked up in the table
-    # and returned with the decision the rule makes.
     #
     # pass in a custom strategy table (in the exact format below), or
     # default to the basic strategy table retrieved from the web

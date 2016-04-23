@@ -4,11 +4,20 @@ module Blackjack
     attr_reader  :num_buckets
     attr_reader  :buckets
     attr_reader  :stats_class
-
+    #
+    # There are 4x10,4xJ,4xQ,4xK = 16 10's in a 52 card deck
+    # thats 16.0/52.0  =  .30769 = ~31% 
+    # These buckets keep separate hand/bet stats for players
+    # and the dealer based on the % of 10's left in the deck
+    #
+    # TODO:  Refactor for Hi-Lo.  Keep stats on low card percentage
+    # (2-6 remaining in deck) and Hi cards (10's, A)
+    # 
+    #
     DFLT_BUCKETS = [
-       [0,20],    # low % of 10's remaining in deck
-       [20,40],   # avg % of 10's remaining in deck
-       [40,100]   # higher % of 10's remaining in deck
+       [0,28],    # low % of 10's remaining in deck
+       [28,35],   # avg % of 10's remaining in deck
+       [35,100]   # higher % of 10's remaining in deck
     ]
     MIN_RANGE=0.0
     MAX_RANGE=100.0
