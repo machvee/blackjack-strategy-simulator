@@ -1,5 +1,8 @@
 module Blackjack
   class HandStats
+    #
+    # keeps track of a players total hands played, won, pushed, lost, busted, etc. 
+    #
     include CounterMeasures
 
     attr_reader  :name

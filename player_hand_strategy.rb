@@ -43,6 +43,7 @@ module Blackjack
   }
 
   class PlayerHandStrategy
+
     #
     # base class for player strategy on how to play his hand. 
     # An example sub-class would be one that just prompts the
@@ -54,6 +55,8 @@ module Blackjack
     attr_reader  :table
     attr_reader  :player
     attr_reader  :config
+    attr_reader  :stats
+    attr_reader  :chain
 
     DEFAULT_OPTIONS = {
       num_bets: 1
@@ -63,13 +66,7 @@ module Blackjack
       @table = table
       @player = player
       @config = DEFAULT_OPTIONS.merge(options)
-    end
-
-    def new_hand
-      #
-      # hook for player to initialize stats, etc.
-      #
-      self
+      @stats = StrategyStats.new
     end
 
     def outcome(win_lose_push, dealer_hand, amount)
@@ -84,6 +81,8 @@ module Blackjack
       #
       # amount
       #   +/- amount this hand won/lost the player
+      #
+      # update @stats from decision chain
       #
       self
     end
@@ -103,6 +102,10 @@ module Blackjack
       # override in sub-class to provide a whole dollar amount
       # to bet for the main opening bet.
       #
+      # stats:
+      #    keep stats for each multiple of min bet amount.  For each quantity,
+      #    maintain a count, num outcome wins/losses/pushes, outcome win/loss/push amount
+      #
     end
 
     def insurance?(bet_box)
@@ -113,6 +116,10 @@ module Blackjack
       # Action::NO_INSURANCE - willing to lose automatically if dealer has blackjack
       # Action::EVEN_MONEY - player_hand is blackjack, will take 1-1 immediate payout 
       #
+      # stats:
+      #    keep stats each time insurance is taken or not.  For each boolean decision,
+      #    maintain a count, num wins/losses, win/loss amount.  A win is when dealer
+      #    has a 10 hole card, loss when the dealer does not
     end
 
     def insurance_bet_amount(bet_box)
@@ -133,6 +140,11 @@ module Blackjack
       #   Action::STAND
       #   Action::SPLIT
       #   Action::DOUBLE_DOWN
+      #
+      # stats:
+      #    keep stats for each [dealer up card value, player hand value, response] tuple.
+      #    For each tuple, maintain a count, num outcome wins/losses/pushes, outcome win/loss/push
+      #    amounts
       #
     end
 

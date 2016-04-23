@@ -1,5 +1,8 @@
 module Blackjack
   class BetStats
+    #
+    # Keeps track of how much a player has wagered and won in total
+    #
     include CounterMeasures
 
     attr_reader  :name
