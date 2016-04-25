@@ -56,7 +56,6 @@ module Blackjack
     attr_reader  :player
     attr_reader  :config
     attr_reader  :stats
-    attr_reader  :chain
 
     DEFAULT_OPTIONS = {
       num_bets: 1
