@@ -122,7 +122,7 @@ module Blackjack
 
       while(true) do
 
-        response = (bet_box.hand.twentyone? || bet_box.from_split_aces?) ? Action::STAND : dealer.ask_player_decision(bet_box)
+        response = (bet_box.hand.twentyone? || bet_box.from_split_aces?) ? Action::STAND : dealer.ask_player_play(bet_box)
 
         case response
           when Action::HIT
@@ -215,8 +215,7 @@ module Blackjack
       table.each_player do |player|
         num_bets = dealer.ask_player_num_bets(player)
         case num_bets
-          when Action::LEAVE
-            player.leave_table
+          when 0
             next
           else
             bet_counter = 0

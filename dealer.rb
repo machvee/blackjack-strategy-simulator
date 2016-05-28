@@ -156,6 +156,12 @@ module Blackjack
       self
     end
 
+    def ask_player_stay?(player)
+      prompt_player_strategy_and_validate(:stay?, nil, player) do
+        player.strategy.stay?
+      end
+    end
+
     def ask_player_num_bets(player)
       prompt_player_strategy_and_validate(:num_bets, nil, player) do
         player.strategy.num_bets
@@ -168,15 +174,15 @@ module Blackjack
       end
     end
 
-    def ask_player_decision(bet_box)
-      prompt_player_strategy_and_validate(:decision, bet_box) do
-        bet_box.player.strategy.decision(bet_box, up_card, table.other_hands(bet_box))
+    def ask_player_play(bet_box)
+      prompt_player_strategy_and_validate(:play, bet_box) do
+        bet_box.player.strategy.play(bet_box, up_card, table.other_hands(bet_box))
       end
     end
 
     def ask_player_bet_amount(player, bet_box)
       prompt_player_strategy_and_validate(:bet_amount, bet_box, player) do
-        player.strategy.bet_amount
+        player.strategy.bet_amount(bet_box)
       end
     end
 
@@ -248,6 +254,8 @@ module Blackjack
 
     def validate_step_response(strategy_step, response, bet_box, player)
       valid_input, error_message = case strategy_step
+        when :stay?
+          @validator.validate_stay?(player, response)
         when :num_bets
           @validator.validate_num_bets(player, response)
         when :insurance
@@ -258,8 +266,8 @@ module Blackjack
           @validator.validate_insurance_bet_amount(bet_box, response)
         when :double_down_bet_amount
           @validator.validate_double_down_bet_amount(bet_box, response)
-        when :decision
-          @validator.validate_decision(bet_box, response)
+        when :play
+          @validator.validate_play(bet_box, response)
       end
       [valid_input, error_message]
     end

@@ -15,11 +15,15 @@ module Blackjack
       raise StrategyQuitter
     end
 
-    def decision(bet_box, dealer_up_card, other_hands=[])
+    def stay?
+      player.bank.balance <= player.bank.initial_deposit/8 ? Action::LEAVE : Action::PLAY
+    end
+
+    def play(bet_box, dealer_up_card, other_hands=[])
       prompt_for_action(bet_box, dealer_up_card, other_hands)
     end
 
-    def bet_amount
+    def bet_amount(bet_box)
       @main_bet_maker.get_command.to_i
     end
 
@@ -39,7 +43,7 @@ module Blackjack
     end
 
     def num_bets
-      player.bank.balance <= player.bank.initial_deposit/8 ? Action::LEAVE : config[:num_bets]
+      options[:num_bets]
     end
 
     def error(strategy_step, message)
@@ -104,7 +108,7 @@ module Blackjack
     end
 
     def prompt_for_action(bet_box, dealer_up_card, other_hands=[])
-      @get_user_decision.suggestion = @reverse_map[suggestion_strategy.decision(bet_box, dealer_up_card, other_hands)].upcase
+      @get_user_decision.suggestion = @reverse_map[suggestion_strategy.play(bet_box, dealer_up_card, other_hands)].upcase
       super
     end
   end
