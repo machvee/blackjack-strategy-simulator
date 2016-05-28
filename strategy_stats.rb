@@ -53,14 +53,20 @@ module Blackjack
 
   class StatsChain
     attr_reader  :chain
+    attr_reader  :player
 
-    def initialize
+    def initialize(player)
+      @player = player
       @chain = []
     end
 
-    def add(player, name)
+    def add(name)
       chain << player.strategy.stats.get(name)
       self
+    end
+
+    def pop
+      chain.pop
     end
 
     def update(outcome, amount_wagered, amount_won_or_lost)

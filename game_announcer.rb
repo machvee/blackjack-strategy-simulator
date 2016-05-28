@@ -70,7 +70,7 @@ module Blackjack
     def player_hand_status(bet_box, decision=nil, opt_bet_amt=nil)
       says "%s %s %s%s" % [
         bet_box.player_name,
-        decision.nil? ? "has" : DECISIONS[decision],
+        decision.nil? ? "has" : Action.action_name(decision),
         opt_bet_amt.nil? ? "" : "for $#{opt_bet_amt} : ",
         hand_val_str(bet_box.hand, bet_box.from_split?)
       ]
@@ -103,7 +103,7 @@ module Blackjack
       msg = case step
         when :num_bets
           case response
-            when Action::SIT_OUT
+            when 0
               "%s SITS OUT" % player.name
             else
               nil

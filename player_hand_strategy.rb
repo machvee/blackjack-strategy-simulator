@@ -2,25 +2,21 @@ module Blackjack
 
   module Action
     LEAVE=-1
-    SIT_OUT=0
-    BET=1
-    HIT=2
-    STAND=3
-    SPLIT=4
-    DOUBLE_DOWN=5
-    SURRENDER=6
-    INSURANCE=7
-    NO_INSURANCE=8
-    EVEN_MONEY=9
+    PLAY=0
+    HIT=1
+    STAND=2
+    SPLIT=3
+    DOUBLE_DOWN=4
+    SURRENDER=5
+    INSURANCE=6
+    NO_INSURANCE=7
+    EVEN_MONEY=8
+    def action_name(a)
+      @action_names ||= Hash.new {|h,k| h[k] = constants.find{ |name| const_get(name) == k}.to_s.gsub(/_/, ' ') + "S"}
+      @action_names[a]
+    end
+    module_function :action_name
   end
-
-  DECISIONS = {
-    Action::SPLIT => "SPLITS",
-    Action::HIT => "HITS",
-    Action::DOUBLE_DOWN => "DOUBLE_DOWNS",
-    Action::SURRENDER => "SURRENDERS",
-    Action::STAND => "STANDS"
-  }
 
   module Outcome
     NONE=0
@@ -32,78 +28,81 @@ module Blackjack
     INSURANCE_LOST=6
   end
 
-  OUTCOMES = {
-    Outcome::WON => "WON",
-    Outcome::LOST => "LOST",
-    Outcome::PUSH => "PUSH",
-    Outcome::BUST => "BUST",
-    Outcome::INSURANCE_WON => "WON INSURANCE",
-    Outcome::INSURANCE_LOST => "LOST INSURANCE",
-    Outcome::NONE => nil
-  }
-
   class PlayerHandStrategy
-
     #
-    # base class for player strategy on how to play his hand. 
+    # base class for player strategy on how to play his hand.
+    # The game_play invokes this through the Dealer to get the
+    # players decision on what move to make, how much to bet, etc.
+    #
     # An example sub-class would be one that just prompts the
     # player at the command line for instructions on what to do.
     # The context passed are all the other players hands on the
     # table (if any) and the dealers up card
     #
+    # Made visible to the class when they are available are public attributes of
+    # the table -- items that would be visible to a player at a real blackjack
+    # table.
+    #
+    #    - table info (# players, player seat positions, # decks in shoe, config)
+    #    - dealer up_card
+    #    - current players hand.
+    #    - other visible player's cards
+    #    - the percentage % of cards in shoe/decks remaining before the cut card
+    #
+    # all other aspects of play and inputs to strategy must be maintained by the
+    # strategy.  e.g.  card counts
+    #
 
     attr_reader  :table
     attr_reader  :player
-    attr_reader  :config
-    attr_reader  :stats
-
-    DEFAULT_OPTIONS = {
-      num_bets: 1
-    }
+    attr_reader  :options
 
     def initialize(table, player, options={})
-      @table = table
       @player = player
-      @config = DEFAULT_OPTIONS.merge(options)
-      @stats = StrategyStats.new
+      @table = table
+      @options = options
     end
 
-    def outcome(win_lose_push, dealer_hand, amount)
+    def stay?
       #
-      # win_lose_push:
-      #   Action::WON
-      #   Action::LOST
-      #   Action::PUSH
+      # Action::LEAVE or Action::PLAY
       #
-      # dealer_hand:
-      #  allow player to examine dealers hand and to record stats, etc
+      # if Action::LEAVE, the player cashes out and/or
+      # repays markers and leaves table
+      #
+      # Action::PLAY means they can choose to occupy the
+      # seat and bet in 0 or more bet_boxes.  0 bet boxes
+      # means they just choose to sit out that hand
+      #
+    end
+
+    def outcome(outcome, amount)
+      #
+      # outcome
+      #   Outcome::WON
+      #   Outcome::LOST
+      #   Outcome::PUSH
       #
       # amount
-      #   +/- amount this hand won/lost the player
+      #   integer
+      #     > 0 - amount won
+      #       0 - push
+      #     < 0 - amount lost
       #
-      # update @stats from decision chain
-      #
-      self
     end
 
     def num_bets
       #
       # Invoked for available_for(player) bet_boxes which lets players make one or more bets
-      # return Action::SIT_OUT to make NO bets in any bet_box
-      # return Action::LEAVE to take bets and leave table before next hand dealt
-      # return 1 - table.config[:max_player_bets] to make one or more bets at the table
+      # return 0 to make NO bets in any bet_box and sit out the hand
+      # return 1 - <table.config[:max_player_bets]> to make one or more bets in bet boxes at the table
       #
-      config[:num_bets]
     end
 
-    def bet_amount
+    def bet_amount(bet_box)
       #
       # override in sub-class to provide a whole dollar amount
       # to bet for the main opening bet.
-      #
-      # stats:
-      #    keep stats for each multiple of min bet amount.  For each quantity,
-      #    maintain a count, num outcome wins/losses/pushes, outcome win/loss/push amount
       #
     end
 
@@ -115,23 +114,18 @@ module Blackjack
       # Action::NO_INSURANCE - willing to lose automatically if dealer has blackjack
       # Action::EVEN_MONEY - player_hand is blackjack, will take 1-1 immediate payout 
       #
-      # stats:
-      #    keep stats each time insurance is taken or not.  For each boolean decision,
-      #    maintain a count, num wins/losses, win/loss amount.  A win is when dealer
-      #    has a 10 hole card, loss when the dealer does not
     end
 
     def insurance_bet_amount(bet_box)
-      # The player may choose up to 1/2
-      # the MAIN bet amount for INSURANCE
+      # The player may choose up to 1/2 the MAIN bet amount for INSURANCE
     end
 
-    def decision(bet_box, dealer_up_card, other_hands=[])
+    def play(bet_box, dealer_up_card, other_hands=[])
       #
       # override in subclass to decide what to do based on
-      #   bet_box (hand and bet_amount)
+      #   bet_box for hand and bet_amount
       #   dealer_up_card value
-      #   other_hands
+      #   other_hands current cards dealt to other players
       #
       # valid responses:
       #
@@ -140,16 +134,10 @@ module Blackjack
       #   Action::SPLIT
       #   Action::DOUBLE_DOWN
       #
-      # stats:
-      #    keep stats for each [dealer up card value, player hand value, response] tuple.
-      #    For each tuple, maintain a count, num outcome wins/losses/pushes, outcome win/loss/push
-      #    amounts
-      #
     end
 
     def double_down_bet_amount(bet_box)
-      # The player may choose up to the full
-      # MAIN bet amount for DOUBLE_DOWN
+      # The player may choose up to the full MAIN bet amount for DOUBLE_DOWN
     end
 
     def error(strategy_step, message)
