@@ -926,6 +926,22 @@ module Blackjack
       @sv = StrategyValidator.new(@table)
     end
 
+    it "for the stay? response, it should return false with non Action::PLAY/Action::LEAVE" do
+      @sv.validate_stay?(@player, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
+    end
+
+    it "for the stay? response, it should return true with non Action::PLAY" do
+      @sv.validate_stay?(@player, Action::PLAY).must_equal([true, nil])
+    end
+
+    it "for the stay? response, it should return true with non Action::LEAVE" do
+      @sv.validate_stay?(@player, Action::LEAVE).must_equal([true, nil])
+    end
+
+    it "for the stay? response, it should return false with non Action::PLAY/Action::LEAVE" do
+      @sv.validate_stay?(@player, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
+    end
+
     it "for the num_bets response, it should return false with very negative" do
       @sv.validate_num_bets(@player, -2).must_equal([false, "You must enter a number between 0-3"])
     end
@@ -1308,7 +1324,6 @@ module Blackjack
     end
 
     it "should be able to win a bet" do
-
     end
 
     it "should be able to lose a bet" do
