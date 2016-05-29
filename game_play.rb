@@ -94,6 +94,15 @@ module Blackjack
     end
 
     def players_at_table?
+      table.seated_players.compact.each do |player|
+        case dealer.ask_player_stay?(player)
+          when Action::PLAY
+            next
+          when Action::LEAVE
+            player.leave_table
+        end
+      end
+
       table.any_seated_players?
     end
 

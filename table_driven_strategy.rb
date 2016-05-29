@@ -10,7 +10,7 @@ module Blackjack
     end
 
     def stay?
-      Action::STAY
+      Action::PLAY
     end
 
     def num_bets
