@@ -39,7 +39,7 @@ module Blackjack
     end
 
     def double_down_bet_amount(bet_box)
-      bet_box.bet_amount
+      [bet_box.bet_amount, player.bank.balance].min
     end
 
     def num_bets
