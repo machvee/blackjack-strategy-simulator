@@ -11,7 +11,8 @@ module Blackjack
     attr_reader :initial_deposit
 
     def initialize(initial_deposit)
-      @initial_deposit = initial_deposit
+      @initial_deposit = nil
+      initial_deposit_check(initial_deposit)
       reset
     end
 
@@ -29,6 +30,7 @@ module Blackjack
 
     def credit(amount)
       if amount > 0
+        initial_deposit_check(amount)
         ledger.add(amount + balance)
         credits.incr
       end
@@ -60,8 +62,14 @@ module Blackjack
     def reset
       reset_counters
       reset_measures
-      ledger.add(initial_deposit)
+      ledger.add(initial_deposit||0)
       self
+    end
+
+    private
+
+    def initial_deposit_check(amount)
+      @initial_deposit = amount if initial_deposit.nil? unless amount == 0
     end
   end
 end
