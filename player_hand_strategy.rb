@@ -1,17 +1,32 @@
 module Blackjack
 
   module Action
+    #
+    # stay?
+    #
     LEAVE=-1
     PLAY=0
+
+    #
+    # play
+    #
     HIT=1
     STAND=2
     SPLIT=3
     DOUBLE_DOWN=4
     SURRENDER=5
+
+    #
+    # insurance?
+    #
     INSURANCE=6
     NO_INSURANCE=7
     EVEN_MONEY=8
+
     def action_name(a)
+      #
+      # Action.action_name(Action::DOUBLE_DOWN) => "DOUBLE DOWNS"
+      #
       @action_names ||= Hash.new {|h,k| h[k] = constants.find{ |name| const_get(name) == k}.to_s.gsub(/_/, ' ') + "S"}
       @action_names[a]
     end
@@ -27,6 +42,7 @@ module Blackjack
     INSURANCE_WON=5
     INSURANCE_LOST=6
   end
+
 
   class PlayerHandStrategy
     #
