@@ -21,11 +21,6 @@ module Blackjack
         @minimum_bet *= 2 # house requires you make double min bet 
       end
 
-      if current_balance < (@minimum_bet * num_bets)
-        player.marker_for(player.config[:start_bank])
-        table.game_announcer.says("%s gets a marker for $%d" % [player.name, player.config[:start_bank]])
-      end
-
       num_bets
     end
 

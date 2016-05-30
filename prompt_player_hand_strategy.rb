@@ -16,7 +16,19 @@ module Blackjack
     end
 
     def stay?
-      player.bank.balance <= player.bank.initial_deposit/8 ? Action::LEAVE : Action::PLAY
+      if player.bank.balance < table.config[:minimum_bet]
+        puts "You're down to #{player.bank.balance} which is below the minimum bet."
+        amt = @marker_prompter.get_command.to_i
+        case amt
+          when 0
+            Action::LEAVE
+          else
+            player.marker_for(amt)
+            Action::PLAY
+        end
+      else
+        Action::PLAY
+      end
     end
 
     def play(bet_box, dealer_up_card, other_hands=[])
@@ -58,7 +70,7 @@ module Blackjack
     private
 
     def setup_prompters
-      @get_user_decision = CommandPrompter.new(player.name, "Hit", "Stand", "Double", "sPlit", &method(:on_quit))
+
       @map = {
         'h' => Action::HIT,
         's' => Action::STAND,
@@ -68,6 +80,11 @@ module Blackjack
 
       min_bet = table.config[:minimum_bet]
       max_bet = table.config[:maximum_bet]
+
+      @get_user_decision = CommandPrompter.new(player.name, "Hit", "Stand", "Double", "sPlit", &method(:on_quit))
+      @marker_prompter = CommandPrompter.new(player.name, "Marker Amount:int:0:#{player.bank.initial_deposit}", &method(:on_quit))
+      @marker_prompter.suggestion = player.bank.initial_deposit
+
       @main_bet_maker = CommandPrompter.new(player.name, "Bet Amount:int:#{min_bet}:#{max_bet}", &method(:on_quit))
       @main_bet_maker.suggestion = min_bet
     end
