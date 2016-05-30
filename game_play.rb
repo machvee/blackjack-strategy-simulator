@@ -8,6 +8,8 @@ module Blackjack
 
     include CounterMeasures
 
+    DEFAULT_NUM_HANDS_TO_PLAY=10000
+
     counters :hands_dealt
 
     def initialize(table, options={})
@@ -17,7 +19,7 @@ module Blackjack
     end
 
     def run(options={})
-      num_hands = (options[:num_hands]||"10000").to_i
+      num_hands = (options[:num_hands]||DEFAULT_NUM_HANDS_TO_PLAY.to_s).to_i
       hands_dealt.reset
       begin
         table.game_announcer.says("Hands: #{num_hands}, Seed: #{table.seed}")
