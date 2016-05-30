@@ -1068,6 +1068,14 @@ module Blackjack
         "Player has insufficient funds to double down"])
     end
 
+    it "should return true for decision when input is DOUBLE_DOWN and player can at least double for less" do
+      bet_amount = 100
+      @player.make_bet(bet_amount)
+      @player.bank.debit(@player.bank.balance - (bet_amount/2)) # take away all but 1/2 bet amount
+      @player.default_bet_box.hand.set('8D', '3H')
+      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
+    end
+
     it "should return false for decision when input is DOUBLE_DOWN and player has bad double hand" do
       @table.config[:double_down_on] = [10,11]
       @player.make_bet(10)
