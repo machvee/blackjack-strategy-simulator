@@ -81,44 +81,29 @@ module Blackjack
 
     def stay?
       #
-      # Action::LEAVE or Action::PLAY
+      # override in sub-class to indicate:
       #
-      # if Action::LEAVE, the player cashes out and/or
-      # repays markers and leaves table
-      #
-      # Action::PLAY means they can choose to occupy the
-      # seat and bet in 0 or more bet_boxes.  0 bet boxes
-      # means they just choose to sit out that hand
-      #
-    end
-
-    def outcome(outcome, amount)
-      #
-      # outcome
-      #   Outcome::WON
-      #   Outcome::LOST
-      #   Outcome::PUSH
-      #
-      # amount
-      #   integer
-      #     > 0 - amount won
-      #       0 - push
-      #     < 0 - amount lost
+      #   Action::LEAVE - the player cashes out and/or repays markers and leaves table
+      #    Action::PLAY - means they can choose to occupy the seat and will make num_bets 
+      #                   bets in 0 or more bet_boxes.
       #
     end
 
     def num_bets
       #
-      # Invoked for available_for(player) bet_boxes which lets players make one or more bets
-      # return 0 to make NO bets in any bet_box and sit out the hand
-      # return 1 - <table.config[:max_player_bets]> to make one or more bets in bet boxes at the table
+      # override in sub-class to return:
+      #
+      #      0 - to make NO bets in any bet_box and sit out the hand
+      #     1+ - to claim 1 or more (up to table.config[:max_player_bets]>) default and adjacent bet boxes
+      #          at the table, if they are available.
       #
     end
 
     def bet_amount(bet_box)
       #
-      # override in sub-class to provide a whole dollar amount
-      # to bet for the main opening bet.
+      # override in sub-class to provide:
+      #
+      #   for each player bet_box, a whole dollar amount to bet for the main opening bet.
       #
     end
 
@@ -126,9 +111,9 @@ module Blackjack
       #
       # override in sub-class to indicate:
       #
-      # Action::INSURANCE - the player wants insurance against dealer Ace up-card
-      # Action::NO_INSURANCE - willing to lose automatically if dealer has blackjack
-      # Action::EVEN_MONEY - player_hand is blackjack, will take 1-1 immediate payout 
+      #      Action::INSURANCE - the player wants insurance against dealer Ace up-card
+      #   Action::NO_INSURANCE - willing to lose automatically if dealer has blackjack
+      #     Action::EVEN_MONEY - player_hand is blackjack, will take 1-1 immediate payout 
       #
     end
 
@@ -141,7 +126,7 @@ module Blackjack
       # override in subclass to decide what to do based on
       #   bet_box for hand and bet_amount
       #   dealer_up_card value
-      #   other_hands current cards dealt to other players
+      #   other_hands current visible cards dealt to other players
       #
       # valid responses:
       #
@@ -153,7 +138,30 @@ module Blackjack
     end
 
     def double_down_bet_amount(bet_box)
-      # The player may choose up to the full MAIN bet amount for DOUBLE_DOWN
+      #
+      # override in sub-class to determine double_down_bet_amount
+      #
+      #   1-current_bet_amount the player may choose up to the full MAIN bet amount for DOUBLE_DOWN
+    end
+
+
+    def outcome(outcome, amount)
+      #
+      # (optional) override-in sub-class to take strategy-specific actions
+      # on one of the possible outcomes of hand 
+      #
+      # outcome
+      #   Outcome::WON
+      #   Outcome::LOST
+      #   Outcome::PUSH
+      #   Outcome::BUST
+      #
+      # amount
+      #   integer
+      #     > 0 - amount won
+      #       0 - push
+      #     < 0 - amount lost
+      #
     end
 
     def error(strategy_step, message)

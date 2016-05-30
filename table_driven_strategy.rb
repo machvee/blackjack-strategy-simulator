@@ -1,6 +1,6 @@
 module Blackjack
 
-  class TableDrivenStrategy < PlayerHandStrategy
+  class TableDrivenStrategy < SimpleStrategy
 
     attr_reader  :strategy_table
 
@@ -9,12 +9,8 @@ module Blackjack
       @strategy_table = strategy_table
     end
 
-    def stay?
-      Action::PLAY
-    end
-
     def num_bets
-      num_bets = options[:num_bets]||1
+      num_bets = options[:num_bets]||super
       #
       # leave room in bank to double down on all hands bet
       #
@@ -35,22 +31,6 @@ module Blackjack
 
     def bet_amount(bet_box)
       @minimum_bet
-    end
-
-    def insurance_bet_amount(bet_box)
-      bet_box.bet_amount/2
-    end
-
-    def double_down_bet_amount(bet_box)
-      [bet_box.bet_amount, bet_box.player.bank.balance].min
-    end
-
-    def insurance?(bet_box)
-      bet_box.hand.blackjack? ? Action::EVEN_MONEY : Action::NO_INSURANCE
-    end
-
-    def decision_stat_name(bet_box, dealer_up_card, other_hands=[])
-      strategy_table.decision_stat_name(dealer_up_card.face_value, bet_box.hand)
     end
 
     def play(bet_box, dealer_up_card, other_hands=[])
@@ -79,6 +59,11 @@ module Blackjack
       # 
       raise "#{strategy_step}: #{message}"
     end
+
+    def decision_stat_name(bet_box, dealer_up_card, other_hands=[])
+      strategy_table.decision_stat_name(dealer_up_card.face_value, bet_box.hand)
+    end
+
   end
 
   class BasicStrategy < TableDrivenStrategy
