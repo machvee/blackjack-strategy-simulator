@@ -15,7 +15,6 @@ module Blackjack
       # leave room in bank to double down on all hands bet
       #
       @minimum_bet = table.config[:minimum_bet]
-      current_balance = player.bank.balance
 
       if num_bets > 1
         @minimum_bet *= 2 # house requires you make double min bet 

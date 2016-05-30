@@ -59,6 +59,10 @@ module Blackjack
       ledger.min.to_i
     end
 
+    def balance_check(amount)
+      balance >= amount
+    end
+
     def reset
       reset_counters
       reset_measures

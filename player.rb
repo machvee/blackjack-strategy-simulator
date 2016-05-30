@@ -32,8 +32,7 @@ module Blackjack
       @table = table
       table.join(self, desired_seat_position)
       buy_chips(config[:start_bank])
-      player_strategy = strategy_class.new(table, self, config[:strategy_options])
-      @strategy = config[:auto_marker] ? AutoPlayerMarkerStrategy.new(player_strategy) : player_strategy
+      @strategy = strategy_class.new(table, self, config[:strategy_options])
       self
     end
 
@@ -69,6 +68,7 @@ module Blackjack
       #
       # called every time a player puts money in a bet_box at the start of a round
       #
+      balance_check(bet_amount)
       bet_box.bet(self, bet_amount)
       stats.init_hand
       stats.hand_stats.played.incr
@@ -138,13 +138,23 @@ module Blackjack
 
     def make_double_down_bet(bet_box, double_down_bet_amount)
       stats.double_stats.played.incr
+
+      balance_check(double_down_bet_amount)
       bank.transfer_to(bet_box.double, double_down_bet_amount)
+
       stats.bet_stats.wagered.add(double_down_bet_amount)
       self
     end
 
     def default_bet_box
       table.bet_boxes.dedicated_to(self)
+    end
+
+    def balance_check(amount)
+      if config[:auto_marker] && !bank.balance_check(amount)
+        marker_for([bank.initial_deposit, amount].max)
+      end
+      bank.balance_check(amount)
     end
 
     def reset

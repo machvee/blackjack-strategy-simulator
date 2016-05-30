@@ -954,14 +954,6 @@ module Blackjack
       @sv.validate_num_bets(@player, 0).must_equal([true, nil])
     end
 
-    it "for the num_bets response, it should return false when player is broke and they want to BET" do
-      @player.bank.debit(@player.bank.balance)
-      @player.bank.balance.must_equal(0)
-      @sv.validate_num_bets(@player, 2).must_equal([false,
-        "Player has insufficient funds to make 2 bets of 25"])
-    end
-
-  
     it "it should return false for insurance with non-insurance response" do
       @sv.validate_insurance?(@player.default_bet_box, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
     end

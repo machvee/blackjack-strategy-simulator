@@ -5,7 +5,7 @@ module Blackjack
     # decisions to sub-classes
     #
     def stay?
-      player.bank.balance >= table.config[:minimum_bet] ? Action::PLAY : Action::LEAVE
+      Action::PLAY
     end
 
     def num_bets
@@ -25,7 +25,7 @@ module Blackjack
     end
 
     def double_down_bet_amount(bet_box)
-      [bet_box.bet_amount, player.bank.balance].min
+      bet_box.bet_amount
     end
   end
 end
