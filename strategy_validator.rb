@@ -30,7 +30,7 @@ module Blackjack
 
     def validate_stay?(player, response)
       if STRATEGY_VALID_INPUT_HASH[:stay?].include?(response)
-        if player.bank.balance < table.config[:minimum_bet]
+        if !player.balance_check(table.config[:minimum_bet])
           [false, "Player has insufficient funds to make a bet"]
         else
           [true, nil]
@@ -60,7 +60,7 @@ module Blackjack
             max_available_boxes,
             max_available_boxes == 1 ? '' : 'es'
           ]]
-      elsif player.bank.balance < (min_bet*num_bets)
+      elsif !player.balance_check(min_bet*num_bets)
         [false, "Player has insufficient funds to make %d bet%s of %d" % [
           num_bets,
           num_bets == 1 ? "" : "s",
@@ -88,7 +88,7 @@ module Blackjack
         valid_resp, error_message =
           case response
           when Action::INSURANCE
-            if player.bank.balance < bet_box.bet_amount/2.0
+            if !player.balance_check(bet_box.bet_amount/2.0)
               [false, "Player has insufficient funds to make an insurance bet"]
             end
           when Action::EVEN_MONEY
@@ -104,7 +104,7 @@ module Blackjack
       valid_bet_amount = table.config[:minimum_bet]..table.config[:maximum_bet]
       if !valid_bet_amount.include?(bet_amount)
         [false, "Player bet must be between #{valid_bet_amount.min} and #{valid_bet_amount.max}"]
-      elsif player.bank.balance < bet_amount
+      elsif !player.balance_check(bet_amount)
         [false, "Player has insufficient funds (#{player.bank.balance}) to make a #{bet_amount} bet"]
       else
         [true, nil]
@@ -160,7 +160,7 @@ module Blackjack
             #
             # TODO: need to enforce hand max splits from table.config
             #
-            if player.bank.balance < bet_box.bet_amount
+            if !player.balance_check(bet_box.bet_amount)
               [false, "Player has insufficient funds to split the hand"]
             elsif !valid_split_hand?(bet_box.hand)
               [false, "Player can only split cards that are identical in value"]
@@ -169,7 +169,7 @@ module Blackjack
             #
             # can the player double down? (assumes double for less)
             #
-            if player.bank.balance == 0 
+            if !player.balance_check(1)
               [false, "Player has insufficient funds to double down"]
             elsif !valid_double_hand?(bet_box.hand)
               [false, "Player can only double down on hands of #{valid_double_hand_values}"]
