@@ -29,9 +29,8 @@ module Blackjack
     end
 
     def validate_stay?(player, response)
-      min_bet = table.config[:minimum_bet]
       if STRATEGY_VALID_INPUT_HASH[:stay?].include?(response)
-        if player.bank.balance < min_bet
+        if player.bank.balance < table.config[:minimum_bet]
           [false, "Player has insufficient funds to make a bet"]
         else
           [true, nil]

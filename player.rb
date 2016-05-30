@@ -13,7 +13,8 @@ module Blackjack
     DEFAULT_OPTIONS = {
       start_bank: 500,
       strategy_class: PromptPlayerHandStrategy,
-      strategy_options: {}
+      strategy_options: {},
+      auto_marker: false
     }
 
     def initialize(name, options={})
@@ -31,7 +32,8 @@ module Blackjack
       @table = table
       table.join(self, desired_seat_position)
       buy_chips(config[:start_bank])
-      @strategy = strategy_class.new(table, self, config[:strategy_options])
+      player_strategy = strategy_class.new(table, self, config[:strategy_options])
+      @strategy = config[:auto_marker] ? AutoPlayerMarkerStrategy.new(player_strategy) : player_strategy
       self
     end
 
