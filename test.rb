@@ -502,7 +502,7 @@ module Blackjack
       @table.config[:minimum_bet].must_equal 25
       @table.config[:maximum_bet].must_equal 5000
       @table.config[:double_down_on].must_equal []
-      @table.config[:max_player_splits].must_equal nil
+      @table.config[:max_player_splits].must_equal 3
       @table.config[:max_player_bets].must_equal 3
     end
 
@@ -1230,20 +1230,27 @@ module Blackjack
       @bet_box.split_boxes.each do |bet_box|
         bet_box.active?.must_equal(true)
         bet_box.hand.hard_sum.must_equal(8)
-        @table.shoe.deal_one_up(bet_box.hand)
+        bet_box.hand.set('8D', '8S')
         bet_box.from_split?.must_equal(true) # this hand came from a split
         bet_box.split # split the split hand again
       end
       @bet_box.num_splits.must_equal(3)
       counter = 0
       @table.bet_boxes.each_active do |bet_box|
-        bet_box.hand.length.must_equal(1)
-        bet_box.box.transfer_to(@table.house, bet_box.bet_amount)
         counter +=1
-        bet_box.discard
-        bet_box.hand.length.must_equal(0)
       end
       counter.must_equal(4)
+      @table.bet_boxes.each_active do |bet_box|
+        #
+        # attempt to split the again should exceed table limit
+        #
+        bet_box.hand.set('8D', '8S')
+        assert !bet_box.can_split?, "shouldn't be able to split"
+        proc {
+          bet_box.split
+        }.must_raise RuntimeError
+        break
+      end
     end
   end
 
