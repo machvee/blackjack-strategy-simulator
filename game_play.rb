@@ -123,17 +123,17 @@ module Blackjack
 
     def players_play_their_hands
       table.bet_boxes.each_active do |bet_box|
-        player_plays_hand_until_end(bet_box)
+        player_plays_hand_until_stand_or_bust(bet_box)
       end
     end
 
-    def player_plays_hand_until_end(bet_box)
+    def player_plays_hand_until_stand_or_bust(bet_box)
  
       player = bet_box.player
 
       while(true) do
 
-        response = (bet_box.hand.twentyone? || bet_box.from_split_aces?) ? Action::STAND : dealer.ask_player_play(bet_box)
+        response = player_must_stand?(bet_box) ? Action::STAND : dealer.ask_player_play(bet_box)
 
         case response
           when Action::HIT
@@ -146,23 +146,27 @@ module Blackjack
               break
             end
             announce_hand(bet_box, response)
+
           when Action::STAND
             announce_hand(bet_box, response)
             break
+
           when Action::SPLIT
             bet_box.split
             bet_box.iter do |split_bet_box|
               deal_player_card(split_bet_box)
               announce_hand(split_bet_box, response)
-              player_plays_hand_until_end(split_bet_box)
+              player_plays_hand_until_stand_or_bust(split_bet_box)
             end
             break
+
           when Action::DOUBLE_DOWN
             double_down_bet_amt = dealer.ask_player_double_down_bet_amount(bet_box)
             bet_box.double_down(double_down_bet_amt)
             deal_player_card(bet_box)
             announce_hand(bet_box, response, double_down_bet_amt)
             break
+
           when Action::SURRENDER
             table.game_announcer.says("%s SURRENDERS", player.name)
             player.surrendered(bet_box)
@@ -240,5 +244,8 @@ module Blackjack
       end
     end
 
+    def player_must_stand?(bet_box)
+      bet_box.hand.twentyone? || bet_box.from_split_aces?
+    end
   end
 end

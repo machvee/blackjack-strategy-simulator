@@ -21,26 +21,29 @@ module Blackjack
       @lookup_table = parse_table
     end
 
-    def decision_stat_name(dealer_up_card_value, hand)
-      "%s:%s:%s" % rule_keys(dealer_up_card_value, hand)
+    def decision_stat_name(dealer_up_card_value, player_hand, two_card_hand)
+      "%s:%s:%s:%s" % rule_keys(dealer_up_card_value, player_hand, two_card_hand ? "i" : "+")
     end
 
-    def rule_keys(dealer_up_card_value, hand)
-      if hand.pair?
-        [:pairs, hand[0].soft_value, dealer_up_card_value]
-      elsif hand.soft? && hand.soft_sum <= BlackjackCard::ACE_HARD_VALUE
-        [:soft, hand.soft_sum, dealer_up_card_value]
+    def rule_keys(dealer_up_card_value, player_hand)
+      #
+      # returns [lookup_section, player_hand value, dealer up card, 2-card hand?]
+      #
+      if player_hand.pair?
+        [:pairs, player_hand[0].soft_value]
+      elsif player_hand.soft? && player_hand.soft_sum <= BlackjackCard::ACE_HARD_VALUE
+        [:soft, player_hand.soft_sum]
       else
-        [:hard, hand.hard_sum, dealer_up_card_value]
-      end
+        [:hard, player_hand.hard_sum]
+      end + [dealer_up_card_value, player_hand.length > 2]
     end
 
-    def play(dealer_up_card_value, hand)
-      table_section, player_hand_val, dealer_hand_val = rule_keys(dealer_up_card_value, hand)
+    def play(dealer_up_card_value, player_hand)
+      table_section, player_hand_val, dealer_hand_val, two_card_hand = rule_keys(dealer_up_card_value, player_hand)
 
       decision_from_table = lookup_table[table_section][player_hand_val][dealer_hand_val]
 
-      check_can_only_double_down_on_two_cards_and_return_decision(hand, decision_from_table)
+      check_can_only_double_down_on_two_cards_and_return_decision(player_hand, decision_from_table)
     end
 
     def inspect
@@ -49,14 +52,14 @@ module Blackjack
 
     private
 
-    def check_can_only_double_down_on_two_cards_and_return_decision(hand, decision)
+    def check_can_only_double_down_on_two_cards_and_return_decision(player_hand, decision)
       #
       # Action::DOUBLE_DOWN becoomes Action::HIT when there are more than 2 cards
       # in the player's hand
       #
       return case decision
         when Action::DOUBLE_DOWN
-          hand.length > 2 ? Action::HIT : Action::DOUBLE_DOWN
+          player_hand.length > 2 ? Action::HIT : Action::DOUBLE_DOWN
         else
           decision
         end
