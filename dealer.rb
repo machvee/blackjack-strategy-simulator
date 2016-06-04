@@ -11,8 +11,7 @@ module Blackjack
       attr_reader  :house
       attr_reader  :cash
 
-      def initialize(table, dealer)
-        @dealer = dealer
+      def initialize(table)
         @house = table.house
         @cash = table.cash
       end
@@ -85,7 +84,7 @@ module Blackjack
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
       @hand = table.new_dealer_hand
       @shoe = table.shoe
-      @money = MoneyHandler.new(table, self)
+      @money = MoneyHandler.new(table)
     end
 
     def deal_first_up_card_to_each_active_bet_box
@@ -138,10 +137,8 @@ module Blackjack
       hand.bust?
     end
 
-    def hit?
-      !busted? &&                                           # don't hit if already busted
-        ((hand.soft? && hand.hard_sum <= soft_hit_limit) || # hit if soft 16 (or if configured, soft 17) or less
-        (!hand.soft? && hand.hard_sum < 17))                # hit if hard hand < 17
+    def not_busted?
+      !busted?
     end
 
     def play_hand
@@ -149,6 +146,10 @@ module Blackjack
         deal_card_to_hand
       end
       self
+    end
+
+    def hit?
+      not_busted? && (hit_soft_hand? || hit_hard_hand?)
     end
 
     def discard_hand
@@ -237,6 +238,16 @@ module Blackjack
     end
 
     private
+
+    def hit_soft_hand?
+      # hit if soft 16 (or if configured, soft 17) or less
+      hand.soft? && (hand.hard_sum <= soft_hit_limit)
+    end
+
+    def hit_hard_hand?
+      # hit if hard hand < 17
+      !hand.soft? && (hand.hard_sum < 17)
+    end
 
     def prompt_player_strategy_and_validate(strategy_step, bet_box, opt_player=nil)
       player = opt_player||bet_box.player
