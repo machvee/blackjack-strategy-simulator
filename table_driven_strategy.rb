@@ -9,6 +9,10 @@ module Blackjack
       @strategy_table = strategy_table
     end
 
+    def rule_name(bet_box, dealer_up_card)
+      strategy_table.rule_name(dealer_up_card, bet_box.hand)
+    end
+
     def num_bets
       num_bets = options[:num_bets]||super
       #
@@ -28,17 +32,8 @@ module Blackjack
     end
 
     def play(bet_box, dealer_up_card, other_hands=[])
-      dec = strategy_table.play(dealer_up_card.face_value, bet_box.hand)
-      return case dec
-        when Action::SPLIT
-          # can't split if player doesn't have funds
-          player.bank.balance < bet_box.bet_amount ? Action::HIT : dec
-        when Action::DOUBLE_DOWN
-          # can't double down if player doesn't have funds
-          player.bank.balance == 0 ? Action::HIT : dec
-        else
-          dec
-      end
+      decision = strategy_table.play(dealer_up_card.face_value, bet_box.hand)
+      modify_to_hit_if_unable_to_double_or_split(bet_box, decision)
     end
 
     def error(strategy_step, message)
@@ -54,8 +49,19 @@ module Blackjack
       raise "#{strategy_step}: #{message}"
     end
 
-    def decision_stat_name(bet_box, dealer_up_card, other_hands=[])
-      strategy_table.decision_stat_name(dealer_up_card.face_value, bet_box.hand)
+    private
+
+    def modify_to_hit_if_unable_to_double_or_split(bet_box, decision)
+      case decision
+        when Action::SPLIT
+          # can't split if player doesn't have funds or reached table split limit
+          (player.bank.balance < bet_box.bet_amount || !bet_box.can_split?) ? Action::HIT : decision
+        when Action::DOUBLE_DOWN
+          # can't double down if player doesn't have funds
+          player.bank.balance == 0 ? Action::HIT : decision
+        else
+          decision
+      end
     end
 
   end
