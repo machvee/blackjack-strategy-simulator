@@ -158,12 +158,12 @@ module Blackjack
             #
             # can the player split?
             #
-            # TODO: need to enforce hand max splits from table.config
-            #
             if !player.balance_check(bet_box.bet_amount)
               [false, "Player has insufficient funds to split the hand"]
-            elsif !valid_split_hand?(bet_box.hand)
+            elsif !bet_box.hand.pair?
               [false, "Player can only split cards that are identical in value"]
+            elsif !bet_box.can_split?
+              [false, "The hand in this bet box can't be split"]
             end
           when Action::DOUBLE_DOWN
             #
