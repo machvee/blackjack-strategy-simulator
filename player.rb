@@ -167,14 +167,14 @@ module Blackjack
     end
 
     def to_s
-      "#{name} - $#{bank.balance} (#{up_down})"
+      "%s - $%.2f (%s)" % [name, bank.balance, up_down]
     end
 
     def up_down
       amt = bank.balance - buy_in
       return "EVEN" if amt.zero?
-      return "+$#{amt}" if amt > 0
-      return "-$#{amt.abs}"
+      return "+$%.2f" % amt if amt > 0
+      return "-$%.2f" % amt.abs
     end
 
   end
