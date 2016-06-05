@@ -79,17 +79,17 @@ module Blackjack
     def hand_outcome(bet_box, outcome, amount=nil)
       msg = case outcome
         when Outcome::WON
-          "%s WINS +$%d" % [bet_box.player_name, amount]
+          "%s WINS +$%.2f" % [bet_box.player_name, amount]
         when Outcome::LOST
-          "%s LOST -$%d" % [bet_box.player_name, amount]
+          "%s LOST -$%.2f" % [bet_box.player_name, amount]
         when Outcome::INSURANCE_WON
-          "%s WINS INSURANCE +$%d" % [bet_box.player_name, amount]
+          "%s WINS INSURANCE +$%.2f" % [bet_box.player_name, amount]
         when Outcome::INSURANCE_LOST
-          "%s LOST INSURANCE -$%d" % [bet_box.player_name, amount]
+          "%s LOST INSURANCE -$%.2f" % [bet_box.player_name, amount]
         when Outcome::PUSH
           "%s PUSH" % [bet_box.player_name]
         when Outcome::BUST
-          "%s HITS %s, and BUSTS -$%d" % [
+          "%s HITS %s, and BUSTS -$%.2f" % [
             bet_box.player_name,
                    hand_val_str(bet_box.hand, bet_box.from_split?),
                                   amount]
@@ -109,7 +109,7 @@ module Blackjack
               nil
           end
         when :bet_amount
-          "%s BETS $%d" % [player.name, response]
+          "%s BETS $%.2f" % [player.name, response]
         when :insurance
           case response
             when Action::NO_INSURANCE
@@ -120,7 +120,7 @@ module Blackjack
               nil
           end
         when :insurance_bet_amount
-           "%s takes INSURANCE for $%d" % [player.name, response]
+           "%s takes INSURANCE for $%.2f" % [player.name, response]
         else
           nil
       end

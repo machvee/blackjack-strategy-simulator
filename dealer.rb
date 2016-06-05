@@ -58,9 +58,14 @@ module Blackjack
         return 0 if bet_amount.zero?
         pay_this  = payout_odds[0]
         for_every = payout_odds[1]
+        bet_amount = bet_amount.to_f unless even_payout(bet_amount, for_every)
         amount = (bet_amount / for_every) * pay_this
         house.transfer_to(account, amount)
         amount
+      end
+
+      def even_payout(bet_amount, for_every)
+        bet_amount % for_every == 0
       end
 
       def collect_house_winnings(from_account)
