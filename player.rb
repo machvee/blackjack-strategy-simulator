@@ -167,7 +167,7 @@ module Blackjack
     end
 
     def to_s
-      "%s - $%.2f (%s)" % [name, bank.balance, up_down]
+      "%s has $%.2f (%s)" % [name, bank.balance, up_down]
     end
 
     def up_down
