@@ -4,16 +4,16 @@ module Blackjack
   class StrategyValidator
 
     STRATEGY_VALID_INPUT_HASH = {
-      stay?: [
+      Decision::STAY => [
         Action::PLAY,
         Action::LEAVE
       ],
-      insurance: [
+      Decision::INSURANCE => [
         Action::INSURANCE,
         Action::NO_INSURANCE,
         Action::EVEN_MONEY
       ],
-      play: [
+      Decision::PLAY => [
         Action::HIT,
         Action::STAND,
         Action::SPLIT,
@@ -29,7 +29,7 @@ module Blackjack
     end
 
     def validate_stay?(player, response)
-      if STRATEGY_VALID_INPUT_HASH[:stay?].include?(response)
+      if STRATEGY_VALID_INPUT_HASH[Decision::STAY].include?(response)
         if !player.balance_check(table.config[:minimum_bet])
           [false, "Player has insufficient funds to make a bet"]
         else
@@ -81,7 +81,7 @@ module Blackjack
       #
       # Action::NO_INSURANCE is always valid
       #
-      if !STRATEGY_VALID_INPUT_HASH[:insurance].include?(response)
+      if !STRATEGY_VALID_INPUT_HASH[Decision::INSURANCE].include?(response)
         [false, "Sorry, that's not a valid response"]
       else
         player = bet_box.player
@@ -139,7 +139,7 @@ module Blackjack
       #
       raise "this bet_box has been split" if bet_box.split?
 
-      if !STRATEGY_VALID_INPUT_HASH[:play].include?(response)
+      if !STRATEGY_VALID_INPUT_HASH[Decision::PLAY].include?(response)
         [false, "Sorry, that's not a valid response"]
       else
         player = bet_box.player

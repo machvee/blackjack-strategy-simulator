@@ -163,43 +163,43 @@ module Blackjack
     end
 
     def ask_player_stay?(player)
-      prompt_player_strategy_and_validate(:stay?, nil, player) do
+      prompt_player_strategy_and_validate(Decision::STAY, nil, player) do
         player.strategy.stay?
       end
     end
 
     def ask_player_num_bets(player)
-      prompt_player_strategy_and_validate(:num_bets, nil, player) do
+      prompt_player_strategy_and_validate(Decision::NUM_BETS, nil, player) do
         player.strategy.num_bets
       end
     end
 
     def ask_player_insurance?(bet_box)
-      prompt_player_strategy_and_validate(:insurance, bet_box) do
+      prompt_player_strategy_and_validate(Decision::INSURANCE, bet_box) do
         bet_box.player.strategy.insurance?(bet_box)
       end
     end
 
     def ask_player_play(bet_box)
-      prompt_player_strategy_and_validate(:play, bet_box) do
+      prompt_player_strategy_and_validate(Decision::PLAY, bet_box) do
         bet_box.player.strategy.play(bet_box, up_card, table.other_hands(bet_box))
       end
     end
 
     def ask_player_bet_amount(player, bet_box)
-      prompt_player_strategy_and_validate(:bet_amount, bet_box, player) do
+      prompt_player_strategy_and_validate(Decision::BET_AMOUNT, bet_box, player) do
         player.strategy.bet_amount(bet_box)
       end
     end
 
     def ask_player_insurance_bet_amount(bet_box)
-      prompt_player_strategy_and_validate(:insurance_bet_amount, bet_box) do
+      prompt_player_strategy_and_validate(Decision::INSURANCE_BET_AMOUNT, bet_box) do
         bet_box.player.strategy.insurance_bet_amount(bet_box)
       end
     end
 
     def ask_player_double_down_bet_amount(bet_box)
-      prompt_player_strategy_and_validate(:double_down_bet_amount, bet_box) do
+      prompt_player_strategy_and_validate(Decision::DOUBLE_DOWN_BET_AMOUNT, bet_box) do
         bet_box.player.strategy.double_down_bet_amount(bet_box)
       end
     end
@@ -270,19 +270,19 @@ module Blackjack
 
     def validate_step_response(strategy_step, response, bet_box, player)
       valid_input, error_message = case strategy_step
-        when :stay?
+        when Decision::STAY
           @validator.validate_stay?(player, response)
-        when :num_bets
+        when Decision::NUM_BETS
           @validator.validate_num_bets(player, response)
-        when :insurance
+        when Decision::INSURANCE
           @validator.validate_insurance?(bet_box, response)
-        when :bet_amount
+        when Decision::BET_AMOUNT
           @validator.validate_bet_amount(player, response)
-        when :insurance_bet_amount
+        when Decision::INSURANCE_BET_AMOUNT
           @validator.validate_insurance_bet_amount(bet_box, response)
-        when :double_down_bet_amount
+        when Decision::DOUBLE_DOWN_BET_AMOUNT
           @validator.validate_double_down_bet_amount(bet_box, response)
-        when :play
+        when Decision::PLAY
           @validator.validate_play(bet_box, response)
       end
       [valid_input, error_message]
