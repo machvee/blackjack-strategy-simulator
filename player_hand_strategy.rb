@@ -1,14 +1,29 @@
 module Blackjack
 
+  module Decision
+    #
+    # The player is asked to make these decisions
+    # throughout game play.  The player returns an Action below
+    # or an integer for for num bets and bet amounts
+    #
+    STAY=1                   # stay at the table or cash-out and quit
+    NUM_BETS=2               # how many bet boxes to place bets (0-max available)
+    BET_AMOUNT=3             # amount of bet in each bet box
+    INSURANCE=4              # take INSURANCE Action if dealer up card is Ace?
+    INSURANCE_BET_AMOUNT=5   # how much to bet on INSURANCE from 1 to bet_amount/2?
+    DOUBLE_DOWN_BET_AMOUNT=6 # how much to bet on a DOUBLE_DOWN from 1 to bet_amount?
+    PLAY=7                   # What Action to take when dealer ask player to make a hand decision?
+  end
+
   module Action
     #
-    # stay?
+    # For Decision STAY
     #
     LEAVE=-1
     PLAY=0
 
     #
-    # play
+    # for Decision PLAY
     #
     HIT=1
     STAND=2
@@ -17,7 +32,7 @@ module Blackjack
     SURRENDER=5
 
     #
-    # insurance?
+    # for Decision INSURANCE
     #
     INSURANCE=6
     NO_INSURANCE=7
@@ -81,6 +96,8 @@ module Blackjack
 
     def stay?
       #
+      # Decision::STAY
+      #
       # override in sub-class to indicate:
       #
       #   Action::LEAVE - the player cashes out and/or repays markers and leaves table
@@ -90,6 +107,8 @@ module Blackjack
     end
 
     def num_bets
+      #
+      # Decision::NUM_BETS
       #
       # override in sub-class to return:
       #
@@ -101,6 +120,8 @@ module Blackjack
 
     def bet_amount(bet_box)
       #
+      # Decision::BET_AMOUNT
+      #
       # override in sub-class to provide:
       #
       #   for each player bet_box, a whole dollar amount to bet for the main opening bet.
@@ -108,6 +129,8 @@ module Blackjack
     end
 
     def insurance?(bet_box)
+      #
+      # Decision::INSURANCE
       #
       # override in sub-class to indicate:
       #
@@ -118,10 +141,15 @@ module Blackjack
     end
 
     def insurance_bet_amount(bet_box)
+      #
+      # Decision::INSURANCE_BET_AMOUNT
+      #
       # The player may choose up to 1/2 the MAIN bet amount for INSURANCE
     end
 
     def play(bet_box, dealer_up_card, other_hands=[])
+      #
+      # Decision::PLAY
       #
       # override in subclass to decide what to do based on
       #   bet_box for hand and bet_amount
@@ -138,6 +166,8 @@ module Blackjack
     end
 
     def double_down_bet_amount(bet_box)
+      #
+      # Decision::DOUBLE_DOWN_BET_AMOUNT
       #
       # override in sub-class to determine double_down_bet_amount
       #
