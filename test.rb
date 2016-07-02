@@ -889,6 +889,35 @@ module Blackjack
     end
   end
 
+  describe GamePlay, "When player has blackjack and dealer has 10 upcard, A in hole" do
+    before do
+      shoe = TestShoe.new(
+          ["JH", "AC"],
+          [
+            ['AD', '10H']
+          ],
+          []
+      )
+      @table = Table.new('test', shoe: shoe)
+      @table.shoe.shuffle
+      @table.shoe.place_marker_card
+      @player_options = {
+        strategy_class: BasicStrategy
+      }
+      @player = Player.new('p', @player_options)
+      @player.join(@table)
+      @player.make_bet(50)
+      @game_play = GamePlay.new(@table)
+      @player.stats.hand_stats.pushed.count.must_equal(0)
+      @game_play.run(num_hands: 1)
+    end
+
+    it "should be a player push" do
+      @player.stats.hand_stats.pushed.count.must_equal(1)
+    end
+  end
+
+
   describe StrategyValidator, "A validator for strategy responses" do
     before do
       @table = Table.new('t1')
