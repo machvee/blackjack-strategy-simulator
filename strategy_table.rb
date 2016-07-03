@@ -41,6 +41,7 @@ module Blackjack
       @lookup_table = parse_table
     end
 
+<<<<<<< HEAD
     def decision_stat_name(dealer_up_card_value, hand)
       "%s:%s:%s" % rule_keys(dealer_up_card_value, hand)
     end
@@ -57,6 +58,10 @@ module Blackjack
 
     def play(dealer_up_card_value, hand)
       table_section, player_hand_val, dealer_hand_val = rule_keys(dealer_up_card_value, hand)
+=======
+    def play(dealer_up_card_value, player_hand)
+      table_section, player_hand_val, dealer_hand_val, two_card_hand = rule_keys(dealer_up_card_value, player_hand)
+>>>>>>> f63b9cf... WIP: refactored strategy_validator and dealer prompting into a decision class that lives inside player and incapsulates strategy calls
 
       decision_from_table = lookup_table[table_section][player_hand_val][dealer_hand_val]
 
@@ -76,7 +81,11 @@ module Blackjack
       #
       return case decision
         when Action::DOUBLE_DOWN
+<<<<<<< HEAD
           hand.length > 2 ? Action::HIT : Action::DOUBLE_DOWN
+=======
+          player_hand.length == 2 ? Action::DOUBLE_DOWN : Action::HIT
+>>>>>>> f63b9cf... WIP: refactored strategy_validator and dealer prompting into a decision class that lives inside player and incapsulates strategy calls
         else
           decision
         end

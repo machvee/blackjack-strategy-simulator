@@ -186,21 +186,5 @@ module Blackjack
       end
     end
 
-    private
-
-    def valid_split_hand?(hand)
-      hand.pair?
-    end
-
-    def valid_double_hand?(hand)
-      double_down_on = table.config[:double_down_on]
-      double_down_on.empty? ||
-      double_down_on.include?(hand.hard_sum) ||
-      double_down_on.include?(hand.soft_sum)
-    end
-
-    def valid_double_hand_values
-      table.config[:double_down_on].map(&:to_s).join(', ')
-    end
   end
 end
