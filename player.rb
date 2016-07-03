@@ -9,6 +9,7 @@ module Blackjack
     attr_reader   :buy_in
     attr_reader   :stats
     attr_reader   :config
+    attr_reader   :decision
 
     DEFAULT_OPTIONS = {
       start_bank: 500,
@@ -33,6 +34,7 @@ module Blackjack
       table.join(self, desired_seat_position)
       buy_chips(config[:start_bank])
       @strategy = strategy_class.new(table, self, config[:strategy_options])
+      @decision = PlayerDecisions.new(self)
       self
     end
 
@@ -61,6 +63,7 @@ module Blackjack
       table.leave(self)
       @table = nil
       @strategy = nil
+      @decision = nil
       self
     end
 

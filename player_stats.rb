@@ -35,7 +35,6 @@ module Blackjack
 
     def init_hand
       @current_ten_percentage = player.table.shoe.current_ten_percentage
-      @current_chain = DecisionChain.new(player)
     end
 
     def print

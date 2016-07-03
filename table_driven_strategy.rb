@@ -9,18 +9,18 @@ module Blackjack
       @strategy_table = strategy_table
     end
 
-    def num_bets
-      num_bets = options[:num_bets]||super
+    def num_hands
+      num_hands = options[:num_hands]||super
       #
       # leave room in bank to double down on all hands bet
       #
       @minimum_bet = table.config[:minimum_bet]
 
-      if num_bets > 1
+      if num_hands > 1
         @minimum_bet *= 2 # house requires you make double min bet 
       end
 
-      num_bets
+      num_hands
     end
 
     def bet_amount(bet_box)
@@ -28,17 +28,7 @@ module Blackjack
     end
 
     def play(bet_box, dealer_up_card, other_hands=[])
-      dec = strategy_table.play(dealer_up_card.face_value, bet_box.hand)
-      return case dec
-        when Action::SPLIT
-          # can't split if player doesn't have funds
-          player.bank.balance < bet_box.bet_amount ? Action::HIT : dec
-        when Action::DOUBLE_DOWN
-          # can't double down if player doesn't have funds
-          player.bank.balance == 0 ? Action::HIT : dec
-        else
-          dec
-      end
+      dec = strategy_table.play(bet_box, dealer_up_card.face_value)
     end
 
     def error(strategy_step, message)

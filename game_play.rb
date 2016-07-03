@@ -8,8 +8,6 @@ module Blackjack
 
     include CounterMeasures
 
-    DEFAULT_NUM_HANDS_TO_PLAY=10000
-
     counters :hands_dealt
 
     def initialize(table, options={})
@@ -19,16 +17,16 @@ module Blackjack
     end
 
     def run(options={})
-      num_hands = (options[:num_hands]||DEFAULT_NUM_HANDS_TO_PLAY.to_s).to_i
+      num_rounds = (options[:num_rounds]||"10000").to_i
       hands_dealt.reset
       begin
-        table.game_announcer.says("Hands: #{num_hands}, Seed: #{table.seed}")
+        table.game_announcer.says("Hands: #{num_rounds}, Seed: #{table.seed}")
         while players_at_table?
           shuffle_check
           announce_game_state
           wait_for_player_bets
           play_a_hand_of_blackjack if any_player_bets?
-          break if hands_dealt.count == num_hands
+          break if hands_dealt.count == num_rounds
         end
         exit_run
       rescue StrategyQuitter => q
@@ -96,15 +94,6 @@ module Blackjack
     end
 
     def players_at_table?
-      table.seated_players.compact.each do |player|
-        case dealer.ask_player_stay?(player)
-          when Action::PLAY
-            next
-          when Action::LEAVE
-            player.leave_table
-        end
-      end
-
       table.any_seated_players?
     end
 
@@ -123,17 +112,17 @@ module Blackjack
 
     def players_play_their_hands
       table.bet_boxes.each_active do |bet_box|
-        player_plays_hand_until_end(bet_box)
+        player_plays_hand(bet_box)
       end
     end
 
-    def player_plays_hand_until_end(bet_box)
+    def player_plays_hand(bet_box)
  
       player = bet_box.player
 
       while(true) do
 
-        response = (bet_box.hand.twentyone? || bet_box.from_split_aces?) ? Action::STAND : dealer.ask_player_play(bet_box)
+        response = (bet_box.hand.twentyone? || bet_box.from_split_aces?) ? Action::STAND : player.decision.play.prompt(bet_box)
 
         case response
           when Action::HIT
@@ -154,11 +143,11 @@ module Blackjack
             bet_box.iter do |split_bet_box|
               deal_player_card(split_bet_box)
               announce_hand(split_bet_box, response)
-              player_plays_hand_until_end(split_bet_box)
+              player_plays_hand(split_bet_box)
             end
             break
           when Action::DOUBLE_DOWN
-            double_down_bet_amt = dealer.ask_player_double_down_bet_amount(bet_box)
+            double_down_bet_amt = player.decision.double_down_bet_amount.prompt(bet_box)
             bet_box.double_down(double_down_bet_amt)
             deal_player_card(bet_box)
             announce_hand(bet_box, response, double_down_bet_amt)
@@ -224,18 +213,20 @@ module Blackjack
 
     def wait_for_player_bets
       table.each_player do |player|
-        num_bets = dealer.ask_player_num_bets(player)
-        case num_bets
-          when 0
+        leave_or_stay = player.decision.stay.prompt(player)
+        case leave_or_stay
+          when Action::LEAVE
+            player.leave_table
             next
-          else
-            bet_counter = 0
+          when Action::PLAY
+            num_hands = player.decision.num_hands.prompt(player)
+            hand_counter = 0
             table.bet_boxes.available_for(player) do |bet_box|
-              break if bet_counter == num_bets
-              bet_amount = dealer.ask_player_bet_amount(player, bet_box)
+              break if hand_counter == num_hands
+              bet_amount = player.decision.bet_amount.prompt(bet_box)
               player.make_bet(bet_amount, bet_box)
-              bet_counter += 1
-            end 
+              hand_counter += 1
+            end
         end 
       end
     end
