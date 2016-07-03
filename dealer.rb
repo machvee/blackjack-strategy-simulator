@@ -85,7 +85,6 @@ module Blackjack
     def initialize(table)
       @table = table
       @stats = HistoStats.new("Hands", HandStats)
-      @validator = StrategyValidator.new(table)
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
       @hand = table.new_dealer_hand
       @shoe = table.shoe
@@ -162,48 +161,6 @@ module Blackjack
       self
     end
 
-    def ask_player_stay?(player)
-      prompt_player_strategy_and_validate(Decision::STAY, nil, player) do
-        player.strategy.stay?
-      end
-    end
-
-    def ask_player_num_bets(player)
-      prompt_player_strategy_and_validate(Decision::NUM_BETS, nil, player) do
-        player.strategy.num_bets
-      end
-    end
-
-    def ask_player_insurance?(bet_box)
-      prompt_player_strategy_and_validate(Decision::INSURANCE, bet_box) do
-        bet_box.player.strategy.insurance?(bet_box)
-      end
-    end
-
-    def ask_player_play(bet_box)
-      prompt_player_strategy_and_validate(Decision::PLAY, bet_box) do
-        bet_box.player.strategy.play(bet_box, up_card, table.other_hands(bet_box))
-      end
-    end
-
-    def ask_player_bet_amount(player, bet_box)
-      prompt_player_strategy_and_validate(Decision::BET_AMOUNT, bet_box, player) do
-        player.strategy.bet_amount(bet_box)
-      end
-    end
-
-    def ask_player_insurance_bet_amount(bet_box)
-      prompt_player_strategy_and_validate(Decision::INSURANCE_BET_AMOUNT, bet_box) do
-        bet_box.player.strategy.insurance_bet_amount(bet_box)
-      end
-    end
-
-    def ask_player_double_down_bet_amount(bet_box)
-      prompt_player_strategy_and_validate(Decision::DOUBLE_DOWN_BET_AMOUNT, bet_box) do
-        bet_box.player.strategy.double_down_bet_amount(bet_box)
-      end
-    end
-
     def player_lost(bet_box)
       table.game_announcer.hand_outcome(bet_box, Outcome::LOST, bet_box.total_player_bet)
       bet_box.player.lost_bet(bet_box)
@@ -254,38 +211,5 @@ module Blackjack
       !hand.soft? && (hand.hard_sum < 17)
     end
 
-    def prompt_player_strategy_and_validate(strategy_step, bet_box, opt_player=nil)
-      player = opt_player||bet_box.player
-      while(true) do
-        response = yield
-        success, message = validate_step_response(strategy_step, response, bet_box, player)
-        break if success
-        player.strategy.error(strategy_step, message)
-      end
-
-      table.game_announcer.play_by_play(strategy_step, player, response)
-
-      response
-    end
-
-    def validate_step_response(strategy_step, response, bet_box, player)
-      valid_input, error_message = case strategy_step
-        when Decision::STAY
-          @validator.validate_stay?(player, response)
-        when Decision::NUM_BETS
-          @validator.validate_num_bets(player, response)
-        when Decision::INSURANCE
-          @validator.validate_insurance?(bet_box, response)
-        when Decision::BET_AMOUNT
-          @validator.validate_bet_amount(player, response)
-        when Decision::INSURANCE_BET_AMOUNT
-          @validator.validate_insurance_bet_amount(bet_box, response)
-        when Decision::DOUBLE_DOWN_BET_AMOUNT
-          @validator.validate_double_down_bet_amount(bet_box, response)
-        when Decision::PLAY
-          @validator.validate_play(bet_box, response)
-      end
-      [valid_input, error_message]
-    end
   end
 end

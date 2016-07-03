@@ -1,20 +1,5 @@
 module Blackjack
 
-  module Decision
-    #
-    # The player is asked to make these decisions
-    # throughout game play.  The player returns an Action below
-    # or an integer for for num bets and bet amounts
-    #
-    STAY=1                   # stay at the table or cash-out and quit
-    NUM_BETS=2               # how many bet boxes to place bets (0-max available)
-    BET_AMOUNT=3             # amount of bet in each bet box
-    INSURANCE=4              # take INSURANCE Action if dealer up card is Ace?
-    INSURANCE_BET_AMOUNT=5   # how much to bet on INSURANCE from 1 to bet_amount/2?
-    DOUBLE_DOWN_BET_AMOUNT=6 # how much to bet on a DOUBLE_DOWN from 1 to bet_amount?
-    PLAY=7                   # What Action to take when dealer ask player to make a hand decision?
-  end
-
   module Action
     #
     # For Decision STAY

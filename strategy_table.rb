@@ -21,23 +21,6 @@ module Blackjack
       @lookup_table = parse_table
     end
 
-    def rule_name(dealer_up_card_value, player_hand)
-      "%s:%s:%s:%s" % rule_keys(dealer_up_card_value, player_hand, player_hand.length == 2 ? "i" : "+")
-    end
-
-    def rule_keys(dealer_up_card_value, player_hand)
-      #
-      # returns [lookup_section, player_hand value, dealer up card, 2-card hand?]
-      #
-      if player_hand.pair?
-        [:pairs, player_hand[0].soft_value]
-      elsif player_hand.soft? && player_hand.soft_sum <= BlackjackCard::ACE_HARD_VALUE
-        [:soft, player_hand.soft_sum]
-      else
-        [:hard, player_hand.hard_sum]
-      end + [dealer_up_card_value]
-    end
-
     def play(dealer_up_card_value, player_hand)
       table_section, player_hand_val, dealer_hand_val, two_card_hand = rule_keys(dealer_up_card_value, player_hand)
 
@@ -59,7 +42,7 @@ module Blackjack
       #
       return case decision
         when Action::DOUBLE_DOWN
-          player_hand.length > 2 ? Action::HIT : Action::DOUBLE_DOWN
+          player_hand.length == 2 ? Action::DOUBLE_DOWN : Action::HIT
         else
           decision
         end

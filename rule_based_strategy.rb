@@ -2,18 +2,14 @@ module Blackjack
 
   class RuleBasedStrategy < PlayerHandStrategy
 
-    # TableDrivenStrategy should override RuleBasedStrategy as there
-    # is a rule table that drives the decision can define OutcomeStats
     #
-    # the motivation behind this class is to have
-    # a PHS that keeps StrategyStats for each decision made.  The
-    # methods that are overriden here provide the choices based on
-    # rules.  The PHS methods call the decisions but also keep
-    # stats and decision chains on the rules via an included class
-    # StrategyStats.  The sub-class author of an RBS must provide a
-    # rule-name for the particular decision stat ("pairs:A" or "hard:16").
-    # outcome method will update the stats on the decision chain
+    # given the params to the strategy step function, lookup and return the
+    # StrategyRule.  The StrategyRule lookup is a method is sub-classed.
+    # The StrategyRule is added to the RuleChain for the current hand play
+    # When the outcome is determined, the chain is traversed, and the outcome
+    # and amounts are tallied for in the stats for each StrategyRule.
     #
+
     def initialize(table, player, options)
     end
 
