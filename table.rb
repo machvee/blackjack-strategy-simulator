@@ -60,7 +60,7 @@ module Blackjack
     DEFAULT_SHOE_CLASS         = SixDeckShoe
     DEFAULT_GAME_ANNOUNCER     = GameAnnouncer
     DEFAULT_BET_RANGE          = 25..5000
-    DEFAULT_MAX_PLAYER_BETS    = 3
+    DEFAULT_MAX_PLAYER_HANDS   = 3
     DEFAULT_MAX_SPLITS_PER_BOX = 3
     EVEN_MONEY_PAYOUT          = [1,1]
     DEFAULT_BLACKJACK_PAYOUT   = [3,2]
@@ -76,7 +76,7 @@ module Blackjack
       double_down_on:       DEFAULT_DOUBLE_DOWN_ON,
       minimum_bet:          DEFAULT_BET_RANGE.min,
       maximum_bet:          DEFAULT_BET_RANGE.max,
-      max_player_bets:      DEFAULT_MAX_PLAYER_BETS,
+      max_player_hands:     DEFAULT_MAX_PLAYER_HANDS,
       max_player_splits:    DEFAULT_MAX_SPLITS_PER_BOX, # nil unlimited or n: one hand split up to n times
       game_announcer_class: DEFAULT_GAME_ANNOUNCER,
       random_seed:          nil,

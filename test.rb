@@ -503,7 +503,7 @@ module Blackjack
       @table.config[:maximum_bet].must_equal 5000
       @table.config[:double_down_on].must_equal []
       @table.config[:max_player_splits].must_equal 3
-      @table.config[:max_player_bets].must_equal 3
+      @table.config[:max_player_hands].must_equal 3
     end
 
     it "should support options for configuration" do
@@ -746,7 +746,7 @@ module Blackjack
 
     it "should allow use of the game play class with many players" do
       class TestStrategy < PlayerHandStrategy
-        def num_bets
+        def num_hands
           1
         end
 
@@ -918,40 +918,35 @@ module Blackjack
   end
 
 
-  describe StrategyValidator, "A validator for strategy responses" do
+  describe PlayerDecisions, "A prompter/validator for strategy responses" do
     before do
       @table = Table.new('t1')
       @player = Player.new('dave', start_bank: 5000)
       @player.join(@table)
-      @sv = StrategyValidator.new(@table)
     end
 
     it "for the stay? response, it should return false with non Action::PLAY/Action::LEAVE" do
-      @sv.validate_stay?(@player, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
+      @player.decisions.stay.valid?(Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
     end
 
     it "for the stay? response, it should return true with non Action::PLAY" do
-      @sv.validate_stay?(@player, Action::PLAY).must_equal([true, nil])
+      @player.decisions.stay.valid?(Action::PLAY).must_equal([true, nil])
     end
 
     it "for the stay? response, it should return true with non Action::LEAVE" do
-      @sv.validate_stay?(@player, Action::LEAVE).must_equal([true, nil])
+      @player.decisions.stay.valid?(Action::LEAVE).must_equal([true, nil])
     end
 
-    it "for the stay? response, it should return false with non Action::PLAY/Action::LEAVE" do
-      @sv.validate_stay?(@player, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
+    it "for the num_hands response, it should return false with very negative" do
+      @player.decisions.num_hands.valid?(-2).must_equal([false, "You must enter a number between 0-3"])
     end
 
-    it "for the num_bets response, it should return false with very negative" do
-      @sv.validate_num_bets(@player, -2).must_equal([false, "You must enter a number between 0-3"])
+    it "for the num_hands response, it should return true with valid number of bets" do
+      @sv.validate_num_hands(@player, 2).must_equal([true, nil])
     end
 
-    it "for the num_bets response, it should return true with valid number of bets" do
-      @sv.validate_num_bets(@player, 2).must_equal([true, nil])
-    end
-
-    it "for the num_bets response, it should return true with 0 response" do
-      @sv.validate_num_bets(@player, 0).must_equal([true, nil])
+    it "for the num_hands response, it should return true with 0 response" do
+      @sv.validate_num_hands(@player, 0).must_equal([true, nil])
     end
 
     it "it should return false for insurance with non-insurance response" do

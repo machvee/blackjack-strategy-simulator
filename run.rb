@@ -11,7 +11,7 @@ table_options = {
 
 player_options = {
   strategy_class: PromptWithBasicStrategyGuidance,
-  strategy_options: {num_bets: 1}
+  strategy_options: {num_hands: 1}
 }
 
 @table = TableWithAnnouncer.new("Blackjack Table 3", table_options)

@@ -4,7 +4,7 @@ module Blackjack
     # The player is asked to make these decisions throughout game play
     #
     # STAY                    stay at the table or cash-out and quit
-    # NUM_BETS                how many bet boxes to place bets (0-max available)
+    # NUM_HANDS               how many bet boxes to place bets (0-max available)
     # BET_AMOUNT              amount of bet in each bet box
     # INSURANCE               take INSURANCE Action if dealer up card is Ace?
     # INSURANCE_BET_AMOUNT    how much to bet on INSURANCE from 1 to bet_amount/2?
@@ -31,17 +31,10 @@ module Blackjack
         #
         player.strategy.error(strategy_step, message)
       end
-      table.game_announcer.play_by_play(self.class.name.downcase, player, response)
+
+      table.game_announcer.play_by_play(message) unless message.nil?
+
       response
-    end
-
-    private 
-
-    def get_response(bet_box=nil)
-      #
-      # override in sub-class.  Returns an Blackjack::Action or integer amount
-      # has access to bet_box, player and table
-      #
     end
 
     def valid?(response, bet_box=nil)
@@ -50,5 +43,13 @@ module Blackjack
       # has access to bet_box, player and table
       #
     end
+
+    def get_response(bet_box=nil)
+      #
+      # override in sub-class. Calls the strategy method that corresponds to the sub-class
+      # Returns an Blackjack::Action or integer amount
+      #
+    end
+
   end
 end

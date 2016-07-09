@@ -18,8 +18,8 @@ module Blackjack
       strategy.outcome(win_lose_push, dealer_hand, amount)
     end
 
-    def num_bets
-      strategy.num_bets
+    def num_hands
+      strategy.num_hands
     end
 
     def bet_amount(bet_box)

@@ -2,13 +2,13 @@ module Blackjack
   class SimpleStrategy < PlayerHandStrategy
     #
     # takes easy/recommended/default actions, leaving more important
-    # decisions to sub-classes
+    # hand play decisions to sub-classes
     #
     def stay?
       Action::PLAY
     end
 
-    def num_bets
+    def num_hands
       1
     end
 

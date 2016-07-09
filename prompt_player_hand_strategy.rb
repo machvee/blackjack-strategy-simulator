@@ -54,8 +54,8 @@ module Blackjack
       [bet_box.bet_amount, player.bank.balance].min
     end
 
-    def num_bets
-      options[:num_bets]
+    def num_hands
+      options[:num_hands]
     end
 
     def error(strategy_step, message)

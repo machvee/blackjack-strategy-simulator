@@ -50,7 +50,7 @@ module Blackjack
 
     def available_for(player)
       #
-      # search for consective bet boxes until options[:max_player_bets] is reached
+      # search for consective bet boxes until options[:max_player_hands] is reached
       # or a bet_box is in front of a another seated player
       #
       player_seat_position = table.seat_position(player)
@@ -58,7 +58,7 @@ module Blackjack
 
       min_pos = 0
       max_pos = table.config[:num_seats]-1
-      max_player_bets = table.config[:max_player_bets]
+      max_player_hands = table.config[:max_player_hands]
       bet_box_count = 1
       offset = 1
       available_bet_boxes = [dedicated_to(player)]
@@ -67,7 +67,7 @@ module Blackjack
         #
         # look to the players right then left for an available? bet_box
         # keep working outwards until as many bet_boxes can be selected
-        # up to max_player_bets
+        # up to max_player_hands
         #
         break unless right_remain || left_remain
 
@@ -75,7 +75,7 @@ module Blackjack
           ind = player_seat_position - offset
           if ind >= min_pos && bet_boxes[ind].available?
             available_bet_boxes << bet_boxes[ind]
-            break if available_bet_boxes.length == max_player_bets
+            break if available_bet_boxes.length == max_player_hands
           else
             right_remain = false
           end
@@ -85,7 +85,7 @@ module Blackjack
           ind = player_seat_position + offset
           if ind <= max_pos && bet_boxes[ind].available?
             available_bet_boxes << bet_boxes[ind]
-            break if available_bet_boxes.length == max_player_bets
+            break if available_bet_boxes.length == max_player_hands
           else
             left_remain = false
           end

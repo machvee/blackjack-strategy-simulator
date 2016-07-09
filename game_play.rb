@@ -8,7 +8,7 @@ module Blackjack
 
     include CounterMeasures
 
-    counters :hands_dealt
+    counters :rounds_dealt
 
     def initialize(table, options={})
       @table =  table
@@ -17,16 +17,16 @@ module Blackjack
     end
 
     def run(options={})
-      num_hands = (options[:num_hands]||"10000").to_i
-      hands_dealt.reset
+      num_rounds = (options[:num_rounds]||"10000").to_i
+      rounds_dealt.reset
       begin
-        table.game_announcer.says("Hands: #{num_hands}, Seed: #{table.seed}")
+        table.game_announcer.says("Rounds: #{num_rounds}, Seed: #{table.seed}")
         while players_at_table?
           shuffle_check
           announce_game_state
           wait_for_player_bets
           play_a_hand_of_blackjack if any_player_bets?
-          break if hands_dealt.count == num_hands
+          break if rounds_dealt.count == num_rounds
         end
         exit_run
       rescue StrategyQuitter => q
@@ -41,7 +41,7 @@ module Blackjack
     end
 
     def play_a_hand_of_blackjack
-      hands_dealt.incr
+      rounds_dealt.incr
       opening_deal
       announce_hands
 
@@ -122,6 +122,11 @@ module Blackjack
 
       while(true) do
 
+        #
+        # the two conditions that would force a player to Action::STAND are:
+        #   1. Player hand totals 21
+        #   2. Player has a hand from split Aces
+        #
         response = (bet_box.hand.twentyone? || bet_box.from_split_aces?) ? Action::STAND : player.decision.play.prompt(bet_box)
 
         case response
@@ -219,13 +224,13 @@ module Blackjack
             player.leave_table
             next
           when Action::PLAY
-            num_bets = player.decision.num_bets.prompt(player)
-            bet_counter = 0
+            num_hands = player.decision.num_hands.prompt(player)
+            hand_counter = 0
             table.bet_boxes.available_for(player) do |bet_box|
-              break if bet_counter == num_bets
+              break if hand_counter == num_hands
               bet_amount = player.decision.bet_amount.prompt(player, bet_box)
               player.make_bet(bet_amount, bet_box)
-              bet_counter += 1
+              hand_counter += 1
             end
         end 
       end

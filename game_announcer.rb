@@ -99,31 +99,7 @@ module Blackjack
       says msg
     end
 
-    def play_by_play(step, player, response)
-      msg = case step
-        when :num_bets
-          case response
-            when 0
-              "%s SITS OUT" % player.name
-            else
-              nil
-          end
-        when :bet_amount
-          "%s BETS $%.2f" % [player.name, response]
-        when :insurance
-          case response
-            when Action::NO_INSURANCE
-              "%s says NO INSURANCE" % player.name
-            when Action::EVEN_MONEY
-              "%s has Blackjack and takes EVEN MONEY" % player.name
-            else
-              nil
-          end
-        when :insurance_bet_amount
-           "%s takes INSURANCE for $%.2f" % [player.name, response]
-        else
-          nil
-      end
+    def play_by_play(msg)
       says msg
     end
 

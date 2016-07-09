@@ -8,8 +8,6 @@ module Blackjack
       Action::LEAVE
     ]
 
-    private
-
     def get_response(bet_box=nil)
       player.strategy.stay?
     end
