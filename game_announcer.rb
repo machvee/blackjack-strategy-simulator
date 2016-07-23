@@ -24,7 +24,7 @@ module Blackjack
     def hand_outcome(hand, action, amount=nil)
     end
 
-    def play_by_play(step, player, response)
+    def play_by_play(response)
     end
 
     def says(msg)

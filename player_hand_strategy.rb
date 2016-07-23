@@ -68,6 +68,11 @@ module Blackjack
     # all other aspects of play and inputs to strategy must be maintained by the
     # strategy.  e.g.  card counts
     #
+    # each decision method below should return
+    # a response and an optional 'rule_name' which was used to determine the
+    # response.  Stats are kept based on the rule name, attributing the outcome's
+    # success or failure to that rule
+    #
 
     attr_reader  :table
     attr_reader  :player
@@ -83,20 +88,22 @@ module Blackjack
       #
       # cash-out and quit or stay at the table?
       #
-      # override in sub-class to indicate:
+      # override in sub-class to return rule_name and response indicates:
       #
-      #   Action::LEAVE - the player cashes out and/or repays markers and leaves table
-      #    Action::PLAY - means they can choose to occupy the seat and will make num_hands 
-      #                   bets in 0 or more bet_boxes.
+      #   response
+      #     Action::LEAVE - the player cashes out and/or repays markers and leaves table
+      #      Action::PLAY - means they can choose to occupy the seat and will make num_hands 
+      #                     bets in 0 or more bet_boxes.
       #
     end
 
     def num_hands
       #
-      # Number of hands to play (bet_boxes to place a be in)
+      # Desired number of bet_boxes in which to place a bet
       #
-      # override in sub-class to return:
+      # override in sub-class to return rule with response of:
       #
+      #   response
       #      0 - to make NO bets in any bet_box and sit out the hand
       #     1+ - to claim 1 or more (up to table.config[:max_player_hands]>) default and adjacent
       #          bet boxes at the table, if they are available.
@@ -107,9 +114,10 @@ module Blackjack
       #
       # amount of chips to place in bet box before hand dealt
       #
-      # override in sub-class to provide:
+      # override in sub-class to provide rule with response:
       #
-      #   for each player bet_box, a whole dollar amount to bet for the main opening bet.
+      #   response
+      #      a dollar amount to bet for the main opening bet.
       #
     end
 
@@ -117,8 +125,9 @@ module Blackjack
       #
       # take insurance when dealer shows A up card ?
       #
-      # override in sub-class to indicate:
+      # override in sub-class to return rule whose response indicates:
       #
+      #   response
       #      Action::INSURANCE - the player wants insurance against dealer Ace up-card
       #   Action::NO_INSURANCE - willing to lose automatically if dealer has blackjack
       #     Action::EVEN_MONEY - player_hand is blackjack, will take 1-1 immediate payout 
@@ -129,24 +138,25 @@ module Blackjack
       #
       # How much of an insurance bet to take?
       #
-      # The player may choose up to 1/2 the MAIN bet amount for INSURANCE
+      # Rule response indicates how much the player chooses which can be 
+      #   response
+      #     a dollar amount up to 1/2 the MAIN bet amount for INSURANCE
     end
 
     def play(bet_box, dealer_up_card, other_hands=[])
       #
       # What to do with your hand as the dealer offers you another card
       #
-      # override in subclass to decide what to do based on
+      # override in subclass to provide rule whose response decides what to do based on
       #   bet_box for hand and bet_amount
       #   dealer_up_card value
       #   other_hands current visible cards dealt to other players
       #
-      # valid responses:
-      #
-      #   Action::HIT
-      #   Action::STAND
-      #   Action::SPLIT
-      #   Action::DOUBLE_DOWN
+      #   response:
+      #     Action::HIT
+      #     Action::STAND
+      #     Action::SPLIT
+      #     Action::DOUBLE_DOWN
       #
     end
 
@@ -181,7 +191,7 @@ module Blackjack
 
     def error(strategy_step, message)
       #
-      # Dealer will call this with a message string when/if the PlayerHandStrategy
+      # Decision will call this with a message string when/if the PlayerHandStrategy
       # would respond with something invalid during the above strategy_steps
       # and then invokes the offending method again
       #

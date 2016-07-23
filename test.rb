@@ -1,3 +1,4 @@
+require 'byebug'
 require 'minitest/autorun'
 require 'table'
 
@@ -942,15 +943,16 @@ module Blackjack
     end
 
     it "for the num_hands response, it should return true with valid number of bets" do
-      @sv.validate_num_hands(@player, 2).must_equal([true, nil])
+      @player.decisions.num_hands.valid?(2).must_equal([true, nil])
     end
 
     it "for the num_hands response, it should return true with 0 response" do
-      @sv.validate_num_hands(@player, 0).must_equal([true, nil])
+      @player.decisions.num_hands.valid?(0).must_equal([true, nil])
     end
 
     it "it should return false for insurance with non-insurance response" do
-      @sv.validate_insurance?(@player.default_bet_box, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
+      @player.decision.insurance.valid?(Action::HIT, @player.default_bet_box).must_equal([false,
+        "Sorry, that's not a valid response"])
     end
 
     it "should return false for insurance? when player is broke and they want INSURANCE" do
@@ -958,66 +960,66 @@ module Blackjack
       @player.bank.debit(@player.bank.balance)
       @player.bank.balance.must_equal(0)
       @player.default_bet_box.hand.set('JD', '9H')
-      @sv.validate_insurance?(@player.default_bet_box, Action::INSURANCE).must_equal([false,
+      @player.decisions.insurance.valid?(Action::INSURANCE, @player.default_bet_box).must_equal([false,
         "Player has insufficient funds to make an insurance bet"])
     end
 
     it "should return true for insurance? when player wants INSURANCE" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set('JD', '9H')
-      @sv.validate_insurance?(@player.default_bet_box, Action::INSURANCE).must_equal([true, nil])
+      @player.decisions.insurance.valid?(Action::INSURANCE, @player.default_bet_box).must_equal([true, nil])
     end
 
     it "should return false for insurance player doesn't have blackjack and they want EVEN MONEY" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set('JD', '9H')
-      @sv.validate_insurance?(@player.default_bet_box, Action::EVEN_MONEY).must_equal([false,
+      @player.decisions.insurance.valid?(Action::EVEN_MONEY, @player.default_bet_box).must_equal([false,
         "Player must have Blackjack to request even money"])
     end
 
     it "should return true for insurance player has blackjack and they want EVEN MONEY" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set('JD', 'AH')
-      @sv.validate_insurance?(@player.default_bet_box, Action::EVEN_MONEY).must_equal([true, nil])
+      @player.decisions.insurance.valid?(Action::EVEN_MONEY, @player.default_bet_box).must_equal([true, nil])
     end
 
     it "should return false for bet_amount when player has insufficient funds" do
       @player.bank.debit(@player.bank.balance)
       @player.bank.balance.must_equal(0)
-      @sv.validate_bet_amount(@player, 25).must_equal([false,
+      @player.decisions.bet_amount.valid?(25, @player.default_bet_box).must_equal([false,
         "Player has insufficient funds (0) to make a #{@table.config[:minimum_bet]} bet"])
     end
 
     it "should return false for bet_amount when player bets below table minimum" do
       min = @table.config[:minimum_bet]
-      @sv.validate_bet_amount(@player, min-1).must_equal([false,
+      @player.decisions.bet_amount.valid?(min-1, @player.default_bet_box).must_equal([false,
         "Player bet must be between #{min} and #{@table.config[:maximum_bet]}"])
     end
 
     it "should return false for bet_amount when player bets above table maximum" do
       max = @table.config[:maximum_bet]
-      @sv.validate_bet_amount(@player, max+1).must_equal([false,
+      @player.decisions.bet_amount.valid?(max+1, @player.default_bet_box).must_equal([false,
         "Player bet must be between #{@table.config[:minimum_bet]} and #{max}"])
     end
 
     it "should return true for a valid bet_amount" do
       min = @table.config[:minimum_bet]
       max = @table.config[:maximum_bet]
-      @sv.validate_bet_amount(@player, min).must_equal([true, nil])
-      @sv.validate_bet_amount(@player, max).must_equal([true, nil])
-      @sv.validate_bet_amount(@player, min+1).must_equal([true, nil])
-      @sv.validate_bet_amount(@player, max-1).must_equal([true, nil])
+      @player.decisions.bet_amount.valid?(min, @player.default_bet_box).must_equal([true, nil])
+      @player.decisions.bet_amount.valid?(max, @player.default_bet_box).must_equal([true, nil])
+      @player.decisions.bet_amount.valid?(min+1, @player.default_bet_box).must_equal([true, nil])
+      @player.decisions.bet_amount.valid?(max-1, @player.default_bet_box).must_equal([true, nil])
     end
 
     it "should return false for play decision when input is a non-decsion" do
-      @sv.validate_play(@player.default_bet_box, Action::LEAVE).must_equal([false, "Sorry, that's not a valid response"])
+      @player.decisions.play.valid?(Action::LEAVE, @player.default_bet_box).must_equal([false, "Sorry, that's not a valid response"])
     end
 
     it "should return false for play decision when input is a SURRENDER but table doesn't allow it" do
       @table.config[:player_surrender] = false
       @player.make_bet(10)
       @player.default_bet_box.hand.set('JD', '9H')
-      @sv.validate_play(@player.default_bet_box, Action::SURRENDER).must_equal([false,
+      @player.decisions.play.valid?(Action::SURRENDER, @player.default_bet_box).must_equal([false,
         "This table does not allow player to surrender"])
     end
 
@@ -1025,7 +1027,7 @@ module Blackjack
       @table.config[:player_surrender] = true
       @player.make_bet(10)
       @player.default_bet_box.hand.set('4D', '9H', '3H')
-      @sv.validate_play(@player.default_bet_box, Action::SURRENDER).must_equal([false,
+      @player.decisions.play.valid?(Action::SURRENDER, @player.default_bet_box).must_equal([false,
         "Player may surrender on initial two cards dealt"])
     end
 
@@ -1040,10 +1042,10 @@ module Blackjack
         # already split bet_box.  decisions should be asked instead on the
         # bet_boxes returned by the split_boxes.each
         #
-        @sv.validate_play(@player.default_bet_box, Action::SURRENDER)
+        @player.decisions.play.valid?(Action::SURRENDER, @player.default_bet_box)
       }.must_raise RuntimeError
       @player.default_bet_box.split_boxes.each do |bet_box|
-        @sv.validate_play(bet_box, Action::SURRENDER).must_equal([false,
+        @player.decisions.play.valid?(Action::SURRENDER, bet_box).must_equal([false,
           "Player may surrender on initial two cards dealt"])
       end
     end
@@ -1052,35 +1054,35 @@ module Blackjack
       @table.config[:player_surrender] = true
       @player.make_bet(10)
       @player.default_bet_box.hand.set('4D', '9H')
-      @sv.validate_play(@player.default_bet_box, Action::SURRENDER).must_equal([true, nil])
+      @player.decisions.play.valid?(Action::SURRENDER, @player.default_bet_box).must_equal([true, nil])
     end
 
     it "should return false for decision when input is a SPLIT and player is broke" do
       @player.make_bet(10)
       @player.bank.debit(@player.bank.balance)
       @player.default_bet_box.hand.set('8D', '8H')
-      @sv.validate_play(@player.default_bet_box, Action::SPLIT).must_equal([false,
+      @player.decisions.play.valid?(Action::SPLIT, @player.default_bet_box).must_equal([false,
         "Player has insufficient funds to split the hand"])
     end
 
     it "should return false for decision when input is a SPLIT and player doesn't have pair" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set('9D', '8H')
-      @sv.validate_play(@player.default_bet_box, Action::SPLIT).must_equal([false,
+      @player.decisions.play.valid?(Action::SPLIT, @player.default_bet_box).must_equal([false,
         "Player can only split cards that are identical in value"])
     end
 
     it "should return true for decision when input is a SPLIT and its legit" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set('8D', '8H')
-      @sv.validate_play(@player.default_bet_box, Action::SPLIT).must_equal([true, nil])
+      @player.decisions.play.valid?(Action::SPLIT, @player.default_bet_box).must_equal([true, nil])
     end
 
     it "should return false for decision when input is DOUBLE_DOWN and player is broke" do
       @player.make_bet(10)
       @player.bank.debit(@player.bank.balance)
       @player.default_bet_box.hand.set('8D', '3H')
-      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([false,
+      @player.decisions.play.valid?(Action::DOUBLE_DOWN, @player.default_bet_box).must_equal([false,
         "Player has insufficient funds to double down"])
     end
 
@@ -1096,7 +1098,7 @@ module Blackjack
       @table.config[:double_down_on] = [10,11]
       @player.make_bet(10)
       @player.default_bet_box.hand.set('AD', '4H')
-      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([false,
+      @player.decisions.play.valid?(Action::DOUBLE_DOWN, @player.default_bet_box).must_equal([false,
         "Player can only double down on hands of 10, 11"])
     end
 
@@ -1104,39 +1106,39 @@ module Blackjack
       @table.config[:double_down_on] = [10,11]
       @player.make_bet(10)
       @player.default_bet_box.hand.set('6D', '4H')
-      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
+      @player.decisions.play.valid?(Action::DOUBLE_DOWN, @player.default_bet_box).must_equal([true, nil])
       @player.default_bet_box.hand.set('6D', '5H')
-      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
+      @player.decisions.play.valid?(Action::DOUBLE_DOWN, @player.default_bet_box).must_equal([true, nil])
     end
 
     it "should return true for decision when input is DOUBLE_DOWN and player has legit hand" do
       @table.config[:double_down_on] = []
       @player.make_bet(10)
       @player.default_bet_box.hand.set('AD', '5H')
-      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
+      @player.decisions.play.valid?(Action::DOUBLE_DOWN, @player.default_bet_box).must_equal([true, nil])
     end
 
     it "should return true for decision when input is HIT and player hand is hittable" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set('4D', '5H')
-      @sv.validate_play(@player.default_bet_box, Action::HIT).must_equal([true, nil])
+      @player.decisions.play.valid?(Action::HIT, @player.default_bet_box).must_equal([true, nil])
       @player.default_bet_box.hand.set('10D', 'KH')
-      @sv.validate_play(@player.default_bet_box, Action::HIT).must_equal([true, nil])
+      @player.decisions.play.valid?(Action::HIT, @player.default_bet_box).must_equal([true, nil])
       @player.default_bet_box.hand.set('3D', '2H', 'AD', '5C')
-      @sv.validate_play(@player.default_bet_box, Action::HIT).must_equal([true, nil])
+      @player.decisions.play.valid?(Action::HIT, @player.default_bet_box).must_equal([true, nil])
     end
 
     it "should return false for decision when input is HIT and player hand is not hittable" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set('3D', '2H', '9D', '6C', 'AS')
-      @sv.validate_play(@player.default_bet_box, Action::HIT).must_equal([false,
+      @player.decisions.play.valid?(Action::HIT, @player.default_bet_box).must_equal([false,
         "Player hand can no longer be hit after hard 21"])
     end
 
     it "should return true decision when player wants to STAND" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set('KD', 'QH')
-      @sv.validate_play(@player.default_bet_box, Action::STAND).must_equal([true, nil])
+      @player.decisions.play.valid?(Action::STAND, @player.default_bet_box).must_equal([true, nil])
     end
   end
 

@@ -14,15 +14,24 @@ module Blackjack
 
     attr_reader :table
     attr_reader :player
+    attr_reader :chain
+    attr_reader :strategy_step
 
     def initialize(player)
       @player = player
       @table = player.table
+      @strategy_step = self.class.name.gsub(/Decision/,'').downcase
+      @chain = StatsChain.new(player)
     end
 
     def prompt(bet_box)
       while(true) do
-        response = get_response(bet_box)
+        response, rule = [*get_response(bet_box)]
+        #
+        # if a rule was returned, add the rule to the decision chain
+        #
+        chain.add(rule) unless rule.nil?
+
         success, message = valid?(response, bet_box)
         break if success
         #
@@ -47,9 +56,11 @@ module Blackjack
     def get_response(bet_box=nil)
       #
       # override in sub-class. Calls the strategy method that corresponds to the sub-class
-      # Returns an Blackjack::Action or integer amount
+      # Returns an StrategyRule subclass that supports the response and name methods
       #
     end
+
+    private
 
   end
 end

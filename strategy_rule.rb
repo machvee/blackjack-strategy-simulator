@@ -1,22 +1,20 @@
 module Blackjack
   class StrategyRule
     #
-    # StrategyRule - encapsulates the logic used to make a given player decision.
-    # The strategy rule has a strategy proc thats passed a Decision:: constant and
-    # args.  It also has a to_s which is a unique string representation of the rule
-    # used later to indentify outcome statistics kept for this rule
+    # StrategyRule   
     #
-    def initialize(decision, &block)
+    def initialize(decision)
       @decision = decision
-      @decision_proc = block
+      @stats = StrategyStats.new
     end
 
-    def run(*args)
-      @decision_proc.call(args)
+    def name
+      # override in subclass
     end
 
     def to_s
-      # override in subclass
+      name
     end
+
   end
 end

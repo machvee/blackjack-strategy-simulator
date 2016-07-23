@@ -57,7 +57,7 @@ module Blackjack
 
     def initialize(player)
       @player = player
-      @chain = []
+      @chain = Set.new
     end
 
     def add(name)

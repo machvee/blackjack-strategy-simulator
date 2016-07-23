@@ -1,3 +1,12 @@
+require 'decision.rb'
+require 'stay_decision.rb'
+require 'num_hands_decision.rb'
+require 'bet_amount_decision.rb'
+require 'insurance_decision.rb'
+require 'insurance_bet_amount_decision.rb'
+require 'play_decision.rb'
+require 'double_down_bet_amount_decision.rb'
+
 module Blackjack
   class PlayerDecisions
     attr_reader   :stay

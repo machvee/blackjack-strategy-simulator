@@ -228,7 +228,7 @@ module Blackjack
             hand_counter = 0
             table.bet_boxes.available_for(player) do |bet_box|
               break if hand_counter == num_hands
-              bet_amount = player.decision.bet_amount.prompt(player, bet_box)
+              bet_amount = player.decision.bet_amount.prompt(bet_box)
               player.make_bet(bet_amount, bet_box)
               hand_counter += 1
             end
