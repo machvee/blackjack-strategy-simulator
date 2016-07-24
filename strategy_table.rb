@@ -45,10 +45,6 @@ module Blackjack
 
     private
 
-    def table_lookup(table_section, player_hand_val, dealer_hand_val)
-      rule_from_table = lookup_table[table_section][player_hand_val][dealer_hand_val]
-    end
-
     def rule_keys(dealer_up_card_value, player_hand)
       #
       # returns [lookup_section, player_hand value, dealer up card]
