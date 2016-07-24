@@ -27,13 +27,17 @@ module Blackjack
     def prompt(bet_box)
       while(true) do
         response, rule = [*get_response(bet_box)]
-        #
-        # if a rule was returned, add the rule to the decision chain
-        #
-        chain.add(rule) unless rule.nil?
 
         success, message = valid?(response, bet_box)
-        break if success
+
+        if success
+          #
+          # if a rule was returned, add the rule to the decision chain
+          #
+          chain.add(rule) unless rule.nil?
+          break
+        end
+
         #
         # player.strategy.error will either raise in the case of bot strategies
         # or should print/communicate the message to a live user

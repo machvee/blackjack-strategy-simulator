@@ -6,6 +6,7 @@ module Blackjack
     # and this class will build a table of StrategyRules that can be used to
     # provide Actions for PlayerHandStrategy#play responses
     #
+    attr_reader  :player
     attr_reader  :lookup_table
     attr_reader  :formatted_table
 
@@ -22,21 +23,21 @@ module Blackjack
 
     CODE_TO_ACTION_PLUS = {
       TWO_CARDS => CODE_TO_ACTION,
-      TWO_PLUS_CARDS => CODE_TO_ACTION.merge('D' => Action::HIT)
+      TWO_PLUS_CARDS => CODE_TO_ACTION.merge('D' => Action::HIT, 'S' => Action::HIT)
     }
 
-    def initialize(formatted_table)
+    def initialize(player, formatted_table)
+      @player = player
       @formatted_table = formatted_table
       @lookup_table = parse_table
     end
 
-    def play(dealer_up_card_value, player_hand)
+    def play(dealer_up_card_value, bet_box, player_hand)
       table_section,
       player_hand_val,
       dealer_hand_val,
-      two_card_key = rule_keys(dealer_up_card_value, player_hand)
-
-      rule_from_table = lookup_table[table_section][two_card_key][player_hand_val][dealer_hand_val]
+      two_card_key = rule_keys(dealer_up_card_value, bet_box, player_hand)
+      lookup_table[table_section][two_card_key][player_hand_val][dealer_hand_val]
     end
 
     def inspect
@@ -45,16 +46,12 @@ module Blackjack
 
     private
 
-    def table_lookup(table_section, player_hand_val, dealer_hand_val)
-      rule_from_table = lookup_table[table_section][player_hand_val][dealer_hand_val]
-    end
-
-    def rule_keys(dealer_up_card_value, player_hand)
+    def rule_keys(dealer_up_card_value, bet_box, player_hand)
       #
       # returns [lookup_section, player_hand value, dealer up card]
       #
       if player_hand.pair?
-        [:pairs, player_hand[0].soft_value]
+        bet_box.can_split? ? [:pairs, player_hand[0].soft_value] : [:hard, player_hand.hard_sum]
       elsif player_hand.soft? && player_hand.soft_sum <= BlackjackCard::ACE_HARD_VALUE
         [:soft, player_hand.soft_sum]
       else
@@ -67,7 +64,10 @@ module Blackjack
     end
 
     def init_parsed_rules
-      {TWO_CARDS => [], TWO_PLUS_CARDS => []}
+      {
+        TWO_CARDS => [],
+        TWO_PLUS_CARDS => []
+      }
     end
 
     def parse_table
@@ -91,7 +91,7 @@ module Blackjack
       #   parsed_output[:hard][16] = [nil, 3, 4, 4, 4, 4, 4, 3, 3, 3, 3]
       #     (dealer up card)            0  A  2  3  4  5  6  7  8  9 10
       #
-      parse_section_lines_to_rules(parsed_output, :soft) do |sline|
+      parse_section_lines_to_rules(parsed_output, :hard) do |sline|
         sline.first.to_i
       end
 
@@ -133,13 +133,14 @@ module Blackjack
         sline = line.split("|")
         player_hand_key = yield(sline)
         codes = sline.last.split(" ")
-        parsed_output[section_name].keys.each do |two_card_key|
-          parsed_output[section_name][two_card_key][player_hand_key] =
+        parsed_output[section_name].each_pair do |two_card_key, rules_section|
+          rules_section[player_hand_key] =
             codes[0..-2].unshift('-', codes.last).map.with_index do |action_code, dealer_hand_key|
               name = rule_name(section, dealer_hand_key, player_hand_key, two_card_key)
               StrategyRule.new(name, CODE_TO_ACTION_PLUS[two_card_key][action_code])
             end
         end
+      end
     end
 
     def section_boundaries(section_name)
