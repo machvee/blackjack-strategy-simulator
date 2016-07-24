@@ -2,8 +2,9 @@ module Blackjack
 
   class StrategyTable
     #
-    # pass in a custom strategy table (in the exact format below), or
-    # default to the basic strategy table retrieved from the web
+    # pass in an encoded strategy table (see BasicStrategyTable below for example)
+    # and this class will build a table of StrategyRules that can be used to
+    # provide Actions for PlayerHandStrategy#play responses
     #
     attr_reader  :lookup_table
     attr_reader  :formatted_table
@@ -16,17 +17,26 @@ module Blackjack
       '-'  => nil,
     }
 
+    TWO_CARDS='2'
+    TWO_PLUS_CARDS= '+'
+
+    CODE_TO_ACTION_PLUS = {
+      TWO_CARDS => CODE_TO_ACTION,
+      TWO_PLUS_CARDS => CODE_TO_ACTION.merge('D' => Action::HIT)
+    }
+
     def initialize(formatted_table)
       @formatted_table = formatted_table
       @lookup_table = parse_table
     end
 
     def play(dealer_up_card_value, player_hand)
-      table_section, player_hand_val, dealer_hand_val, two_card_hand = rule_keys(dealer_up_card_value, player_hand)
+      table_section,
+      player_hand_val,
+      dealer_hand_val,
+      two_card_key = rule_keys(dealer_up_card_value, player_hand)
 
-      decision_from_table = lookup_table[table_section][player_hand_val][dealer_hand_val]
-
-      check_can_only_double_down_on_two_cards_and_return_decision(player_hand, decision_from_table)
+      rule_from_table = lookup_table[table_section][two_card_key][player_hand_val][dealer_hand_val]
     end
 
     def inspect
@@ -35,17 +45,29 @@ module Blackjack
 
     private
 
-    def check_can_only_double_down_on_two_cards_and_return_decision(player_hand, decision)
+    def table_lookup(table_section, player_hand_val, dealer_hand_val)
+      rule_from_table = lookup_table[table_section][player_hand_val][dealer_hand_val]
+    end
+
+    def rule_keys(dealer_up_card_value, player_hand)
       #
-      # Action::DOUBLE_DOWN becoomes Action::HIT when there are more than 2 cards
-      # in the player's hand
+      # returns [lookup_section, player_hand value, dealer up card]
       #
-      return case decision
-        when Action::DOUBLE_DOWN
-          player_hand.length == 2 ? Action::DOUBLE_DOWN : Action::HIT
-        else
-          decision
-        end
+      if player_hand.pair?
+        [:pairs, player_hand[0].soft_value]
+      elsif player_hand.soft? && player_hand.soft_sum <= BlackjackCard::ACE_HARD_VALUE
+        [:soft, player_hand.soft_sum]
+      else
+        [:hard, player_hand.hard_sum]
+      end + [dealer_up_card_value, player_hand.length == 2 ? TWO_CARDS : TWO_PLUS_CARDS]
+    end
+
+    def rule_name(section, dealer_up_card_value, player_hand_val, two_card_key)
+      "%s:%s:%s:%s" % [section, dealer_up_card_value, player_hand_val, two_card_key]
+    end
+
+    def init_parsed_rules
+      {TWO_CARDS => [], TWO_PLUS_CARDS => []}
     end
 
     def parse_table
@@ -53,9 +75,9 @@ module Blackjack
       # parsed_output[:soft][player_val][dealer_up_card] yields the player Action
       #
       parsed_output = {
-        soft:  [], 
-        hard:  [],
-        pairs: []
+        soft:  init_parsed_rules,
+        hard:  init_parsed_rules,
+        pairs: init_parsed_rules
       }
 
       #
@@ -73,7 +95,10 @@ module Blackjack
       formatted_table[start..finish].each do |line|
         sline = line.split("|")
         hard_sum = sline.first.to_i
-        parsed_output[:hard][hard_sum] = encoded_actions_with_ace_rotated_to_front(sline.last.split(" "))
+        parsed_output[:hard].keys.each do |two_card_key|
+          parsed_output[:hard][two_card_key] =
+            rules_from_encoded_actions_with_ace_rotated_to_front(:hard, sline.last.split(" "), two_card_key, hard_sum)
+        end
       end
 
       #
@@ -90,7 +115,10 @@ module Blackjack
       formatted_table[start..finish].each do |line|
         sline = line.split("|")
         soft_sum = sline.first.split(",").last.to_i + 1
-        parsed_output[:soft][soft_sum] = encoded_actions_with_ace_rotated_to_front(sline.last.split(" "))
+        parsed_output[:soft].keys.each do |two_card_key|
+          parsed_output[:soft][two_card_key][soft_sum] =
+            rules_from_encoded_actions_with_ace_rotated_to_front(:soft, sline.last.split(" "), two_card_key, soft_sum)
+        end
       end
  
       #
@@ -108,14 +136,20 @@ module Blackjack
         sline = line.split("|")
         half = sline.first.split("-").first
         pair_half_val = (half =~ /A/ ? 1 : half.to_i)
-        parsed_output[:pairs][pair_half_val] = encoded_actions_with_ace_rotated_to_front(sline.last.split(" "))
+        parsed_output[:pairs].keys.each do |two_card_key|
+          parsed_output[:pairs][two_card_key][pair_half_val] =
+            rules_from_encoded_actions_with_ace_rotated_to_front(:pairs, sline.last.split(" "), two_card_key, pair_half_val)
+        end
       end
 
       parsed_output
     end
 
-    def encoded_actions_with_ace_rotated_to_front(codes)
-      codes[0..-2].unshift('-', codes.last).map {|code| CODE_TO_ACTION[code]}
+    def rules_from_encoded_actions_with_ace_rotated_to_front(section, codes, player_hand_val, two_card_key)
+      codes[0..-2].unshift('-', codes.last).map.with_index(0) { |action_code, dealer_hand_val|
+        name = rule_name(section, dealer_hand_val, player_hand_val, two_card_key)
+        StrategyRule.new(name, CODE_TO_ACTION_PLUS[two_card_key][action_code])
+      }
     end
 
     def section_boundaries(section_name)

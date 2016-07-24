@@ -3,13 +3,13 @@ module Blackjack
     #
     # StrategyRule   
     #
-    def initialize(decision)
+    attr_reader  :decision
+    attr_reader  :name
+
+    def initialize(name, decision)
+      @name = name
       @decision = decision
       @stats = StrategyStats.new
-    end
-
-    def name
-      # override in subclass
     end
 
     def to_s
