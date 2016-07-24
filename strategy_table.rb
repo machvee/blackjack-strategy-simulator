@@ -91,14 +91,8 @@ module Blackjack
       #   parsed_output[:hard][16] = [nil, 3, 4, 4, 4, 4, 4, 3, 3, 3, 3]
       #     (dealer up card)            0  A  2  3  4  5  6  7  8  9 10
       #
-      start, finish = section_boundaries(:hard)
-      formatted_table[start..finish].each do |line|
-        sline = line.split("|")
-        hard_sum = sline.first.to_i
-        parsed_output[:hard].keys.each do |two_card_key|
-          parsed_output[:hard][two_card_key] =
-            rules_from_encoded_actions_with_ace_rotated_to_front(:hard, sline.last.split(" "), two_card_key, hard_sum)
-        end
+      parse_section_lines_to_rules(parsed_output, :soft) do |sline|
+        sline.first.to_i
       end
 
       #
@@ -111,14 +105,8 @@ module Blackjack
       #   parsed_output[:soft][7] = [nil, 3, 3, 6, 6, 6, 6, 3, 3, 3, 3]
       #     (dealer up card)           0  A  2  3  4  5  6  7  8  9 10
       #
-      start, finish = section_boundaries(:soft)
-      formatted_table[start..finish].each do |line|
-        sline = line.split("|")
-        soft_sum = sline.first.split(",").last.to_i + 1
-        parsed_output[:soft].keys.each do |two_card_key|
-          parsed_output[:soft][two_card_key][soft_sum] =
-            rules_from_encoded_actions_with_ace_rotated_to_front(:soft, sline.last.split(" "), two_card_key, soft_sum)
-        end
+      parse_section_lines_to_rules(parsed_output, :soft) do |sline|
+        sline.first.split(",").last.to_i + 1
       end
  
       #
@@ -131,25 +119,27 @@ module Blackjack
       #   parsed_output[:pairs][8] = [nil, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
       #     (dealer up card)            0  A  2  3  4  5  6  7  8  9 10
       #
-      start, finish = section_boundaries(:pairs)
-      formatted_table[start..finish].each do |line|
-        sline = line.split("|")
+      parse_section_lines_to_rules(parsed_output, :pairs) do |sline|
         half = sline.first.split("-").first
-        pair_half_val = (half =~ /A/ ? 1 : half.to_i)
-        parsed_output[:pairs].keys.each do |two_card_key|
-          parsed_output[:pairs][two_card_key][pair_half_val] =
-            rules_from_encoded_actions_with_ace_rotated_to_front(:pairs, sline.last.split(" "), two_card_key, pair_half_val)
-        end
+        (half =~ /A/ ? 1 : half.to_i)
       end
 
       parsed_output
     end
 
-    def rules_from_encoded_actions_with_ace_rotated_to_front(section, codes, player_hand_val, two_card_key)
-      codes[0..-2].unshift('-', codes.last).map.with_index(0) { |action_code, dealer_hand_val|
-        name = rule_name(section, dealer_hand_val, player_hand_val, two_card_key)
-        StrategyRule.new(name, CODE_TO_ACTION_PLUS[two_card_key][action_code])
-      }
+    def parse_section_lines_to_rules(section_name, &block)
+      start, finish = section_boundaries(section_name)
+      formatted_table[start..finish].each do |line|
+        sline = line.split("|")
+        player_hand_key = yield(sline)
+        codes = sline.last.split(" ")
+        parsed_output[section_name].keys.each do |two_card_key|
+          parsed_output[section_name][two_card_key][player_hand_key] =
+            codes[0..-2].unshift('-', codes.last).map.with_index do |action_code, dealer_hand_key|
+              name = rule_name(section, dealer_hand_key, player_hand_key, two_card_key)
+              StrategyRule.new(name, CODE_TO_ACTION_PLUS[two_card_key][action_code])
+            end
+        end
     end
 
     def section_boundaries(section_name)
