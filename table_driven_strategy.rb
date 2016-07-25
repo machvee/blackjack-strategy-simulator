@@ -32,8 +32,7 @@ module Blackjack
     end
 
     def play(bet_box, dealer_up_card, other_hands=[])
-      decision = strategy_table.play(dealer_up_card.face_value, bet_box.hand)
-      modify_to_hit_if_unable_to_double_or_split(bet_box, decision)
+      strategy_table.play(dealer_up_card.face_value, bet_box, bet_box.hand)
     end
 
     def error(strategy_step, message)
@@ -47,21 +46,6 @@ module Blackjack
       # e.g. raise "invalid entry for #{strategy_step}: #{message}"
       # 
       raise "#{strategy_step}: #{message}"
-    end
-
-    private
-
-    def modify_to_hit_if_unable_to_double_or_split(bet_box, decision)
-      case decision
-        when Action::SPLIT
-          # can't split if player doesn't have funds or reached table split limit
-          (player.bank.balance < bet_box.bet_amount || !bet_box.can_split?) ? Action::HIT : decision
-        when Action::DOUBLE_DOWN
-          # can't double down if player doesn't have funds
-          player.bank.balance == 0 ? Action::HIT : decision
-        else
-          decision
-      end
     end
 
   end

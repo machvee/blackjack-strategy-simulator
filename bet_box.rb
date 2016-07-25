@@ -143,7 +143,12 @@ module Blackjack
     end
 
     def can_split?
-      !split? && hand.pair? && (!table.has_split_limit? || num_splits < table.split_limit)
+      !split? && hand.pair? && (!table.has_split_limit? || num_splits < table.split_limit) &&
+        player.bank.balance_check(bet_amount)
+    end
+
+    def can_double?
+      player.bank.balance_check(1)
     end
 
     def double_down?
