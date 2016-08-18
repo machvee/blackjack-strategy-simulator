@@ -1,4 +1,5 @@
 *.rbc
+.byebug_history
 capybara-*.html
 .rspec
 /log
