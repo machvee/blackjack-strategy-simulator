@@ -1672,19 +1672,19 @@ module Blackjack
 
   describe BlackjackHand, "A hand that has multiple aces" do
     before do
-      @hand = BlackjackHand.make('AD', 'AC', '4S', '3D')
+      @hand = BlackjackHand.make('AD', 'AC', 'AH', 'AS', '2S', '2D', '3H')
     end
 
     it "should not respond to pair" do
       @hand.pair?.must_equal false
     end
 
-    it "should have a hard value of 19" do
-      @hand.hard_sum.must_equal 19
+    it "should have a hard value of 21" do
+      @hand.hard_sum.must_equal 21
     end
 
-    it "should have a soft value of 9" do
-      @hand.soft_sum.must_equal 9
+    it "should have a soft value of 11" do
+      @hand.soft_sum.must_equal 11
     end
 
     it "should not be busted" do
