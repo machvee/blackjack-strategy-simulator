@@ -113,13 +113,13 @@ module Blackjack
       end
 
       def self.all(direction=FACE_DOWN)
-        a = []
-        SUITS.each do |s|
-          FACES.each do |f|
-            a << new(f, s, direction)
+        [].tap do |a|
+          SUITS.each do |s|
+            FACES.each do |f|
+              a << new(f, s, direction)
+            end
           end
         end
-        a
       end
 
       def self.from_face_suit(fs, direction=Card::FACE_UP)
@@ -269,6 +269,7 @@ module Blackjack
         # return @cards to the @card_source
         #
         deal(@card_source, length, direction)
+        self
       end
 
       def discard(offsets)
