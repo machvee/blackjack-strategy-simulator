@@ -157,10 +157,10 @@ module Blackjack
     end
 
     def get_deck_cards(options)
-      BlackjackCard.deck(options)
+      BlackjackCard.deck(options[:orientation])
     end
 
-    def deal(destination, num_cards, direction)
+    def deal(destination, num_cards, orientation)
       raise "needs marker card placed" if markeroff.nil?
       super
     end

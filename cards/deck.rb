@@ -5,7 +5,7 @@ module Cards
   class Deck < Collection
     DECK_DEFAULTS = {
       num_decks: 1,
-      direction: FACE_DOWN
+      orientation: FACE_DOWN
     }
 
     def initialize(options={})
@@ -19,7 +19,7 @@ module Cards
 
     def get_deck_cards(options)
       # override in subclass
-      Card.deck(options[:direction])
+      Card.deck(options[:orientation])
     end
   end
 end

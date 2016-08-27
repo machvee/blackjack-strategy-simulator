@@ -35,9 +35,9 @@ module Cards
       self
     end
 
-    def remove(how_many, direction)
+    def remove(how_many, orientation)
       raise "too few cards remaining" if how_many > length
-      removed_cards = @cards.slice!(0, how_many).each {|c| c.facing(direction)}
+      removed_cards = @cards.slice!(0, how_many).each {|c| c.facing(orientation)}
       update_value
       removed_cards
     end
@@ -70,8 +70,8 @@ module Cards
       self
     end
 
-    def facing(direction=FACE_DOWN)
-      @cards.each {|c| c.facing(direction)}
+    def facing(orientation=FACE_DOWN)
+      @cards.each {|c| c.facing(orientation)}
       self
     end
 
@@ -94,27 +94,27 @@ module Cards
       self
     end
 
-    def deal(destination, num_cards, direction=FACE_DOWN)
-      destination.add(remove(num_cards, direction))
+    def deal(destination, num_cards, orientation=FACE_DOWN)
+      destination.add(remove(num_cards, orientation))
     end
 
-    def deal_at(destination, offsets, direction=FACE_DOWN)
-      offsets.each {|off| destination.insert(off, remove(1, direction).first)}
+    def deal_at(destination, offsets, orientation=FACE_DOWN)
+      offsets.each {|off| destination.insert(off, remove(1, orientation).first)}
     end
 
-    def deal_cards(how_many=1, direction=FACE_DOWN)
+    def deal_cards(how_many=1, orientation=FACE_DOWN)
       #
       # create a new Collection object using how_many from this set
       #
-      self.class.new(remove(how_many, direction))
+      self.class.new(remove(how_many, orientation))
     end
 
-    def fold(direction=FACE_DOWN)
+    def fold(orientation=FACE_DOWN)
       raise "there is no parent collection" if parent.nil?
       #
       # return @cards to the parent
       #
-      deal(parent, length, direction)
+      deal(parent, length, orientation)
       self
     end
 
