@@ -1,8 +1,7 @@
-require 'cards'
-require 'ascii_card'
+require 'cards/ascii_deck'
 
 module Blackjack
-  class BlackjackCard < Cards::Card
+  class BlackjackCard < Cards::AsciiCard
 
     ACE_SOFT_VALUE=1
     ACE_HARD_VALUE=11
@@ -18,7 +17,7 @@ module Blackjack
 
     def hard_value
       case face
-        when ACE
+        when Cards::ACE
           ACE_HARD_VALUE
         else
           face_value
@@ -27,10 +26,10 @@ module Blackjack
 
     def self.custom_value_of_face(card_face)
       case card_face
-        when ACE
+        when Cards::ACE
           ACE_SOFT_VALUE
-        when *FACE_CARDS
-          BlackjackCard.face_to_value(TEN)
+        when *Cards::FACE_CARDS
+          BlackjackCard.face_to_value(Cards::TEN)
         else
           BlackjackCard.face_to_value(card_face)
       end
@@ -42,7 +41,7 @@ module Blackjack
   end
 
 
-  class BlackjackHand < Cards::Cards
+  class BlackjackHand < Cards::Collection
     #
     # custom Cards subclass has builtin knowledge of blackjack
     # hands sums
@@ -51,10 +50,6 @@ module Blackjack
 
     attr_reader  :soft_sum
     attr_reader  :hard_sum
-
-    def initialize(card_source, card_array=[])
-      super(card_source, card_array, BlackjackCard)
-    end
 
     def update_value
       @value = calc_hard_soft_sums
@@ -149,18 +144,20 @@ module Blackjack
     end
   end
 
-  class BlackjackDeck < Cards::Deck
-    attr_reader  :prng
+  class BlackjackDeck < Cards::AsciiDeck
     attr_reader  :markeroff
     attr_reader  :marker_placement_segment
     attr_reader  :marker_placement_offset
 
-    def initialize(num_decks=1, options={})
-      @prng = options[:random]
+    def initialize(options={})
       @marker_placement_segment = options[:marker_card_segment]
       @marker_placement_offset = options[:marker_card_offset]
-      super(num_decks, BlackjackCard::FACE_DOWN, BlackjackCard, prng)
+      super(options)
       remove_marker_card
+    end
+
+    def get_deck_cards(options)
+      BlackjackCard.deck(options)
     end
 
     def deal(destination, num_cards, direction)
@@ -182,7 +179,7 @@ module Blackjack
       #
       # return {face_val: count_in_deck, ..., face_val: count_in_deck} up until the markeroff is reached, if non-nil
       #
-      freq = Hash[BlackjackCard::FACES.map{|f| BlackjackCard.custom_value_of_face(f)}.uniq.zip([0]*BlackjackCard::FACES.length)]
+      freq = Hash[Cards::FACES.map{|f| BlackjackCard.custom_value_of_face(f)}.uniq.zip([0]*Cards::FACES.length)]
       stop_at = markeroff.nil? ? length : length - markeroff
       each_with_index do |c,i|
         break if stop_at == i

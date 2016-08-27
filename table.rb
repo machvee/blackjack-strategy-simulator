@@ -185,11 +185,11 @@ module Blackjack
     end
 
     def new_hand
-      shoe.new_hand
+      shoe.new_player_hand
     end
 
     def new_dealer_hand
-      shoe.new_hand(DealerHand)
+      shoe.new_dealer_hand
     end
 
     def has_split_limit?
@@ -238,7 +238,7 @@ module Blackjack
     private
 
     def new_shoe
-      shoe = config[:shoe] || config[:shoe_class].new(random: @prng)
+      shoe = config[:shoe] || config[:shoe_class].new(prng: @prng)
       shoe.force_shuffle
       shoe
     end

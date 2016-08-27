@@ -17,24 +17,28 @@ module Blackjack
       marker_card_segment: 0.25, # marker_offset must be in this last % of the deck
       marker_card_offset:  0.05,
       split_and_shuffles:  25,
-      num_decks_in_shoe:   1,
-      random:              Random.new
+      num_decks:           1,
+      prng:                Random.new
     }
 
     def initialize(options={})
       @config = DEFAULT_OPTIONS.merge(options)
-      @num_decks = config[:num_decks_in_shoe]
-      @decks = BlackjackDeck.new(num_decks, config)
-      @discard_pile = Cards::Cards.new(decks)
+      @num_decks = config[:num_decks]
+      @decks = BlackjackDeck.new(config)
+      @discard_pile = Cards::Collection.new([], decks)
       shuffle
     end
 
-    def new_hand(hand_class=BlackjackHand)
+    def new_player_hand
       #
       # returns an empty BlackjackHand that will naturally discard
       # to the discard pile when folded
       #
-      hand_class.new(discard_pile)
+      BlackjackHand.new([], discard_pile)
+    end
+
+    def new_dealer_hand
+      DealerHand.new([], discard_pile)
     end
 
     def place_marker_card(marker_offset=nil)
@@ -46,11 +50,11 @@ module Blackjack
     end
 
     def deal_one_up(destination)
-      deal_one(destination, BlackjackCard::FACE_UP)
+      deal_one(destination, Cards::FACE_UP)
     end
 
     def deal_one_down(destination)
-      deal_one(destination, BlackjackCard::FACE_DOWN)
+      deal_one(destination, Cards::FACE_DOWN)
     end
 
     def remaining
@@ -115,31 +119,31 @@ module Blackjack
 
   class OneDeckShoe < Shoe
     def initialize(options={})
-      super(options.merge(num_decks_in_shoe: 1))
+      super(options.merge(num_decks: 1))
     end
   end
 
   class TwoDeckShoe < Shoe
     def initialize(options={})
-      super(options.merge(num_decks_in_shoe: 2))
+      super(options.merge(num_decks: 2))
     end
   end
 
   class FourDeckShoe < Shoe
     def initialize(options={})
-      super(options.merge(num_decks_in_shoe: 4))
+      super(options.merge(num_decks: 4))
     end
   end
 
   class SixDeckShoe < Shoe
     def initialize(options={})
-      super(options.merge(num_decks_in_shoe: 6))
+      super(options.merge(num_decks: 6))
     end
   end
 
   class EightDeckShoe < Shoe
     def initialize(options={})
-      super(options.merge(num_decks_in_shoe: 8))
+      super(options.merge(num_decks: 8))
     end
   end
 

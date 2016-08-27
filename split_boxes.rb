@@ -68,7 +68,7 @@ module Blackjack
     end
 
     def move_one_card_to(bet_box)
-      bet_box.hand.add(parent_bet_box.hand.remove(1, BlackjackCard::FACE_UP))
+      bet_box.hand.add(parent_bet_box.hand.remove(1, Cards::FACE_UP))
     end
 
   end

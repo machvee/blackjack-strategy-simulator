@@ -10,7 +10,7 @@ module Blackjack
       # order so for testing purposes, we can pre-arrange what
       # cards will be dealt
       #
-      super(split_and_shuffles: 0, num_decks_in_shoe: 1)
+      super(split_and_shuffles: 0, num_decks: 1)
       face_suits = []
       players_fs.each do |pc|
         face_suits << pc[0]
@@ -1882,7 +1882,7 @@ module Blackjack
         marker_card_segment: 0.10,
         marker_card_offset:  0.05,
         split_and_shuffles: 5,
-        num_decks_in_shoe: @num_decks
+        num_decks: @num_decks
       }
       @custom_shoe = Shoe.new(opts)
       @custom_shoe.shuffle
