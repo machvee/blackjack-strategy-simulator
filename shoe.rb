@@ -14,8 +14,6 @@ module Blackjack
     measures  :hands_dealt
 
     DEFAULT_OPTIONS = {
-      marker_card_segment: 0.25, # marker_offset must be in this last % of the deck
-      marker_card_offset:  0.05,
       split_and_shuffles:  25,
       num_decks:           1,
       prng:                Random.new
@@ -42,11 +40,11 @@ module Blackjack
     end
 
     def place_marker_card(marker_offset=nil)
-      decks.place_marker_card(marker_offset) 
+      decks.marker.place_card(marker_offset) 
     end
 
     def needs_shuffle?
-      @force_shuffle || decks.beyond_marker?
+      @force_shuffle || decks.marker.beyond_marker?
     end
 
     def deal_one_up(destination)
@@ -69,7 +67,7 @@ module Blackjack
       # number of cards remaining in shoe until the marker card is reached
       # or 0 if beyond marker
       #
-      decks.remaining_until_shuffle
+      decks.marker.remaining_until_shuffle
     end
 
     def discarded
@@ -82,7 +80,7 @@ module Blackjack
     def shuffle
       hands_dealt.commit
       discard_pile.fold
-      decks.remove_marker_card
+      decks.marker.remove_card
       decks.shuffle_up(config[:split_and_shuffles])
       num_shuffles.incr
       @force_shuffle = false
@@ -154,7 +152,7 @@ module Blackjack
       # is played
       #
       shuffle
-      decks.place_marker_card
+      decks.marker.place_card
       false
     end
   end

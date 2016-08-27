@@ -1,4 +1,5 @@
 require 'cards/ascii_deck'
+require 'cards/deck_marker'
 
 module Blackjack
   class BlackjackCard < Cards::AsciiCard
@@ -145,15 +146,12 @@ module Blackjack
   end
 
   class BlackjackDeck < Cards::AsciiDeck
-    attr_reader  :markeroff
-    attr_reader  :marker_placement_segment
-    attr_reader  :marker_placement_offset
+
+    attr_reader   :marker
 
     def initialize(options={})
-      @marker_placement_segment = options[:marker_card_segment]
-      @marker_placement_offset = options[:marker_card_offset]
       super(options)
-      remove_marker_card
+      @marker = Cards::DeckMarker.new(self, options)
     end
 
     def get_deck_cards(options)
@@ -161,26 +159,16 @@ module Blackjack
     end
 
     def deal(destination, num_cards, orientation)
-      raise "needs marker card placed" if markeroff.nil?
+      marker.check
       super
-    end
-
-    def place_marker_card(marker_offset=nil)
-      #
-      # marker_offset is the number of cards from the *back of the deck to place
-      # the marker card.  A specific marker_offset must be valid.
-      #
-      @markeroff = marker_offset||random_marker_offset
-      raise "invalid marker card placement [#{marker_card_placement_range}]" unless valid_marker_offset?
-      markeroff
     end
 
     def counts
       #
-      # return {face_val: count_in_deck, ..., face_val: count_in_deck} up until the markeroff is reached, if non-nil
+      # return {face_val: count_in_deck, ..., face_val: count_in_deck} up until the marker.offset is reached, if non-nil
       #
       freq = Hash[Cards::FACES.map{|f| BlackjackCard.custom_value_of_face(f)}.uniq.zip([0]*Cards::FACES.length)]
-      stop_at = markeroff.nil? ? length : length - markeroff
+      stop_at = marker.offset.nil? ? length : length - marker.offset
       each_with_index do |c,i|
         break if stop_at == i
         freq[c.face_value] += 1
@@ -188,65 +176,9 @@ module Blackjack
       freq
     end
 
-    def valid_marker_offset?
-      marker_card_placement_range.include?(markeroff)
-    end
-
-    def beyond_marker?
-      #
-      # if the marker was never placed, the marker is the
-      # end of the deck
-      #
-      markeroff && (count < markeroff)
-    end
-
-    def remaining_until_shuffle
-      [0, count - (markeroff.nil? ? 0 : markeroff)].max
-    end
-
-    def marker_card_placement_range
-      #
-      # return an offset that is equal to the number of cards behind the
-      # marker card
-      #                +0.05   -0.05
-      #    +---------------------------+
-      #    |             |  25%  |     |
-      #    +-----------------+---------+
-      #                markeroff range
-      #
-      @_mcp_range ||= (
-        #
-        # e.g.
-        #   2 Decks shoe
-        #   num_cards = 104
-        #   marker_off_cetner = (104 * 0.25).floor = 26
-        #   offset = (104 * 0.05).floor = 5
-        #   (26-5)..(26+5)
-        #
-        #   21..31 is the valid marker_card_placement_range
-        #
-        num_cards = count
-        marker_off_center = (num_cards * marker_placement_segment).floor
-        offset = (num_cards * marker_placement_offset).floor
-        (marker_off_center - offset)..(marker_off_center + offset)
-      )
-    end
-
-    def random_marker_offset
-      prng.rand(marker_card_placement_range)
-    end
-
-    def remove_marker_card
-      @markeroff = nil
-    end
-
     def inspect
-      markeroff.nil? ? super : inspect_with_marker
+      marker.offset.nil? ? super : marker.inspect
     end
 
-    def inspect_with_marker
-      off = count - markeroff
-      self[0..off] + ["||"] + self[(off+1)..-1]
-    end
   end
 end

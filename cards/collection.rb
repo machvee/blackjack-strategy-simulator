@@ -163,11 +163,11 @@ module Cards
       @cards.first.card_printer.print(@cards, options) unless @cards.empty?
     end
 
-    private
-
     def prng
       options[:prng]
     end
+
+    private
 
     def default_shuffles
       options[:shuffles]
