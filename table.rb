@@ -1,3 +1,4 @@
+require 'delegate'
 require 'counter_measures'
 require 'blackjack_card'
 require 'shoe'
@@ -5,6 +6,7 @@ require 'strategy_validator'
 require 'prompt_player_hand_strategy'
 require 'command_prompter'
 require 'player_hand_strategy'
+require 'simple_strategy'
 require 'strategy_table'
 require 'table_driven_strategy'
 require 'split_boxes'
@@ -52,15 +54,16 @@ module Blackjack
       end
     end
 
-    DEFAULT_HOUSE_BANK_AMOUNT = 1_500_000
-    DEFAULT_MAX_SEATS         = 6
-    DEFAULT_SHOE_CLASS        = SixDeckShoe
-    DEFAULT_GAME_ANNOUNCER    = GameAnnouncer
-    DEFAULT_BET_RANGE         = 25..5000
-    DEFAULT_MAX_PLAYER_BETS   = 3
-    EVEN_MONEY_PAYOUT         = [1,1]
-    DEFAULT_BLACKJACK_PAYOUT  = [3,2]
-    INSURANCE_PAYOUT          = [2,1]
+    DEFAULT_HOUSE_BANK_AMOUNT  = 1_500_000
+    DEFAULT_MAX_SEATS          = 6
+    DEFAULT_SHOE_CLASS         = SixDeckShoe
+    DEFAULT_GAME_ANNOUNCER     = GameAnnouncer
+    DEFAULT_BET_RANGE          = 25..5000
+    DEFAULT_MAX_PLAYER_BETS    = 3
+    DEFAULT_MAX_SPLITS_PER_BOX = 3
+    EVEN_MONEY_PAYOUT          = [1,1]
+    DEFAULT_BLACKJACK_PAYOUT   = [3,2]
+    INSURANCE_PAYOUT           = [2,1]
 
     DEFAULT_DOUBLE_DOWN_ON    = []  # [] means ANY. or [9,10,11] or [10,11]
 
@@ -73,7 +76,7 @@ module Blackjack
       minimum_bet:          DEFAULT_BET_RANGE.min,
       maximum_bet:          DEFAULT_BET_RANGE.max,
       max_player_bets:      DEFAULT_MAX_PLAYER_BETS,
-      max_player_splits:    nil, # nil unlimited or n: one hand split up to n times
+      max_player_splits:    DEFAULT_MAX_SPLITS_PER_BOX, # nil unlimited or n: one hand split up to n times
       game_announcer_class: DEFAULT_GAME_ANNOUNCER,
       random_seed:          nil,
       shoe:                 nil, # pass in a custom from which to deal

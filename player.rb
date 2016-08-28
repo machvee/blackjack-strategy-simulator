@@ -13,7 +13,8 @@ module Blackjack
     DEFAULT_OPTIONS = {
       start_bank: 500,
       strategy_class: PromptPlayerHandStrategy,
-      strategy_options: {}
+      strategy_options: {},
+      auto_marker: false
     }
 
     def initialize(name, options={})
@@ -67,6 +68,7 @@ module Blackjack
       #
       # called every time a player puts money in a bet_box at the start of a round
       #
+      balance_check(bet_amount)
       bet_box.bet(self, bet_amount)
       stats.init_hand
       stats.hand_stats.played.incr
@@ -136,13 +138,23 @@ module Blackjack
 
     def make_double_down_bet(bet_box, double_down_bet_amount)
       stats.double_stats.played.incr
+
+      balance_check(double_down_bet_amount)
       bank.transfer_to(bet_box.double, double_down_bet_amount)
+
       stats.bet_stats.wagered.add(double_down_bet_amount)
       self
     end
 
     def default_bet_box
       table.bet_boxes.dedicated_to(self)
+    end
+
+    def balance_check(amount)
+      if config[:auto_marker] && !bank.balance_check(amount)
+        marker_for([bank.initial_deposit, amount].max)
+      end
+      bank.balance_check(amount)
     end
 
     def reset
@@ -161,8 +173,8 @@ module Blackjack
     def up_down
       amt = bank.balance - buy_in
       return "EVEN" if amt.zero?
-      return "+$#{amt}" if amt > 0
-      return "-$#{amt.abs}"
+      return "+$%.2f" % amt if amt > 0
+      return "-$%.2f" % amt.abs
     end
 
   end

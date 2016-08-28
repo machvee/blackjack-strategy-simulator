@@ -8,6 +8,8 @@ module Blackjack
 
     include CounterMeasures
 
+    DEFAULT_NUM_HANDS_TO_PLAY=10000
+
     counters :hands_dealt
 
     def initialize(table, options={})
@@ -17,7 +19,7 @@ module Blackjack
     end
 
     def run(options={})
-      num_hands = (options[:num_hands]||"10000").to_i
+      num_hands = (options[:num_hands]||DEFAULT_NUM_HANDS_TO_PLAY.to_s).to_i
       hands_dealt.reset
       begin
         table.game_announcer.says("Hands: #{num_hands}, Seed: #{table.seed}")
@@ -94,6 +96,15 @@ module Blackjack
     end
 
     def players_at_table?
+      table.seated_players.compact.each do |player|
+        case dealer.ask_player_stay?(player)
+          when Action::PLAY
+            next
+          when Action::LEAVE
+            player.leave_table
+        end
+      end
+
       table.any_seated_players?
     end
 
@@ -122,7 +133,7 @@ module Blackjack
 
       while(true) do
 
-        response = (bet_box.hand.twentyone? || bet_box.from_split_aces?) ? Action::STAND : dealer.ask_player_decision(bet_box)
+        response = (bet_box.hand.twentyone? || bet_box.from_split_aces?) ? Action::STAND : dealer.ask_player_play(bet_box)
 
         case response
           when Action::HIT
@@ -215,8 +226,7 @@ module Blackjack
       table.each_player do |player|
         num_bets = dealer.ask_player_num_bets(player)
         case num_bets
-          when Action::LEAVE
-            player.leave_table
+          when 0
             next
           else
             bet_counter = 0

@@ -23,7 +23,7 @@ module Blackjack
 
     def self.format_stat(value)
       neg = value < 0 ? "()" : ""
-      fmt_out = "%s$%d%s" % [neg[0], value.abs, neg[1]]
+      fmt_out = "%s$%.2f%s" % [neg[0], value.abs, neg[1]]
       "%16s" % fmt_out
     end
 

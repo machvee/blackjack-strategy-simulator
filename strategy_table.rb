@@ -41,14 +41,24 @@ module Blackjack
       @lookup_table = parse_table
     end
 
-    def decision(dealer_up_card_value, hand)
-      table, decision_from_table = if hand.pair?
-        [:pairs, lookup_table[:pairs][hand[0].soft_value][dealer_up_card_value]]
+    def decision_stat_name(dealer_up_card_value, hand)
+      "%s:%s:%s" % rule_keys(dealer_up_card_value, hand)
+    end
+
+    def rule_keys(dealer_up_card_value, hand)
+      if hand.pair?
+        [:pairs, hand[0].soft_value, dealer_up_card_value]
       elsif hand.soft? && hand.soft_sum <= BlackjackCard::ACE_HARD_VALUE
-        [:soft, lookup_table[:soft][hand.soft_sum][dealer_up_card_value]]
+        [:soft, hand.soft_sum, dealer_up_card_value]
       else
-        [:hard, lookup_table[:hard][hand.hard_sum][dealer_up_card_value]]
+        [:hard, hand.hard_sum, dealer_up_card_value]
       end
+    end
+
+    def play(dealer_up_card_value, hand)
+      table_section, player_hand_val, dealer_hand_val = rule_keys(dealer_up_card_value, hand)
+
+      decision_from_table = lookup_table[table_section][player_hand_val][dealer_hand_val]
 
       check_can_only_double_down_on_two_cards_and_return_decision(hand, decision_from_table)
     end

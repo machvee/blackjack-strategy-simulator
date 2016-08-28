@@ -111,12 +111,7 @@ module Blackjack
 
     def split
       #
-      # validate that the hand is splittable
-      # validate number of splits for the parent bet box and table config
-      # 
-      # raise "player hand is already split" if split?
-      # raise "split limit of #{table.split_limit} reached for this bet" if \
-      #   table.has_split_limit? && player.num_splits(self) == table.split_limit
+      raise "not able to split this hand" unless can_split?
       @split_boxes = SplitBoxes.new(self)
       self
     end
@@ -145,6 +140,10 @@ module Blackjack
 
     def split_counter
       split? ? split_boxes.inject(1) {|count, bet_box| count += bet_box.split_counter} : 0
+    end
+
+    def can_split?
+      !split? && hand.pair? && (!table.has_split_limit? || num_splits < table.split_limit)
     end
 
     def double_down?

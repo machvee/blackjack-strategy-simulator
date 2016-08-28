@@ -21,7 +21,7 @@ table_options = {
 
 player_options = {
   strategy_class: PromptWithBasicStrategyGuidance,
-  strategy_options: {num_hands: 2},
+  strategy_options: {num_bets: 1},
   start_bank: min_bet * 100
 }
 

@@ -15,11 +15,27 @@ module Blackjack
       raise StrategyQuitter
     end
 
-    def decision(bet_box, dealer_up_card, other_hands=[])
+    def stay?
+      if player.bank.balance < table.config[:minimum_bet]
+        puts "You're down to #{player.bank.balance} which is below the minimum bet."
+        amt = @marker_prompter.get_command.to_i
+        case amt
+          when 0
+            Action::LEAVE
+          else
+            player.marker_for(amt)
+            Action::PLAY
+        end
+      else
+        Action::PLAY
+      end
+    end
+
+    def play(bet_box, dealer_up_card, other_hands=[])
       prompt_for_action(bet_box, dealer_up_card, other_hands)
     end
 
-    def bet_amount
+    def bet_amount(bet_box)
       @main_bet_maker.get_command.to_i
     end
 
@@ -35,11 +51,11 @@ module Blackjack
     end
 
     def double_down_bet_amount(bet_box)
-      bet_box.bet_amount
+      [bet_box.bet_amount, player.bank.balance].min
     end
 
     def num_bets
-      player.bank.balance <= player.bank.initial_deposit/8 ? Action::LEAVE : config[:num_bets]
+      options[:num_bets]
     end
 
     def error(strategy_step, message)
@@ -54,7 +70,7 @@ module Blackjack
     private
 
     def setup_prompters
-      @get_user_decision = CommandPrompter.new(player.name, "Hit", "Stand", "Double", "sPlit", &method(:on_quit))
+
       @map = {
         'h' => Action::HIT,
         's' => Action::STAND,
@@ -64,6 +80,11 @@ module Blackjack
 
       min_bet = table.config[:minimum_bet]
       max_bet = table.config[:maximum_bet]
+
+      @get_user_decision = CommandPrompter.new(player.name, "Hit", "Stand", "Double", "sPlit", &method(:on_quit))
+      @marker_prompter = CommandPrompter.new(player.name, "Marker Amount:int:0:#{player.bank.initial_deposit}", &method(:on_quit))
+      @marker_prompter.suggestion = player.bank.initial_deposit
+
       @main_bet_maker = CommandPrompter.new(player.name, "Bet Amount:int:#{min_bet}:#{max_bet}", &method(:on_quit))
       @main_bet_maker.suggestion = min_bet
     end
@@ -104,7 +125,7 @@ module Blackjack
     end
 
     def prompt_for_action(bet_box, dealer_up_card, other_hands=[])
-      @get_user_decision.suggestion = @reverse_map[suggestion_strategy.decision(bet_box, dealer_up_card, other_hands)].upcase
+      @get_user_decision.suggestion = @reverse_map[suggestion_strategy.play(bet_box, dealer_up_card, other_hands)].upcase
       super
     end
   end

@@ -502,7 +502,7 @@ module Blackjack
       @table.config[:minimum_bet].must_equal 25
       @table.config[:maximum_bet].must_equal 5000
       @table.config[:double_down_on].must_equal []
-      @table.config[:max_player_splits].must_equal nil
+      @table.config[:max_player_splits].must_equal 3
       @table.config[:max_player_bets].must_equal 3
     end
 
@@ -754,7 +754,7 @@ module Blackjack
           bet_box.hand.blackjack? ? Action::EVEN_MONEY : Action::NO_INSURANCE
         end
 
-        def bet_amount
+        def bet_amount(bet_box)
           25
         end
       end
@@ -859,7 +859,7 @@ module Blackjack
       @table = Table.new('test', shoe: shoe)
       @table.shoe.shuffle
       @table.shoe.place_marker_card
-      @player = Player.new('p')
+      @player = Player.new('p', start_bank: 5000)
       @player.join(@table)
       @player.make_bet(50)
       @game_play = GamePlay.new(@table)
@@ -921,35 +921,39 @@ module Blackjack
   describe StrategyValidator, "A validator for strategy responses" do
     before do
       @table = Table.new('t1')
-      @player = Player.new('dave')
+      @player = Player.new('dave', start_bank: 5000)
       @player.join(@table)
       @sv = StrategyValidator.new(@table)
     end
 
-    it "for the num_bets response, it should return false with very negative" do
-      @sv.validate_num_bets(@player, -2).must_equal([false, "You must enter a number between 1-3"])
+    it "for the stay? response, it should return false with non Action::PLAY/Action::LEAVE" do
+      @sv.validate_stay?(@player, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
     end
 
-    it "for the num_bets response, it should return true with valid LEAVE response" do
-      @sv.validate_num_bets(@player, Action::LEAVE).must_equal([true, nil])
+    it "for the stay? response, it should return true with non Action::PLAY" do
+      @sv.validate_stay?(@player, Action::PLAY).must_equal([true, nil])
+    end
+
+    it "for the stay? response, it should return true with non Action::LEAVE" do
+      @sv.validate_stay?(@player, Action::LEAVE).must_equal([true, nil])
+    end
+
+    it "for the stay? response, it should return false with non Action::PLAY/Action::LEAVE" do
+      @sv.validate_stay?(@player, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
+    end
+
+    it "for the num_bets response, it should return false with very negative" do
+      @sv.validate_num_bets(@player, -2).must_equal([false, "You must enter a number between 0-3"])
     end
 
     it "for the num_bets response, it should return true with valid number of bets" do
       @sv.validate_num_bets(@player, 2).must_equal([true, nil])
     end
 
-    it "for the num_bets response, it should return true with valid SIT_OUT response" do
-      @sv.validate_num_bets(@player, Action::SIT_OUT).must_equal([true, nil])
+    it "for the num_bets response, it should return true with 0 response" do
+      @sv.validate_num_bets(@player, 0).must_equal([true, nil])
     end
 
-    it "for the num_bets response, it should return false when player is broke and they want to BET" do
-      @player.bank.debit(@player.bank.balance)
-      @player.bank.balance.must_equal(0)
-      @sv.validate_num_bets(@player, 2).must_equal([false,
-        "Player has insufficient funds to make 2 bets of 25"])
-    end
-
-  
     it "it should return false for insurance with non-insurance response" do
       @sv.validate_insurance?(@player.default_bet_box, Action::HIT).must_equal([false, "Sorry, that's not a valid response"])
     end
@@ -986,7 +990,7 @@ module Blackjack
       @player.bank.debit(@player.bank.balance)
       @player.bank.balance.must_equal(0)
       @sv.validate_bet_amount(@player, 25).must_equal([false,
-        "Player has insufficient funds to make a #{@table.config[:minimum_bet]} minimum bet"])
+        "Player has insufficient funds (0) to make a #{@table.config[:minimum_bet]} bet"])
     end
 
     it "should return false for bet_amount when player bets below table minimum" do
@@ -1010,15 +1014,15 @@ module Blackjack
       @sv.validate_bet_amount(@player, max-1).must_equal([true, nil])
     end
 
-    it "should return false for decision when input is a non-decsion" do
-      @sv.validate_decision(@player.default_bet_box, Action::LEAVE).must_equal([false, "Sorry, that's not a valid response"])
+    it "should return false for play decision when input is a non-decsion" do
+      @sv.validate_play(@player.default_bet_box, Action::LEAVE).must_equal([false, "Sorry, that's not a valid response"])
     end
 
-    it "should return false for decision when input is a SURRENDER but table doesn't allow it" do
+    it "should return false for play decision when input is a SURRENDER but table doesn't allow it" do
       @table.config[:player_surrender] = false
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('JD', '9H'))
-      @sv.validate_decision(@player.default_bet_box, Action::SURRENDER).must_equal([false,
+      @sv.validate_play(@player.default_bet_box, Action::SURRENDER).must_equal([false,
         "This table does not allow player to surrender"])
     end
 
@@ -1026,7 +1030,7 @@ module Blackjack
       @table.config[:player_surrender] = true
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('4D', '9H', '3H'))
-      @sv.validate_decision(@player.default_bet_box, Action::SURRENDER).must_equal([false,
+      @sv.validate_play(@player.default_bet_box, Action::SURRENDER).must_equal([false,
         "Player may surrender on initial two cards dealt"])
     end
 
@@ -1041,10 +1045,10 @@ module Blackjack
         # already split bet_box.  decisions should be asked instead on the
         # bet_boxes returned by the split_boxes.each
         #
-        @sv.validate_decision(@player.default_bet_box, Action::SURRENDER)
+        @sv.validate_play(@player.default_bet_box, Action::SURRENDER)
       }.must_raise RuntimeError
       @player.default_bet_box.split_boxes.each do |bet_box|
-        @sv.validate_decision(bet_box, Action::SURRENDER).must_equal([false,
+        @sv.validate_play(bet_box, Action::SURRENDER).must_equal([false,
           "Player may surrender on initial two cards dealt"])
       end
     end
@@ -1053,43 +1057,51 @@ module Blackjack
       @table.config[:player_surrender] = true
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('4D', '9H'))
-      @sv.validate_decision(@player.default_bet_box, Action::SURRENDER).must_equal([true, nil])
+      @sv.validate_play(@player.default_bet_box, Action::SURRENDER).must_equal([true, nil])
     end
 
     it "should return false for decision when input is a SPLIT and player is broke" do
       @player.make_bet(10)
       @player.bank.debit(@player.bank.balance)
       @player.default_bet_box.hand.set(BlackjackCard.make('8D', '8H'))
-      @sv.validate_decision(@player.default_bet_box, Action::SPLIT).must_equal([false,
+      @sv.validate_play(@player.default_bet_box, Action::SPLIT).must_equal([false,
         "Player has insufficient funds to split the hand"])
     end
 
     it "should return false for decision when input is a SPLIT and player doesn't have pair" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('9D', '8H'))
-      @sv.validate_decision(@player.default_bet_box, Action::SPLIT).must_equal([false,
+      @sv.validate_play(@player.default_bet_box, Action::SPLIT).must_equal([false,
         "Player can only split cards that are identical in value"])
     end
 
     it "should return true for decision when input is a SPLIT and its legit" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('8D', '8H'))
-      @sv.validate_decision(@player.default_bet_box, Action::SPLIT).must_equal([true, nil])
+      @sv.validate_play(@player.default_bet_box, Action::SPLIT).must_equal([true, nil])
     end
 
     it "should return false for decision when input is DOUBLE_DOWN and player is broke" do
       @player.make_bet(10)
       @player.bank.debit(@player.bank.balance)
       @player.default_bet_box.hand.set(BlackjackCard.make('8D', '3H'))
-      @sv.validate_decision(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([false,
+      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([false,
         "Player has insufficient funds to double down"])
+    end
+
+    it "should return true for decision when input is DOUBLE_DOWN and player can at least double for less" do
+      bet_amount = 100
+      @player.make_bet(bet_amount)
+      @player.bank.debit(@player.bank.balance - (bet_amount/2)) # take away all but 1/2 bet amount
+      @player.default_bet_box.hand.set(BlackjackCard.make('8D', '3H'))
+      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
     end
 
     it "should return false for decision when input is DOUBLE_DOWN and player has bad double hand" do
       @table.config[:double_down_on] = [10,11]
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('AD', '4H'))
-      @sv.validate_decision(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([false,
+      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([false,
         "Player can only double down on hands of 10, 11"])
     end
 
@@ -1097,39 +1109,39 @@ module Blackjack
       @table.config[:double_down_on] = [10,11]
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('6D', '4H'))
-      @sv.validate_decision(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
+      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
       @player.default_bet_box.hand.set(BlackjackCard.make('6D', '5H'))
-      @sv.validate_decision(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
+      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
     end
 
     it "should return true for decision when input is DOUBLE_DOWN and player has legit hand" do
       @table.config[:double_down_on] = []
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('AD', '5H'))
-      @sv.validate_decision(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
+      @sv.validate_play(@player.default_bet_box, Action::DOUBLE_DOWN).must_equal([true, nil])
     end
 
     it "should return true for decision when input is HIT and player hand is hittable" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('4D', '5H'))
-      @sv.validate_decision(@player.default_bet_box, Action::HIT).must_equal([true, nil])
+      @sv.validate_play(@player.default_bet_box, Action::HIT).must_equal([true, nil])
       @player.default_bet_box.hand.set(BlackjackCard.make('10D', 'KH'))
-      @sv.validate_decision(@player.default_bet_box, Action::HIT).must_equal([true, nil])
+      @sv.validate_play(@player.default_bet_box, Action::HIT).must_equal([true, nil])
       @player.default_bet_box.hand.set(BlackjackCard.make('3D', '2H', 'AD', '5C'))
-      @sv.validate_decision(@player.default_bet_box, Action::HIT).must_equal([true, nil])
+      @sv.validate_play(@player.default_bet_box, Action::HIT).must_equal([true, nil])
     end
 
     it "should return false for decision when input is HIT and player hand is not hittable" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('3D', '2H', '9D', '6C', 'AS'))
-      @sv.validate_decision(@player.default_bet_box, Action::HIT).must_equal([false,
+      @sv.validate_play(@player.default_bet_box, Action::HIT).must_equal([false,
         "Player hand can no longer be hit after hard 21"])
     end
 
     it "should return true decision when player wants to STAND" do
       @player.make_bet(10)
       @player.default_bet_box.hand.set(BlackjackCard.make('KD', 'QH'))
-      @sv.validate_decision(@player.default_bet_box, Action::STAND).must_equal([true, nil])
+      @sv.validate_play(@player.default_bet_box, Action::STAND).must_equal([true, nil])
     end
   end
 
@@ -1218,20 +1230,27 @@ module Blackjack
       @bet_box.split_boxes.each do |bet_box|
         bet_box.active?.must_equal(true)
         bet_box.hand.hard_sum.must_equal(8)
-        @table.shoe.deal_one_up(bet_box.hand)
+        bet_box.hand.set(BlackjackCard.make('8D', '8S'))
         bet_box.from_split?.must_equal(true) # this hand came from a split
         bet_box.split # split the split hand again
       end
       @bet_box.num_splits.must_equal(3)
       counter = 0
       @table.bet_boxes.each_active do |bet_box|
-        bet_box.hand.length.must_equal(1)
-        bet_box.box.transfer_to(@table.house, bet_box.bet_amount)
         counter +=1
-        bet_box.discard
-        bet_box.hand.length.must_equal(0)
       end
       counter.must_equal(4)
+      @table.bet_boxes.each_active do |bet_box|
+        #
+        # attempt to split the again should exceed table limit
+        #
+        bet_box.hand.set(BlackjackCard.make('8D', '8S'))
+        assert !bet_box.can_split?, "shouldn't be able to split"
+        proc {
+          bet_box.split
+        }.must_raise RuntimeError
+        break
+      end
     end
   end
 
@@ -1312,7 +1331,6 @@ module Blackjack
     end
 
     it "should be able to win a bet" do
-
     end
 
     it "should be able to lose a bet" do
@@ -2061,7 +2079,7 @@ module Blackjack
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         ['A', *2..10].each do |dealer_up_card_val|
           up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
-          @basic_strategy.decision(@bet_box, up_card).must_equal(Action::STAND)
+          @basic_strategy.play(@bet_box, up_card).must_equal(Action::STAND)
         end
       end
     end
@@ -2071,7 +2089,7 @@ module Blackjack
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         [*7..10].each do |dealer_up_card_val|
           up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
-          @basic_strategy.decision(@bet_box, up_card).must_equal(Action::HIT)
+          @basic_strategy.play(@bet_box, up_card).must_equal(Action::HIT)
         end
       end
     end
@@ -2081,7 +2099,7 @@ module Blackjack
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         [*4..6].each do |dealer_up_card_val|
           up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
-          @basic_strategy.decision(@bet_box, up_card).must_equal(Action::STAND)
+          @basic_strategy.play(@bet_box, up_card).must_equal(Action::STAND)
         end
       end
     end

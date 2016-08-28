@@ -11,8 +11,7 @@ module Blackjack
       attr_reader  :house
       attr_reader  :cash
 
-      def initialize(table, dealer)
-        @dealer = dealer
+      def initialize(table)
         @house = table.house
         @cash = table.cash
       end
@@ -59,9 +58,14 @@ module Blackjack
         return 0 if bet_amount.zero?
         pay_this  = payout_odds[0]
         for_every = payout_odds[1]
+        bet_amount = bet_amount.to_f unless even_payout(bet_amount, for_every)
         amount = (bet_amount / for_every) * pay_this
         house.transfer_to(account, amount)
         amount
+      end
+
+      def even_payout(bet_amount, for_every)
+        bet_amount % for_every == 0
       end
 
       def collect_house_winnings(from_account)
@@ -85,7 +89,7 @@ module Blackjack
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
       @hand = table.new_dealer_hand
       @shoe = table.shoe
-      @money = MoneyHandler.new(table, self)
+      @money = MoneyHandler.new(table)
     end
 
     def deal_first_up_card_to_each_active_bet_box
@@ -138,10 +142,8 @@ module Blackjack
       hand.bust?
     end
 
-    def hit?
-      !busted? &&                                           # don't hit if already busted
-        ((hand.soft? && hand.hard_sum <= soft_hit_limit) || # hit if soft 16 (or if configured, soft 17) or less
-        (!hand.soft? && hand.hard_sum < 17))                # hit if hard hand < 17
+    def not_busted?
+      !busted?
     end
 
     def play_hand
@@ -151,9 +153,19 @@ module Blackjack
       self
     end
 
+    def hit?
+      not_busted? && (hit_soft_hand? || hit_hard_hand?)
+    end
+
     def discard_hand
       hand.fold
       self
+    end
+
+    def ask_player_stay?(player)
+      prompt_player_strategy_and_validate(:stay?, nil, player) do
+        player.strategy.stay?
+      end
     end
 
     def ask_player_num_bets(player)
@@ -168,15 +180,15 @@ module Blackjack
       end
     end
 
-    def ask_player_decision(bet_box)
-      prompt_player_strategy_and_validate(:decision, bet_box) do
-        bet_box.player.strategy.decision(bet_box, up_card, table.other_hands(bet_box))
+    def ask_player_play(bet_box)
+      prompt_player_strategy_and_validate(:play, bet_box) do
+        bet_box.player.strategy.play(bet_box, up_card, table.other_hands(bet_box))
       end
     end
 
     def ask_player_bet_amount(player, bet_box)
       prompt_player_strategy_and_validate(:bet_amount, bet_box, player) do
-        player.strategy.bet_amount
+        player.strategy.bet_amount(bet_box)
       end
     end
 
@@ -232,6 +244,16 @@ module Blackjack
 
     private
 
+    def hit_soft_hand?
+      # hit if soft 16 (or if configured, soft 17) or less
+      hand.soft? && (hand.hard_sum <= soft_hit_limit)
+    end
+
+    def hit_hard_hand?
+      # hit if hard hand < 17
+      !hand.soft? && (hand.hard_sum < 17)
+    end
+
     def prompt_player_strategy_and_validate(strategy_step, bet_box, opt_player=nil)
       player = opt_player||bet_box.player
       while(true) do
@@ -248,6 +270,8 @@ module Blackjack
 
     def validate_step_response(strategy_step, response, bet_box, player)
       valid_input, error_message = case strategy_step
+        when :stay?
+          @validator.validate_stay?(player, response)
         when :num_bets
           @validator.validate_num_bets(player, response)
         when :insurance
@@ -258,8 +282,8 @@ module Blackjack
           @validator.validate_insurance_bet_amount(bet_box, response)
         when :double_down_bet_amount
           @validator.validate_double_down_bet_amount(bet_box, response)
-        when :decision
-          @validator.validate_decision(bet_box, response)
+        when :play
+          @validator.validate_play(bet_box, response)
       end
       [valid_input, error_message]
     end

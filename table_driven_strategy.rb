@@ -1,6 +1,6 @@
 module Blackjack
 
-  class TableDrivenStrategy < PlayerHandStrategy
+  class TableDrivenStrategy < SimpleStrategy
 
     attr_reader  :strategy_table
 
@@ -10,42 +10,25 @@ module Blackjack
     end
 
     def num_bets
+      num_bets = options[:num_bets]||super
       #
       # leave room in bank to double down on all hands bet
       #
       @minimum_bet = table.config[:minimum_bet]
-      current_balance = player.bank.balance
 
-      if config[:num_bets] > 1
+      if num_bets > 1
         @minimum_bet *= 2 # house requires you make double min bet 
       end
 
-      if current_balance < (@minimum_bet * config[:num_bets])
-        player.marker_for(player.config[:start_bank])
-        table.game_announcer.says("%s gets a marker for $%d" % [player.name, player.config[:start_bank]])
-      end
-
-      config[:num_bets]
+      num_bets
     end
 
-    def bet_amount
+    def bet_amount(bet_box)
       @minimum_bet
     end
 
-    def insurance_bet_amount(bet_box)
-      bet_box.bet_amount/2
-    end
-
-    def double_down_bet_amount(bet_box)
-      [bet_box.bet_amount, bet_box.player.bank.balance].min
-    end
-
-    def insurance?(bet_box)
-      bet_box.hand.blackjack? ? Action::EVEN_MONEY : Action::NO_INSURANCE
-    end
-
-    def decision(bet_box, dealer_up_card, other_hands=[])
-      dec = strategy_table.decision(dealer_up_card.face_value, bet_box.hand)
+    def play(bet_box, dealer_up_card, other_hands=[])
+      dec = strategy_table.play(dealer_up_card.face_value, bet_box.hand)
       return case dec
         when Action::SPLIT
           # can't split if player doesn't have funds
@@ -70,6 +53,11 @@ module Blackjack
       # 
       raise "#{strategy_step}: #{message}"
     end
+
+    def decision_stat_name(bet_box, dealer_up_card, other_hands=[])
+      strategy_table.decision_stat_name(dealer_up_card.face_value, bet_box.hand)
+    end
+
   end
 
   class BasicStrategy < TableDrivenStrategy
