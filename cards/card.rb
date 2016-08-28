@@ -69,7 +69,7 @@ module Cards
       #
       # usage: Card.make("AC", "JD", "4D", "JS")
       #
-      card_strings.map {|card_string| from_face_suit(card_string)}
+      card_strings.map {|card_string| from_s(card_string)}
     end
 
     def face_value
@@ -126,7 +126,7 @@ module Cards
       face_value == anOther.face_value 
     end
 
-    def self.from_face_suit(card_string, orientation=FACE_UP)
+    def self.from_s(card_string, orientation=FACE_UP)
       # "AC" => Card.new
       face = card_string[0..-2]
       suit = card_string[-1]

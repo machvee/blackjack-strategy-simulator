@@ -2060,7 +2060,7 @@ module Blackjack
       %w{7D 8C 9H 10H QS}.each do |c2|
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         ['A', *2..10].each do |dealer_up_card_val|
-          up_card = BlackjackCard.from_face_suit("#{dealer_up_card_val}H")
+          up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
           @basic_strategy.decision(@bet_box, up_card).must_equal(Action::STAND)
         end
       end
@@ -2070,7 +2070,7 @@ module Blackjack
       %w{2D 3C 4H 5H 6S}.each do |c2|
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         [*7..10].each do |dealer_up_card_val|
-          up_card = BlackjackCard.from_face_suit("#{dealer_up_card_val}H")
+          up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
           @basic_strategy.decision(@bet_box, up_card).must_equal(Action::HIT)
         end
       end
@@ -2080,7 +2080,7 @@ module Blackjack
       %w{4H 5H 6S}.each do |c2|
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         [*4..6].each do |dealer_up_card_val|
-          up_card = BlackjackCard.from_face_suit("#{dealer_up_card_val}H")
+          up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
           @basic_strategy.decision(@bet_box, up_card).must_equal(Action::STAND)
         end
       end
