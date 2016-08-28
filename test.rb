@@ -1520,7 +1520,7 @@ module Blackjack
 
   describe BlackjackHand, "A Hand of 8 8" do
     before do
-      @eight_eight = BlackjackHand.new(BlackjackCard.make('8D', '8S'))
+      @eight_eight = BlackjackHand.make('8D', '8S')
     end
 
     it "should respond to pair" do
@@ -1538,7 +1538,7 @@ module Blackjack
 
   describe BlackjackHand, "A Hand of 8 9" do
     before do
-      @eight_nine = BlackjackHand.new(BlackjackCard.make('8D', '9S'))
+      @eight_nine = BlackjackHand.make('8D', '9S')
     end
 
     it "should not respond to pair" do
@@ -1560,7 +1560,7 @@ module Blackjack
 
   describe BlackjackHand, "A Hand of J Q" do
     before do
-      @jack_q = BlackjackHand.new(BlackjackCard.make('JD', 'QS'))
+      @jack_q = BlackjackHand.make('JD', 'QS')
     end
 
     it "should respond to pair" do
@@ -1583,7 +1583,7 @@ module Blackjack
 
   describe BlackjackHand, "A Hand of K 10" do
     before do
-      @k_10 = BlackjackHand.new(BlackjackCard.make('KD', '10S'))
+      @k_10 = BlackjackHand.make('KD', '10S')
     end
 
     it "should respond to pair" do
@@ -1610,7 +1610,7 @@ module Blackjack
 
   describe BlackjackHand, "A Hand of K K" do
     before do
-      @k_k = BlackjackHand.new(BlackjackCard.make('KD', 'KS'))
+      @k_k = BlackjackHand.make('KD', 'KS')
     end
 
     it "should respond to pair" do
@@ -1637,7 +1637,7 @@ module Blackjack
 
   describe BlackjackHand, "A Hand of A Q" do
     before do
-      @blackjack = BlackjackHand.new(BlackjackCard.make('AD', 'QS'))
+      @blackjack = BlackjackHand.make('AD', 'QS')
     end
 
     it "should not respond to pair" do
@@ -1672,7 +1672,7 @@ module Blackjack
 
   describe BlackjackHand, "A hand that has multiple aces" do
     before do
-      @hand = BlackjackHand.new(BlackjackCard.make('AD', 'AC', 'AH', 'AS', '2S', '2D', '3H'))
+      @hand = BlackjackHand.make('AD', 'AC', 'AH', 'AS', '2S', '2D', '3H')
     end
 
     it "should not respond to pair" do
@@ -1707,7 +1707,7 @@ module Blackjack
 
   describe BlackjackHand, "A hand that has an aces and is more than 21" do
     before do
-      @hand = BlackjackHand.new(BlackjackCard.make('AD', '4C', '9S', 'QD'))
+      @hand = BlackjackHand.make('AD', '4C', '9S', 'QD')
     end
 
     it "should not respond to pair" do
@@ -1742,7 +1742,7 @@ module Blackjack
 
   describe BlackjackHand, "A hand that has an no aces and is more than 21" do
     before do
-      @hand = BlackjackHand.new(BlackjackCard.make('4D', '5C', '6S', 'QD'))
+      @hand = BlackjackHand.make('4D', '5C', '6S', 'QD')
     end
 
     it "should not respond to pair" do
@@ -1777,7 +1777,7 @@ module Blackjack
 
   describe BlackjackHand, "A hand that has an no aces and is 21" do
     before do
-      @hand = BlackjackHand.new(BlackjackCard.make('7D', '7C', '7S'))
+      @hand = BlackjackHand.make('7D', '7C', '7S')
     end
 
     it "should not respond to pair" do

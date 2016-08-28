@@ -68,12 +68,14 @@ module Blackjack
     end
 
     def player_hand_status(bet_box, decision=nil, opt_bet_amt=nil)
-      says "%s %s %s%s" % [
-        bet_box.player_name,
-        decision.nil? ? "has" : DECISIONS[decision],
-        opt_bet_amt.nil? ? "" : "for $#{opt_bet_amt} : ",
-        hand_val_str(bet_box.hand, bet_box.from_split?)
-      ]
+      hvs = hand_val_str(bet_box.hand, bet_box.from_split?)
+      if decision.nil? && opt_bet_amt.nil?
+        says "%s has %s" % [bet_box.player_name, hvs]
+      elsif opt_bet_amt.nil?
+        says "%s %s for %s" % [bet_box.player_name, DECISIONS[decision], hvs]
+      else
+        says "%s %s for $%s : has %s" % [bet_box.player_name, DECISIONS[decision], opt_bet_amt, hvs]
+      end
     end
 
     def hand_outcome(bet_box, outcome, amount=nil)
@@ -89,7 +91,7 @@ module Blackjack
         when Outcome::PUSH
           "%s PUSH" % [bet_box.player_name]
         when Outcome::BUST
-          "%s HITS %s, and BUSTS -$%d" % [
+          "%s HITS for %s and BUSTS -$%d" % [
             bet_box.player_name,
                    hand_val_str(bet_box.hand, bet_box.from_split?),
                                   amount]

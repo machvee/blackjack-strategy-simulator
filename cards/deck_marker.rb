@@ -19,7 +19,11 @@ module Cards
     end
 
     def check
-      raise "needs marker card placed" if offset.nil?
+      raise "needs marker card placed" unless marker_placed?
+    end
+
+    def marker_placed?
+      !offset.nil?
     end
 
     def place_card(offset=nil)
@@ -37,7 +41,7 @@ module Cards
     end
 
     def remaining_until_shuffle
-      [0, deck.count - (offset.nil? ? 0 : offset)].max
+      [0, deck.count - (marker_placed? ? offset : 0)].max
     end
 
     def beyond_marker?
@@ -85,11 +89,11 @@ module Cards
     end
 
     def inspect
-      if offset.nil?
-        "card removed"
-      else
+      if marker_placed?
         off = deck.count - offset
         deck[0..off] + ["||"] + deck[(off+1)..-1]
+      else
+        "card removed"
       end
     end
 

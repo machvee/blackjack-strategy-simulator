@@ -52,6 +52,10 @@ module Blackjack
     attr_reader  :soft_sum
     attr_reader  :hard_sum
 
+    def self.make(*pairs)
+      new(BlackjackCard.make(*pairs))
+    end
+
     def update_value
       @value = calc_hard_soft_sums
       @soft_sum = value.first
@@ -168,7 +172,7 @@ module Blackjack
       # return {face_val: count_in_deck, ..., face_val: count_in_deck} up until the marker.offset is reached, if non-nil
       #
       freq = Hash[Cards::FACES.map{|f| BlackjackCard.custom_value_of_face(f)}.uniq.zip([0]*Cards::FACES.length)]
-      stop_at = marker.offset.nil? ? length : length - marker.offset
+      stop_at = marker.marker_placed? ? length - marker.offset : length
       each_with_index do |c,i|
         break if stop_at == i
         freq[c.face_value] += 1
@@ -177,7 +181,7 @@ module Blackjack
     end
 
     def inspect
-      marker.offset.nil? ? super : marker.inspect
+      marker.marker_placed? ? marker.inspect : super
     end
 
   end
