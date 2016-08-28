@@ -1,5 +1,11 @@
 module Cards
   class DeckMarker
+    #
+    # This class handles the green marker card that casinos dealers have placed
+    # in their decks or shoes.  It accepts a Deck class as argument when initialized.
+    # It can be used to trigger the need for shuffling. It supports an automatic, random card placement,
+    # or can accept an integer card offset value
+    #
     attr_reader  :deck
     attr_reader  :offset
     attr_reader  :placement_segment
