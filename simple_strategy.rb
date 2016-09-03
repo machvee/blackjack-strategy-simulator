@@ -8,7 +8,7 @@ module Blackjack
       Action::PLAY
     end
 
-    def num_bets
+    def num_hands
       1
     end
 

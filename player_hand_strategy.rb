@@ -84,12 +84,12 @@ module Blackjack
       # override in sub-class to indicate:
       #
       #   Action::LEAVE - the player cashes out and/or repays markers and leaves table
-      #    Action::PLAY - means they can choose to occupy the seat and will make num_bets 
+      #    Action::PLAY - means they can choose to occupy the seat and will make num_hands 
       #                   bets in 0 or more bet_boxes.
       #
     end
 
-    def num_bets
+    def num_hands
       #
       # override in sub-class to return:
       #
@@ -164,17 +164,15 @@ module Blackjack
       #
     end
 
-    def error(strategy_step, message)
+    def error(decision, message)
       #
       # Dealer will call this with a message string when/if the PlayerHandStrategy
-      # would respond with something invalid during the above strategy_steps
+      # would respond with something invalid during the above decision
       # and then invokes the offending method again
       #
-      #  (e.g. :decision, :insurance, :bet_amount, or :play)
-      #
-      # e.g. raise "invalid entry for #{strategy_step}: #{message}"
+      # e.g. raise "invalid entry for #{decision.class.name}: #{message}"
       # 
-      raise "#{strategy_step}: #{message}"
+      raise "#{decision.class.name}: #{message}"
     end
   end
 end

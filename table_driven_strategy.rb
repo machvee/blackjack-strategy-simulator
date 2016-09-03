@@ -9,18 +9,18 @@ module Blackjack
       @strategy_table = strategy_table
     end
 
-    def num_bets
-      num_bets = options[:num_bets]||super
+    def num_hands
+      num_hands = options[:num_hands]||super
       #
       # leave room in bank to double down on all hands bet
       #
       @minimum_bet = table.config[:minimum_bet]
 
-      if num_bets > 1
+      if num_hands > 1
         @minimum_bet *= 2 # house requires you make double min bet 
       end
 
-      num_bets
+      num_hands
     end
 
     def bet_amount(bet_box)

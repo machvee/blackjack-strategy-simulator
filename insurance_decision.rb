@@ -10,7 +10,7 @@ module Blackjack
     private
 
     def get_response(bet_box=nil)
-      player.strategy.insurance?
+      player.strategy.insurance?(bet_box)
     end
 
     def valid?(response, bet_box=nil)

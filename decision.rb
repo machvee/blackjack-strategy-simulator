@@ -29,7 +29,7 @@ module Blackjack
         # player.strategy.error will either raise in the case of bot strategies
         # or should print/communicate the message to a live user
         #
-        player.strategy.error(strategy_step, message)
+        player.strategy.error(self, message)
       end
       table.game_announcer.play_by_play(self.class.name.downcase, player, response)
       response

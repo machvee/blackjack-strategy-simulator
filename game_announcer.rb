@@ -104,7 +104,7 @@ module Blackjack
 
     def play_by_play(step, player, response)
       msg = case step
-        when :num_bets
+        when :num_hands
           case response
             when 0
               "%s SITS OUT" % player.name

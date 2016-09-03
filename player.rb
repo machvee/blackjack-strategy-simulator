@@ -27,7 +27,6 @@ module Blackjack
       @bank = Bank.new(0)
       @buy_in = 0
       @stats = PlayerStats.new(self)
-      @decision = PlayerDecisions.new(self)
     end
 
     def join(table, desired_seat_position=nil)
@@ -35,6 +34,7 @@ module Blackjack
       table.join(self, desired_seat_position)
       buy_chips(config[:start_bank])
       @strategy = strategy_class.new(table, self, config[:strategy_options])
+      @decision = PlayerDecisions.new(self)
       self
     end
 
@@ -63,6 +63,7 @@ module Blackjack
       table.leave(self)
       @table = nil
       @strategy = nil
+      @decision = nil
       self
     end
 

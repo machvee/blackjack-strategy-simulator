@@ -15,7 +15,7 @@ module Blackjack
     private
 
     def get_response(bet_box=nil)
-      player.strategy.play(bet_box, table.dealer.up_card, table.other_hands)
+      player.strategy.play(bet_box, table.dealer.up_card, table.other_hands(bet_box))
     end
 
     def valid?(response, bet_box=nil)

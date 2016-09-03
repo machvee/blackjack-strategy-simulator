@@ -1,7 +1,7 @@
 module Blackjack
   class PlayerDecisions
     attr_reader   :stay
-    attr_reader   :num_bets
+    attr_reader   :num_hands
     attr_reader   :bet_amount
     attr_reader   :insurance
     attr_reader   :insuance_bet_amount
@@ -10,7 +10,7 @@ module Blackjack
 
     def initialize(player)
       @stay = StayDecision.new(player)
-      @num_bets = NumBetsDecision.new(player)
+      @num_hands = NumHandsDecision.new(player)
       @bet_amount = BetAmountDecision.new(player)
       @insurance = InsuranceDecision.new(player)
       @insuance_bet_amount = InsuranceBetAmountDecision.new(player)
