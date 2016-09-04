@@ -122,7 +122,7 @@ module Blackjack
 
       while(true) do
 
-        response = (bet_box.hand.twentyone? || bet_box.from_split_aces?) ? Action::STAND : player.decision.play.prompt(bet_box)
+        response = player_must_stand?(bet_box) ? Action::STAND : player.decision.play.prompt(bet_box)
 
         case response
           when Action::HIT
@@ -191,6 +191,10 @@ module Blackjack
 
     def reset
       table.bet_boxes.reset
+    end
+
+    def player_must_stand?(bet_box)
+      bet_box.hand.twentyone? || bet_box.from_split_aces?
     end
 
     def dealer_plays_hand

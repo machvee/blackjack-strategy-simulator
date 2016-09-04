@@ -9,24 +9,6 @@ module Blackjack
       @strategy_table = strategy_table
     end
 
-    def num_hands
-      num_hands = options[:num_hands]||super
-      #
-      # leave room in bank to double down on all hands bet
-      #
-      @minimum_bet = table.config[:minimum_bet]
-
-      if num_hands > 1
-        @minimum_bet *= 2 # house requires you make double min bet 
-      end
-
-      num_hands
-    end
-
-    def bet_amount(bet_box)
-      @minimum_bet
-    end
-
     def play(bet_box, dealer_up_card, other_hands=[])
       dec = strategy_table.play(bet_box, dealer_up_card.face_value)
     end
@@ -41,11 +23,7 @@ module Blackjack
       #
       # e.g. raise "invalid entry for #{strategy_step}: #{message}"
       # 
-      raise "#{strategy_step}: #{message}"
-    end
-
-    def decision_stat_name(bet_box, dealer_up_card, other_hands=[])
-      strategy_table.decision_stat_name(dealer_up_card.face_value, bet_box.hand)
+      raise "#{strategy_step.class.name}: #{message}"
     end
 
   end

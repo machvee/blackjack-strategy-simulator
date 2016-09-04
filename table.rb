@@ -83,6 +83,7 @@ module Blackjack
       double_down_on:       DEFAULT_DOUBLE_DOWN_ON,
       minimum_bet:          DEFAULT_BET_RANGE.min,
       maximum_bet:          DEFAULT_BET_RANGE.max,
+      multi_double_min:     true, # player betting in multiple bet_boxes must double minimum bet
       max_player_bets:      DEFAULT_MAX_PLAYER_BETS,
       max_player_splits:    DEFAULT_MAX_SPLITS_PER_BOX, # nil unlimited or n: one hand split up to n times
       game_announcer_class: DEFAULT_GAME_ANNOUNCER,

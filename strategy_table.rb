@@ -26,10 +26,6 @@ module Blackjack
       @double_split_option_table = parse_table(formatted_double_split_option_table)
     end
 
-    def decision_stat_name(dealer_up_card_value, hand)
-      "%s:%s:%s" % rule_keys(dealer_up_card_value, hand)
-    end
-
     def rule_keys(dealer_up_card_value, hand)
       keys = if hand.pair?
         [:pairs, hand[0].soft_value, dealer_up_card_value]
@@ -220,6 +216,8 @@ module Blackjack
       ]
 
     DOUBLE_SPLIT_OPTION_TABLE =
+      # Use this table when the player isn't able to split or double
+      # due to low bank balance or split table limit
       [
         '                           Dealer Up Card                    ',
         '--------+----------------------------------------------------',
