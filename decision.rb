@@ -4,12 +4,12 @@ module Blackjack
     # The player is asked to make these decisions throughout game play
     #
     # STAY                    stay at the table or cash-out and quit
-    # NUM_BETS                how many bet boxes to place bets (0-max available)
+    # NUM_HANDS               how many bet boxes to place bets (0-max available/table limit)
     # BET_AMOUNT              amount of bet in each bet box
     # INSURANCE               take INSURANCE Action if dealer up card is Ace?
-    # INSURANCE_BET_AMOUNT    how much to bet on INSURANCE from 1 to bet_amount/2?
+    # INSURANCE_BET_AMOUNT    how much to bet on INSURANCE from 1 to bet box bet_amount/2?
     # DOUBLE_DOWN_BET_AMOUNT  how much to bet on a DOUBLE_DOWN from 1 to bet_amount?
-    # PLAY                    What Action to take when dealer ask player to make a hand decision?
+    # PLAY                    What Action to take when playing a hand? (hit/stand/split/dbl)
     #
 
     attr_reader :table
@@ -29,10 +29,14 @@ module Blackjack
         # player.strategy.error will either raise in the case of bot strategies
         # or should print/communicate the message to a live user
         #
-        player.strategy.error(self, message)
+        player.strategy.error(name, message)
       end
-      table.game_announcer.play_by_play(self.class.name.downcase, player, response)
+      table.game_announcer.play_by_play(name, player, response)
       response
+    end
+
+    def name
+      self.class.name.gsub(/Decision/,'').downcase
     end
 
     private 

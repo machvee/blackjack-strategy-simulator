@@ -122,7 +122,7 @@ module Blackjack
 
       while(true) do
 
-        response = player_must_stand?(bet_box) ? Action::STAND : player.decision.play.prompt(bet_box)
+        response = player_must_stand?(bet_box) ? Action::STAND : player.decision[:play].prompt(bet_box)
 
         case response
           when Action::HIT
@@ -147,7 +147,7 @@ module Blackjack
             end
             break
           when Action::DOUBLE_DOWN
-            double_down_bet_amt = player.decision.double_down_bet_amount.prompt(bet_box)
+            double_down_bet_amt = player.decision[:double_down_bet_amount].prompt(bet_box)
             bet_box.double_down(double_down_bet_amt)
             deal_player_card(bet_box)
             announce_hand(bet_box, response, double_down_bet_amt)
@@ -217,17 +217,17 @@ module Blackjack
 
     def wait_for_player_bets
       table.each_player do |player|
-        leave_or_stay = player.decision.stay.prompt(player)
+        leave_or_stay = player.decision[:stay].prompt(player)
         case leave_or_stay
           when Action::LEAVE
             player.leave_table
             next
           when Action::PLAY
-            num_hands = player.decision.num_hands.prompt(player)
+            num_hands = player.decision[:num_hands].prompt(player)
             hand_counter = 0
             table.bet_boxes.available_for(player) do |bet_box|
               break if hand_counter == num_hands
-              bet_amount = player.decision.bet_amount.prompt(bet_box)
+              bet_amount = player.decision[:bet_amount].prompt(bet_box)
               player.make_bet(bet_amount, bet_box)
               hand_counter += 1
             end

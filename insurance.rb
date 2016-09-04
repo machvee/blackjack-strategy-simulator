@@ -13,13 +13,13 @@ module Blackjack
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player
 
-        response = player.decision.insurance.prompt(bet_box)
+        response = player.decision[:insurance].prompt(bet_box)
 
         case response
           when Action::NO_INSURANCE
             next
           when Action::INSURANCE
-            insurance_bet_amt = player.decision.insurance_bet_amount.prompt(bet_box)
+            insurance_bet_amt = player.decision[:insurance_bet_amount].prompt(bet_box)
             player.make_insurance_bet(bet_box, insurance_bet_amt)
           when Action::EVEN_MONEY
             #

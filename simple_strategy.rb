@@ -30,7 +30,7 @@ module Blackjack
     end
 
     def error(decision, message)
-      raise "#{decision.class.name}: #{message}"
+      raise "#{decision}: #{message}"
     end
   end
 end
