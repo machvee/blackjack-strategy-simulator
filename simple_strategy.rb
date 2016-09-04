@@ -28,5 +28,9 @@ module Blackjack
     def double_down_bet_amount(bet_box)
       bet_box.bet_amount
     end
+
+    def error(decision, message)
+      raise "#{decision.class.name}: #{message}"
+    end
   end
 end

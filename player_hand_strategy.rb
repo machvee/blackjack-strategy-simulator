@@ -172,7 +172,6 @@ module Blackjack
       #
       # e.g. raise "invalid entry for #{decision.class.name}: #{message}"
       # 
-      raise "#{decision.class.name}: #{message}"
     end
   end
 end
