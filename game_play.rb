@@ -17,21 +17,14 @@ module Blackjack
     end
 
     def run(options={})
-      num_rounds = (options[:num_rounds]||"10000").to_i
       hands_dealt.reset
-      begin
-        table.game_announcer.says("Hands: #{num_rounds}, Seed: #{table.seed}")
-        while players_at_table?
-          shuffle_check
-          announce_game_state
-          wait_for_player_bets
-          play_a_hand_of_blackjack if any_player_bets?
-          break if hands_dealt.count == num_rounds
-        end
-        exit_run
-      rescue StrategyQuitter => q
-        exit_run("Run aborted")
+      while players_at_table?
+        shuffle_check
+        announce_game_state
+        wait_for_player_bets
+        play_a_hand_of_blackjack if any_player_bets?
       end
+      exit_run
     end
 
     def exit_run(msg="Run complete")

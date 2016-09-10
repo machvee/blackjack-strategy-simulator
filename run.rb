@@ -29,4 +29,3 @@ player_options = {
 @dave = Player.new("Dave", player_options)
 @dave.join(@table)
 @table.run
-
