@@ -116,7 +116,6 @@ module Blackjack
     def run(options={})
       gp = GamePlay.new(self)
       gp.run(options)
-      report_stats
     end
 
     def init_table
@@ -247,6 +246,15 @@ module Blackjack
       name
     end
 
+    def report_stats
+      stats.print
+      puts ""
+      dealer.print_stats
+      each_player do |player|
+        player.stats.print
+      end
+    end
+
     private
 
     def new_shoe
@@ -265,15 +273,6 @@ module Blackjack
         seated_players.index(nil) 
       else
         seated_players[desired_seat_position].nil? ? desired_seat_position : nil
-      end
-    end
-
-    def report_stats
-      stats.print
-      puts ""
-      dealer.print_stats
-      each_player do |player|
-        player.stats.print
       end
     end
 

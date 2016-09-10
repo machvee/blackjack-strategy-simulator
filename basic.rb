@@ -45,4 +45,5 @@ player_options = {
 @dave = Player.new(PLAYER_NAME, player_options)
 @dave.join(@table)
 @table.run
+@table.report_stats
 @dave.stats.print
