@@ -17,21 +17,14 @@ module Blackjack
     end
 
     def run(options={})
-      num_rounds = (options[:num_rounds]||"10000").to_i
       hands_dealt.reset
-      begin
-        table.game_announcer.says("Hands: #{num_rounds}, Seed: #{table.seed}")
-        while players_at_table?
-          shuffle_check
-          announce_game_state
-          wait_for_player_bets
-          play_a_hand_of_blackjack if any_player_bets?
-          break if hands_dealt.count == num_rounds
-        end
-        exit_run
-      rescue StrategyQuitter => q
-        exit_run("Run aborted")
+      while players_at_table?
+        shuffle_check
+        announce_game_state
+        players_make_bets
+        play_a_hand_of_blackjack if any_player_bets?
       end
+      exit_run
     end
 
     def exit_run(msg="Run complete")
@@ -94,6 +87,10 @@ module Blackjack
     end
 
     def players_at_table?
+      table.each_player do |player|
+        decision = player.decision[:stay].prompt(player)
+        player.leave_table if decision == Action::LEAVE
+      end
       table.any_seated_players?
     end
 
@@ -215,25 +212,17 @@ module Blackjack
       table.game_announcer.overview
     end
 
-    def wait_for_player_bets
+    def players_make_bets
       table.each_player do |player|
-        leave_or_stay = player.decision[:stay].prompt(player)
-        case leave_or_stay
-          when Action::LEAVE
-            player.leave_table
-            next
-          when Action::PLAY
-            num_hands = player.decision[:num_hands].prompt(player)
-            hand_counter = 0
-            table.bet_boxes.available_for(player) do |bet_box|
-              break if hand_counter == num_hands
-              bet_amount = player.decision[:bet_amount].prompt(bet_box)
-              player.make_bet(bet_amount, bet_box)
-              hand_counter += 1
-            end
+        num_hands = player.decision[:num_hands].prompt(player)
+        hand_counter = 0
+        table.bet_boxes.available_for(player) do |bet_box|
+          break if hand_counter == num_hands
+          bet_amount = player.decision[:bet_amount].prompt(bet_box)
+          player.make_bet(bet_amount, bet_box)
+          hand_counter += 1
         end 
       end
     end
-
   end
 end

@@ -11,14 +11,17 @@ module Blackjack
       setup_prompters
     end
 
-    def on_quit
-      raise StrategyQuitter
-    end
-
     def stay?
+      #
+      # to prevent having to endless prompt the human player "Do you want to stay?"
+      # we'll make stay? the bet prompter.  If a player is out of money
+      # and doesn't get a marker, or he decides to bet $0, we'll take that
+      # as a Action::LEAVE.  Else Action::STAY
+      #
       if player.bank.balance < table.config[:minimum_bet]
         puts "You're down to #{player.bank.balance} which is below the minimum bet."
-        amt = @marker_prompter.get_command.to_i
+        resp = @marker_prompter.get_command
+        amt = (resp == 'q' ? 0 : resp.to_i)
         case amt
           when 0
             Action::LEAVE
@@ -26,7 +29,13 @@ module Blackjack
             player.marker_for(amt)
             Action::PLAY
         end
+      end
+      
+      bet_response = @main_bet_maker.get_command
+      if bet_response == 'q'
+        Action::LEAVE
       else
+        @bet_amount = bet_response.to_i
         Action::PLAY
       end
     end
@@ -36,7 +45,7 @@ module Blackjack
     end
 
     def bet_amount(bet_box)
-      @main_bet_maker.get_command.to_i
+      @bet_amount
     end
 
     def insurance?(bet_box)
@@ -45,7 +54,7 @@ module Blackjack
 
     def insurance_bet_amount(bet_box)
       max_bet = bet_box.bet_amount/2.0
-      insurance_bet_maker = CommandPrompter.new(player.name, "Insurance Bet Amount:int:1:#{max_bet}", &method(:on_quit))
+      insurance_bet_maker = CommandPrompter.new(player.name, "Insurance Bet Amount:int:1:#{max_bet}")
       insurance_bet_maker.suggestion = max_bet
       insurance_bet_maker.get_command.to_i
     end
@@ -81,11 +90,11 @@ module Blackjack
       min_bet = table.config[:minimum_bet]
       max_bet = table.config[:maximum_bet]
 
-      @get_user_decision = CommandPrompter.new(player.name, "Hit", "Stand", "Double", "sPlit", &method(:on_quit))
-      @marker_prompter = CommandPrompter.new(player.name, "Marker Amount:int:0:#{player.bank.initial_deposit}", &method(:on_quit))
+      @get_user_decision = CommandPrompter.new(player.name, "Hit", "Stand", "Double", "sPlit")
+      @marker_prompter = CommandPrompter.new(player.name, "Marker Amount:int:0:#{player.bank.initial_deposit}")
       @marker_prompter.suggestion = player.bank.initial_deposit
 
-      @main_bet_maker = CommandPrompter.new(player.name, "Bet Amount:int:#{min_bet}:#{max_bet}", &method(:on_quit))
+      @main_bet_maker = CommandPrompter.new(player.name, "Bet Amount:int:#{min_bet}:#{max_bet}")
       @main_bet_maker.suggestion = min_bet
     end
 

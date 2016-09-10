@@ -132,7 +132,6 @@ module Blackjack
     def quit_check(dcmd)
       if dcmd == 'q'
         @on_quit.call unless @on_quit.nil?
-        exit
       end
     end
 

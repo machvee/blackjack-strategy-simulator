@@ -767,7 +767,7 @@ module Blackjack
       players.each {|p| p.join(@table)}
       @table.num_players.must_equal(names.length)
       gp = GamePlay.new(@table)
-      gp.wait_for_player_bets
+      gp.players_make_bets
       gp.shuffle_check
       gp.opening_deal
       @table.bet_boxes.each_active do |bb|
@@ -800,7 +800,8 @@ module Blackjack
       }
 
       @player_options = {
-        strategy_class: BasicStrategy
+        strategy_class: BasicStrategy,
+        strategy_options: {num_rounds: 1}
       }
     end
 
@@ -809,7 +810,7 @@ module Blackjack
       @dave = Player.new("Dave", @player_options)
       @dave.join(@table)
       @game_play = GamePlay.new(@table)
-      @game_play.run(num_rounds: 1)
+      @game_play.run
     end
   end
 
@@ -834,7 +835,8 @@ module Blackjack
       }
 
       @player_options = {
-        strategy_class: BasicStrategy
+        strategy_class: BasicStrategy,
+        strategy_options: {num_rounds: 1}
       }
     end
 
@@ -843,7 +845,7 @@ module Blackjack
       @dave = Player.new("Dave", @player_options)
       @dave.join(@table)
       @game_play = GamePlay.new(@table)
-      @game_play.run(num_rounds: 1)
+      @game_play.run
       @dave.stats.split_stats.played.count.must_equal(3)
       @dave.stats.split_stats.won.count.must_equal(1)
       @dave.stats.split_stats.lost.count.must_equal(1)
@@ -906,14 +908,15 @@ module Blackjack
       @table.shoe.shuffle
       @table.shoe.place_marker_card
       @player_options = {
-        strategy_class: BasicStrategy
+        strategy_class: BasicStrategy,
+        strategy_options: {num_rounds: 1}
       }
       @player = Player.new('p', @player_options)
       @player.join(@table)
       @player.make_bet(50)
       @game_play = GamePlay.new(@table)
       @player.stats.hand_stats.pushed.count.must_equal(0)
-      @game_play.run(num_rounds: 1)
+      @game_play.run
     end
 
     it "should be a player push" do

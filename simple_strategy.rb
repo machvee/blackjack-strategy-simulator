@@ -4,17 +4,25 @@ module Blackjack
     # takes easy/recommended/default actions, leaving more important
     # decisions to sub-classes
     #
+    def initialize(table, player, options={})
+      @num_rounds = options[:num_rounds]
+      @round_count = 0
+      super
+    end
+
     def stay?
-      Action::PLAY
+      return Action::PLAY if @num_rounds.nil?
+      @round_count += 1
+      @round_count > @num_rounds ?  Action::LEAVE : Action::PLAY
     end
 
     def num_hands
-      num_hands = options[:num_hands]||1
+      @num_hands = options[:num_hands]||1
     end
 
     def bet_amount(bet_box)
       amt = table.config[:minimum_bet]
-      table.config[:multi_double_min] && num_hands > 1 ? amt * 2 : amt 
+      table.config[:multi_double_min] && @num_hands > 1 ? amt * 2 : amt 
     end
 
     def insurance?(bet_box)
