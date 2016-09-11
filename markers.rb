@@ -25,25 +25,35 @@ module Blackjack
       unpaid_markers = unpaid_markers_for_player(player)
       return 0 unless unpaid_markers.any?
 
-      limit_to_pay_back = max_amount.nil? ? player.bank.balance : max_amount
-      total_amount_paid_back = 0
+      valid?(player, max_amount)
+
+      max_amount = max_amount.nil? ? player.bank.balance : max_amount
+      amt_to_pay = max_amount
 
       unpaid_markers.each do |marker|
-        amt_to_pay = marker[:amount]
-        if total_amount_paid_back + amt_to_pay > limit_to_pay_back
-          amt_to_pay = total_amount_paid_back + amt_to_pay - limit_to_pay_back
-          marker[:amount] -= amt_to_pay
-        else
-          marker[:paid] = true
-        end
-        player.bank.transfer_to(table.house, amt_to_pay)
-        total_amount_paid_back += amt_to_pay
-        break if total_amount_paid_back == limit_to_pay_back
+        amt_to_pay_marker = [amt_to_pay, marker[:amount]].min
+        pay_marker(player, marker, amt_to_pay_marker)
+        amt_to_pay -= amt_to_pay_marker
+        break if amt_to_pay == 0
       end
-      total_amount_paid_back
+
+      max_amount
     end
 
     private
+
+    def pay_marker(player, marker, amount)
+      marker[:amount] -= amount
+      marker[:paid] = true if marker[:amount].zero?
+      player.bank.transfer_to(table.house, amount)
+    end
+
+    def valid?(player, max_amount)
+      if !max_amount.nil? && max_amount > player.bank.balance
+        raise "player bank balance is only %d.  Unable to pay back %d" %
+          [player.bank.balance, max_amount]
+      end
+    end
 
     def unpaid_markers_for_player(player)
       markers.select {|h| h[:player] == player && !h[:paid]}

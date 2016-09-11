@@ -1065,6 +1065,16 @@ module Blackjack
       @table.markers.for_player(@player).first[:amount].must_equal(500-250)
       @player.bank.balance.must_equal(500+500-250)
     end
+
+    it "should raise if player attempts to pay back more than their bank balance" do
+      @player.join(@table)
+      @player.bank.balance.must_equal(500)
+      @player.marker_for(500)
+      @player.bank.balance.must_equal(500+500)
+      proc {
+        @player.repay_any_markers(1250)
+      }.must_raise RuntimeError
+    end
   end
 
   describe Player, "A Player" do
