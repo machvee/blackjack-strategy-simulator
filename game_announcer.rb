@@ -24,7 +24,7 @@ module Blackjack
     def hand_outcome(hand, action, amount=nil)
     end
 
-    def play_by_play(step, player, response)
+    def play_by_play(klass, player, response)
     end
 
     def says(msg)
@@ -102,18 +102,18 @@ module Blackjack
       says msg
     end
 
-    def play_by_play(step, player, response)
-      msg = case step
-        when :num_hands
+    def play_by_play(klass, player, response)
+      msg = case klass
+        when NumHandsDecision
           case response
             when 0
               "%s SITS OUT" % player.name
             else
               nil
           end
-        when :bet_amount
+        when BetAmountDecision
           "%s BETS $%.2f" % [player.name, response]
-        when :insurance
+        when InsuranceDecision
           case response
             when Action::NO_INSURANCE
               "%s says NO INSURANCE" % player.name
@@ -122,7 +122,7 @@ module Blackjack
             else
               nil
           end
-        when :insurance_bet_amount
+        when InsuranceBetAmountDecision
            "%s takes INSURANCE for $%.2f" % [player.name, response]
         else
           nil

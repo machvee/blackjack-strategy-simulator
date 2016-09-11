@@ -31,7 +31,7 @@ module Blackjack
         #
         player.strategy.error(name, message)
       end
-      table.game_announcer.play_by_play(name, player, response)
+      table.game_announcer.play_by_play(self, player, response)
       response
     end
 
