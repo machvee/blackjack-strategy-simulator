@@ -45,6 +45,7 @@ module Blackjack
     end
 
     def bet_amount(bet_box)
+      @main_bet_maker.suggestion = @bet_amount
       @bet_amount
     end
 

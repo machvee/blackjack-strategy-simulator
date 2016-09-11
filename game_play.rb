@@ -20,7 +20,6 @@ module Blackjack
       hands_dealt.reset
       while players_at_table?
         shuffle_check
-        announce_game_state
         players_make_bets
         play_a_hand_of_blackjack if any_player_bets?
       end
@@ -87,6 +86,7 @@ module Blackjack
     end
 
     def players_at_table?
+      announce_game_state
       table.each_player do |player|
         decision = player.decision[:stay].prompt(player)
         player.leave_table if decision == Action::LEAVE
