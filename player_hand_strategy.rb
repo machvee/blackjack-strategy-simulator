@@ -173,5 +173,15 @@ module Blackjack
       # e.g. raise "invalid entry for #{decision.class.name}: #{message}"
       # 
     end
+
+    def random(*args)
+      #
+      # gives the strategy builder a random number using the args passed
+      # (args compatible with rand()). When a seed is passed in to the run,
+      # this random will return the same sequence, so comparitive test runs
+      # can be made
+      #
+      table.rand(*args)
+    end
   end
 end

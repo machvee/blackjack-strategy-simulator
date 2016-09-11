@@ -1,8 +1,11 @@
 require 'table'
+require 'custom_bet_amount_strategy'
+
 include Blackjack
 #
 # Usage:  ruby basic.rb [<num_hands> <rand_seed>]
 #
+PLAYER_STRATEGY_CLASS=CustomBetAmountStrategy
 DEFAULT_NUM_ROUNDS="1000"
 DEFAULT_NUM_HANDS=1
 ABBREV_OUTPUT_THRESHOLD=25000
@@ -32,7 +35,7 @@ unless ARGV[2].nil?
 end
 
 player_options = {
-  strategy_class: BasicStrategy,
+  strategy_class: PLAYER_STRATEGY_CLASS,
   strategy_options: {
     num_rounds: num_rounds,
     num_hands: num_hands
