@@ -24,7 +24,7 @@ module Blackjack
     def hand_outcome(hand, action, amount=nil)
     end
 
-    def play_by_play(klass, player, response)
+    def play_by_play(decision, player, response)
     end
 
     def says(msg)
@@ -102,8 +102,8 @@ module Blackjack
       says msg
     end
 
-    def play_by_play(klass, player, response)
-      msg = case klass
+    def play_by_play(decision, player, response)
+      msg = case decision
         when NumHandsDecision
           case response
             when 0
