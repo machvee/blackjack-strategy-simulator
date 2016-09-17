@@ -2,6 +2,7 @@ require 'byebug'
 require 'delegate'
 require 'counter_measures'
 require 'blackjack_card'
+require 'game_randomizer'
 require 'shoe'
 require 'decision'
 require 'player_decisions'
@@ -38,30 +39,6 @@ require 'table_stats'
 
 module Blackjack
   class Table
-
-    class GameRandomizer
-
-      attr_reader :prng
-      attr_reader :seed
-
-      def initialize(opt_seed=nil)
-        # pass in an optional seed argument to guarantee
-        # that the Dice will always yield the
-        # same roll sequence (useful in testing and for comparing
-        # strategy to strategy).  Pass no seed argument to ensure
-        # that the Dice will have a 'psuedo-random' roll sequence 
-        #
-        iseed = opt_seed.nil? ? nil : opt_seed.to_i
-        @seed = iseed || gen_random_seed
-        @prng = Random.new(seed)
-      end
-
-      private
-      
-      def gen_random_seed
-        Random.new_seed
-      end
-    end
 
     DEFAULT_HOUSE_BANK_AMOUNT  = 1_500_000
     DEFAULT_MAX_SEATS          = 6
@@ -100,6 +77,7 @@ module Blackjack
     attr_reader   :bet_boxes
     attr_reader   :insurance
     attr_reader   :config
+    attr_reader   :randomizer
     attr_reader   :stats
     attr_reader   :house
     attr_reader   :game_announcer
@@ -124,8 +102,9 @@ module Blackjack
       @house = Bank.new(DEFAULT_HOUSE_BANK_AMOUNT)
       @cash = Bank.new(0)
       @markers = Markers.new(self)
-      @prng = GameRandomizer.new(config[:random_seed]).prng
-      @seed = @prng.seed
+      @randomizer = GameRandomizer.new(config[:random_seed])
+      @prng = @randomizer.new_prng
+      @seed = @randomizer.init_seed
       @shoe = new_shoe
 
       @seated_players = Array.new(num_seats) {nil}

@@ -77,6 +77,7 @@ module Blackjack
       @player = player
       @table = table
       @options = options
+      @prng = table.randomizer.new_prng
     end
 
     def stay?
@@ -181,7 +182,7 @@ module Blackjack
       # this random will return the same sequence, so comparitive test runs
       # can be made
       #
-      table.rand(*args)
+      @prng.rand(*args)
     end
   end
 end

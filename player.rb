@@ -33,7 +33,11 @@ module Blackjack
       @table = table
       table.join(self, desired_seat_position)
       buy_chips(config[:start_bank])
-      @strategy = strategy_class.new(table, self, config[:strategy_options])
+      @strategy = strategy_class.new(
+        table,
+        self,
+        config[:strategy_options]
+      )
       @decision = PlayerDecisions.new(self)
       self
     end
