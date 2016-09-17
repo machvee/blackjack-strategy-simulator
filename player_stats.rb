@@ -2,71 +2,48 @@ module Blackjack
   class PlayerStats
     include CounterMeasures
     attr_reader :player
-    attr_reader :hands
-    attr_reader :doubles
-    attr_reader :splits
-    attr_reader :insurances
-    attr_reader :bets
+    attr_reader :hand_stats
+    attr_reader :double_stats
+    attr_reader :split_stats
+    attr_reader :insurance_stats
+    attr_reader :bet_stats
 
     attr_reader :current_ten_percentage
 
     counters :surrenders, :markers
 
     def initialize(player)
-      @player = player
+      @player     = player
+      @hand_stats      = HandStats.new("Hands")
+      @double_stats    = HandStats.new("Double")
+      @split_stats     = HandStats.new("Split")
+      @insurance_stats = HandStats.new("Insurance")
+      @bet_stats       = BetStats.new("Bets")
+    end
 
-      @hands = HistoStats.new("Hands", HandStats)
-      @doubles = HistoStats.new("Doubles", HandStats)
-      @splits = HistoStats.new("Splits", HandStats)
-      @insurances = HistoStats.new("Insurances", HandStats)
-      @bets = HistoStats.new("Bets", BetStats)
-      @current_ten_percentage = 0.0
+    def init_hand
     end
 
     def reset
       reset_counters
 
-      hands.reset
-      doubles.reset
-      splits.reset
-      insurances.reset
-      bets.reset
-    end
-
-    def init_hand
-      @current_ten_percentage = player.table.shoe.current_ten_percentage
+      hand_stats.reset
+      double_stats.reset
+      split_stats.reset
+      insurance_stats.reset
+      bet_stats.reset
     end
 
     def print
       puts "\n%s %s %s" % ["="*16, player.name.upcase, '='*16]
 
-      hands.percentage_print
-      doubles.percentage_print
-      splits.percentage_print
-      insurances.percentage_print
-      bets.print
+      hand_stats.print
+      double_stats.print
+      split_stats.print
+      insurance_stats.print
+      bet_stats.print
 
       print_misc
-    end
-
-    def double_stats
-      doubles.stats_for(current_ten_percentage)
-    end
-
-    def split_stats
-      splits.stats_for(current_ten_percentage)
-    end
-
-    def hand_stats
-      hands.stats_for(current_ten_percentage)
-    end
-
-    def insurance_stats
-      insurances.stats_for(current_ten_percentage)
-    end
-
-    def bet_stats
-      bets.stats_for(current_ten_percentage)
     end
 
     private

@@ -3,7 +3,6 @@ module Blackjack
     include CounterMeasures
 
     attr_reader  :name
-    attr_reader  :buckets
 
     counters :wagered, :winnings
 
@@ -14,6 +13,12 @@ module Blackjack
     def reset
       reset_counters
       self
+    end
+
+    def print
+      counters.keys.each do |k|
+        puts print_stat(k)
+      end
     end
 
     def print_stat(counter_name, counter_value=nil)

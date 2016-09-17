@@ -79,12 +79,12 @@ module Blackjack
     attr_reader     :table
     attr_reader     :money
     attr_reader     :soft_hit_limit
-    attr_reader     :stats
+    attr_reader     :hand_stats
     attr_reader     :shoe
 
     def initialize(table)
       @table = table
-      @stats = HistoStats.new("Hands", HandStats)
+      @hand_stats = HandStats.new
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
       @hand = table.new_dealer_hand
       @shoe = table.shoe
@@ -190,13 +190,9 @@ module Blackjack
       hand.hole_card
     end
 
-    def hand_stats
-      stats.stats_for(shoe.current_ten_percentage)
-    end
-
     def print_stats
       puts ("*"*10) + " DEALER " + ("*"*10)
-      stats.percentage_print
+      hand_stats.print
     end
 
     private

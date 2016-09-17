@@ -3,11 +3,10 @@ module Blackjack
     include CounterMeasures
 
     attr_reader  :name
-    attr_reader  :buckets
 
     counters :played, :won, :pushed, :lost, :busted, :blackjacks
 
-    def initialize(name)
+    def initialize(name=nil)
       @name = name
     end
 
@@ -16,8 +15,25 @@ module Blackjack
       self
     end
 
-    def print_stat(counter_name, counter_value=nil)
-      print_stat_with_total(counter_name, counter_value)
+    def print(group_name=nil)
+      total = counters[:played]
+      print_header
+      counters.keys.each do |k|
+        print_stat(k, total)
+      end
+    end
+
+    def print_header
+      puts "\n"
+      puts name.upcase unless name.nil?
+    end
+
+    def print_stat(counter_name, total)
+      puts "%12s: %s" % [counter_name, percentage_format(counters[counter_name], total)]
+    end
+
+    def percentage_format(value, total)
+      total.zero? ? "          -      " : "%6d [%7.2f%%]" % [value, value/(total*1.0) * 100.0]
     end
 
     def print_stat_with_total(counter_name, counter_value=nil)
@@ -29,12 +45,5 @@ module Blackjack
       self.format_stat_with_total(value, total)
     end
 
-    def self.format_stat_with_total(value, total)
-      total.zero? ? "          -      " : "%6d [%7.2f%%]" % [value, value/(total*1.0) * 100.0]
-    end
-
-    def none?
-      counters.values.all?(&:zero?)
-    end
   end
 end
