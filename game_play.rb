@@ -166,7 +166,7 @@ module Blackjack
 
     def pay_any_winners
       dealer_has = dealer.hand.hard_sum
-      dealer.update_bust_stats
+      dealer.bust_stats.update
 
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player

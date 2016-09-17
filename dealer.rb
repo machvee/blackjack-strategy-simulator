@@ -184,15 +184,6 @@ module Blackjack
       hand.up_card
     end
 
-    def update_bust_stats
-      if busted?
-        hand_stats.busted.incr
-        bust_stats.busted(hand)
-      else
-        bust_stats.not_busted(hand)
-      end
-    end
-
     def showing
       up_card.ace? ? 'A' : up_card.hard_value.to_s
     end

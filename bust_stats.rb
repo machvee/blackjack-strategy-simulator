@@ -20,17 +20,13 @@ module Blackjack
       self
     end
 
-    def busted(dealer_hand)
-      @total += 1
-      bust_up_faces[face_val(dealer_hand.up_card)] += 1
-    end
-
-    def not_busted(dealer_hand)
-      no_bust_up_faces[face_val(dealer_hand.up_card)] += 1
-    end
-
-    def face_val(card)
-       card.ten? ? "10" : card.face
+    def update
+      if dealer.busted?
+        dealer.hand_stats.busted.incr
+        inc_busted(dealer.hand)
+      else
+        inc_not_busted(dealer.hand)
+      end
     end
 
     def print
@@ -38,6 +34,21 @@ module Blackjack
       UP_FACES.each do |face|
         print_stat(face)
       end
+    end
+
+    private
+
+    def inc_busted(dealer_hand)
+      @total += 1
+      bust_up_faces[face_val(dealer_hand.up_card)] += 1
+    end
+
+    def inc_not_busted(dealer_hand)
+      no_bust_up_faces[face_val(dealer_hand.up_card)] += 1
+    end
+
+    def face_val(card)
+       card.ten? ? "10" : card.face
     end
 
     def print_header
