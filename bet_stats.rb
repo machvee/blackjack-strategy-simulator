@@ -16,17 +16,23 @@ module Blackjack
     end
 
     def print
+      print_header
       counters.keys.each do |k|
-        puts print_stat(k)
+        print_stat(k)
       end
     end
 
-    def print_stat(counter_name, counter_value=nil)
-      value = counter_value||counters[counter_name]
-      BetStats.format_stat(value)
+    def print_header
+      puts "\n"
+      puts "WAGERING"
     end
 
-    def self.format_stat(value)
+    def print_stat(counter_name)
+      value = counters[counter_name]
+      puts "  %10s: %s" % [counter_name, format_stat(value)]
+    end
+
+    def format_stat(value)
       neg = value < 0 ? "()" : ""
       fmt_out = "%s$%.2f%s" % [neg[0], value.abs, neg[1]]
       "%16s" % fmt_out

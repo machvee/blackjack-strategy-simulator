@@ -15,7 +15,7 @@ module Blackjack
       self
     end
 
-    def print(group_name=nil)
+    def print
       total = counters[:played]
       print_header
       counters.keys.each do |k|
@@ -34,15 +34,6 @@ module Blackjack
 
     def percentage_format(value, total)
       total.zero? ? "          -      " : "%6d [%7.2f%%]" % [value, value/(total*1.0) * 100.0]
-    end
-
-    def print_stat_with_total(counter_name, counter_value=nil)
-      value = counter_value||counters[counter_name]
-      HandStats.format_stat_with_total(value, played.count)
-    end
-
-    def self.format_stat(value, total)
-      self.format_stat_with_total(value, total)
     end
 
   end
