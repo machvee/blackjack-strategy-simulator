@@ -171,7 +171,7 @@ module CounterMeasures
   class Measure
     #
     # keep totals, avg, min and max for ongoing measurement of a quantity
-    # e.g. Number of points a shooter made during his turn
+    # e.g. measurements of daily rainfall
     #
     # incr and commit provide a way to count occurences then commit them
     # as a measure
