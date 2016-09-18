@@ -50,10 +50,11 @@ module Blackjack
 
     def print_misc
       return if counters.values.all?(&:zero?)
-      puts "==>   Misc:"
+      puts "\n"
+      puts "MISC"
       counters.each_pair do |key, value|
         next if value == 0
-        puts "==>     %12.12s: %6d" % [key, value]
+        puts "  %12s: %6d" % [key, value]
       end
     end
   end

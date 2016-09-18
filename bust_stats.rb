@@ -22,7 +22,7 @@ module Blackjack
 
     def update
       if dealer.busted?
-        dealer.hand_stats.busted.incr
+        dealer.stats.hand.busted.incr
         inc_busted(dealer.hand)
       else
         inc_not_busted(dealer.hand)
@@ -57,7 +57,7 @@ module Blackjack
     end
 
     def total_hands_played
-      dealer.hand_stats.counters[:played]
+      dealer.stats.hand.counters[:played]
     end
 
     def print_stat(face)

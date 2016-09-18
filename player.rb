@@ -79,7 +79,7 @@ module Blackjack
       bet_box.bet(self, bet_amount)
       stats.init_hand
       stats.hand_stats.played.incr
-      table.dealer.hand_stats.played.incr
+      table.dealer.stats.hand.played.incr
       stats.bet_stats.wagered.add(bet_amount)
       self
     end

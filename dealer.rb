@@ -79,14 +79,12 @@ module Blackjack
     attr_reader     :table
     attr_reader     :money
     attr_reader     :soft_hit_limit
-    attr_reader     :hand_stats
-    attr_reader     :bust_stats
+    attr_reader     :stats
     attr_reader     :shoe
 
     def initialize(table)
       @table = table
-      @hand_stats = HandStats.new
-      @bust_stats = BustStats.new(self)
+      @stats = DealerStats.new(self)
       @soft_hit_limit = table.config[:dealer_hits_soft_17] ? 17 : 16
       @hand = table.new_dealer_hand
       @shoe = table.shoe
@@ -147,6 +145,10 @@ module Blackjack
       !busted?
     end
 
+    def bust_check
+      stats.bust.update
+    end
+
     def play_hand
       while hit? do
         deal_card_to_hand
@@ -167,17 +169,20 @@ module Blackjack
       table.game_announcer.hand_outcome(bet_box, Outcome::LOST, bet_box.total_player_bet)
       bet_box.player.lost_bet(bet_box)
       money.collect_bet(bet_box)
+      stats.player_lost
     end
 
     def player_won(bet_box, payout)
       winnings = money.pay_bet(bet_box, payout)
       table.game_announcer.hand_outcome(bet_box, Outcome::WON, winnings)
       bet_box.player.won_bet(bet_box, winnings)
+      stats.player_won
     end
 
     def player_push(bet_box)
       table.game_announcer.hand_outcome(bet_box, Outcome::PUSH)
       bet_box.player.push_bet(bet_box)
+      stats.player_push
     end
 
     def up_card
@@ -193,14 +198,11 @@ module Blackjack
     end
 
     def print_stats
-      puts ("*"*10) + " DEALER " + ("*"*10)
-      hand_stats.print
-      bust_stats.print
+      stats.print
     end
 
     def reset
-      hand_stats.reset
-      bust_stats.reset
+      stats.reset
     end
 
     private
