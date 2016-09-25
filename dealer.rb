@@ -26,7 +26,7 @@ module Blackjack
         # call to transfer losing bet_box bet to house
         #
         collect_house_winnings(bet_box.box)
-        collect_house_winnings(bet_box.double) if bet_box.double_down?
+        collect_house_winnings(bet_box.double) if bet_box.doubled_down?
       end
 
       def pay_bet(bet_box, payout_odds)

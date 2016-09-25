@@ -183,6 +183,5 @@ module Blackjack
     def inspect
       marker.marker_placed? ? marker.inspect : super
     end
-
   end
 end

@@ -58,6 +58,7 @@ module Blackjack
       num_seats:            DEFAULT_MAX_SEATS,
       blackjack_payout:     DEFAULT_BLACKJACK_PAYOUT,
       dealer_hits_soft_17:  false,
+      double_after_split:   true, # can the player double down on split hands?
       player_surrender:     false,
       double_down_on:       DEFAULT_DOUBLE_DOWN_ON,
       minimum_bet:          DEFAULT_BET_RANGE.min,

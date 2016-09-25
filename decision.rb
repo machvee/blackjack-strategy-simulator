@@ -11,6 +11,8 @@ module Blackjack
     # DOUBLE_DOWN_BET_AMOUNT  how much to bet on a DOUBLE_DOWN from 1 to bet_amount?
     # PLAY                    What Action to take when playing a hand? (hit/stand/split/dbl)
     #
+    # Each Decision sub_class handles one of the above game decisions.
+    #
 
     attr_reader :table
     attr_reader :player
@@ -22,7 +24,7 @@ module Blackjack
 
     def prompt(bet_box)
       while(true) do
-        response = get_response(bet_box)
+        response, rule = get_response(bet_box)
         success, message = valid?(response, bet_box)
         break if success
         #
@@ -44,7 +46,13 @@ module Blackjack
     def get_response(bet_box=nil)
       #
       # override in sub-class.  Returns an Blackjack::Action or integer amount
-      # has access to bet_box, player and table
+      # has access to bet_box (optional param), and the parent class @player and
+      # @table.  get_response also returns a (optional) Rule class instance, which
+      # represents the Strategy Rule used make the decision.  The Decision system
+      # will keep track of rule(s) used for each Decision sub-class in a chain of
+      # decision making until an outcome is determined (e.g. player busts, player wins,
+      # deal busts).  Once the outcome is determined, stats are kept for player wins/losses
+      # busts/pushes and $ amounts won and lost.
       #
     end
 

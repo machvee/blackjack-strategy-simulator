@@ -54,8 +54,10 @@ module Blackjack
           #
           if !player.balance_check(1)
             [false, "Player has insufficient funds to double down"]
-          elsif !valid_double_hand?(bet_box.hand)
+          elsif !bet_box.hand_doublable?
             [false, "Player can only double down on two-card hands#{valid_double_hand_values}"]
+          elsif !bet_box.from_split_and_double_allowed?
+            [false, "Player not allowed double down after split on this table"]
           end
         when Action::HIT
           #
@@ -67,19 +69,6 @@ module Blackjack
         end || [true, nil]
 
       [valid_resp, error_message]
-    end
-
-    def valid_split_hand?(hand)
-      hand.pair?
-    end
-
-    def valid_double_hand?(hand)
-      double_down_on = table.config[:double_down_on]
-      hand.length == 2 && (
-        double_down_on.empty? ||
-        double_down_on.include?(hand.hard_sum) ||
-        double_down_on.include?(hand.soft_sum)
-      )
     end
 
     def valid_double_hand_values

@@ -69,7 +69,7 @@ module Blackjack
     end
 
     def double_option(bet_box, lkup)
-      if bet_box.hand.length > 2 || !bet_box.player.balance_check(1)
+      if !bet_box.can_double? || !bet_box.player.balance_check(1)
         double_split_option_table[lkup.section][lkup.player_hand_val][lkup.dealer_up_card]
       else
         Action::DOUBLE_DOWN

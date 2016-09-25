@@ -1,6 +1,4 @@
 module Blackjack
-  class StrategyQuitter < StandardError; end
-
   class GamePlay
     attr_reader   :table
     attr_reader   :dealer

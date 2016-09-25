@@ -86,7 +86,7 @@ module Blackjack
 
     def take_down_bet
       box.transfer_to(player.bank, box.balance)
-      double.transfer_to(player.bank, double.balance) if double_down?
+      double.transfer_to(player.bank, double.balance) if doubled_down?
       self
     end
 
@@ -143,10 +143,30 @@ module Blackjack
     end
 
     def can_split?
+      #
+      # will the house let you split this hand?
+      #
       !split? && hand.pair? && (!table.has_split_limit? || num_splits < table.split_limit)
     end
 
-    def double_down?
+    def can_double?
+      hand_doublable? && from_split_and_double_allowed?
+    end
+
+    def hand_doublable?
+      double_down_on = table.config[:double_down_on]
+      hand.length == 2 && (
+        double_down_on.empty? ||
+        double_down_on.include?(hand.hard_sum) ||
+        double_down_on.include?(hand.soft_sum)
+      )
+    end
+
+    def from_split_and_double_allowed?
+      !from_split? || table.config[:double_after_split]
+    end
+
+    def doubled_down?
       double.balance > 0
     end
 

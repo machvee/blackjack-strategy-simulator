@@ -82,7 +82,7 @@ module Blackjack
 
     def stay?
       #
-      # override in sub-class to indicate:
+      # override in sub-class to return one of the following:
       #
       #   Action::LEAVE - the player cashes out and/or repays markers and leaves table
       #    Action::PLAY - means they can choose to occupy the seat and will make num_hands 
@@ -92,7 +92,7 @@ module Blackjack
 
     def num_hands
       #
-      # override in sub-class to return:
+      # override in sub-class to return the following:
       #
       #      0 - to make NO bets in any bet_box and sit out the hand
       #     1+ - to claim 1 or more (up to table.config[:max_player_bets]>) default and adjacent bet boxes
@@ -102,15 +102,15 @@ module Blackjack
 
     def bet_amount(bet_box)
       #
-      # override in sub-class to provide:
+      # override in sub-class to return:
       #
-      #   for each player bet_box, a whole dollar amount to bet for the main opening bet.
+      #   for the passed bet_box, a whole dollar amount to bet for the opening bet.
       #
     end
 
     def insurance?(bet_box)
       #
-      # override in sub-class to indicate:
+      # override in sub-class to return one of the following:
       #
       #      Action::INSURANCE - the player wants insurance against dealer Ace up-card
       #   Action::NO_INSURANCE - willing to lose automatically if dealer has blackjack
@@ -119,7 +119,11 @@ module Blackjack
     end
 
     def insurance_bet_amount(bet_box)
+      #
+      # override in sub-class to return the following:
+      #
       # The player may choose up to 1/2 the MAIN bet amount for INSURANCE
+      #
     end
 
     def play(bet_box, dealer_up_card, other_hands=[])
