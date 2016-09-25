@@ -16,5 +16,9 @@ module Blackjack
     def to_s
       name
     end
+
+    def print
+      @stats.print
+    end
   end
 end

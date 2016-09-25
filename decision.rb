@@ -46,6 +46,10 @@ module Blackjack
       self.class.name.gsub(/Decision/,'').downcase
     end
 
+    def print_stats
+      @stats.print
+    end
+
     private 
 
     def get_response(bet_box=nil)
