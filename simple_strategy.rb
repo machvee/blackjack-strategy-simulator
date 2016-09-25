@@ -22,7 +22,7 @@ module Blackjack
 
     def bet_amount(bet_box)
       amt = table.config[:minimum_bet]
-      table.config[:multi_double_min] && @num_hands > 1 ? amt * 2 : amt 
+      @num_hands > 1 ? amt * table.config[:multi_hand_multiple] : amt 
     end
 
     def insurance?(bet_box)

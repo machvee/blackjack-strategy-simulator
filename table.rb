@@ -58,12 +58,12 @@ module Blackjack
       num_seats:            DEFAULT_MAX_SEATS,
       blackjack_payout:     DEFAULT_BLACKJACK_PAYOUT,
       dealer_hits_soft_17:  false,
-      double_after_split:   true, # can the player double down on split hands?
       player_surrender:     false,
       double_down_on:       DEFAULT_DOUBLE_DOWN_ON,
+      double_after_split:   true, # can the player double down on split hands?
+      multi_hand_multiple:  2,    # player betting in multiple bet_boxes must double minimum bet
       minimum_bet:          DEFAULT_BET_RANGE.min,
       maximum_bet:          DEFAULT_BET_RANGE.max,
-      multi_double_min:     true, # player betting in multiple bet_boxes must double minimum bet
       max_player_bets:      DEFAULT_MAX_PLAYER_BETS,
       max_player_splits:    DEFAULT_MAX_SPLITS_PER_BOX, # nil unlimited or n: one hand split up to n times
       game_announcer_class: DEFAULT_GAME_ANNOUNCER,

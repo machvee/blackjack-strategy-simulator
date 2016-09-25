@@ -1,5 +1,6 @@
 require 'minitest/autorun'
 require 'table'
+require 'byebug'
 
 module Blackjack
 
@@ -1030,6 +1031,65 @@ module Blackjack
         }.must_raise RuntimeError
         break
       end
+    end
+  end
+
+  describe BetBox, "A BetBox with a doublable Hand in play" do
+    before do
+      @position = 0
+      @dbl_on = [] # any hand doubleable
+      shoe = TestShoe.new(
+          ["3H", "3C"],
+          [
+            ['9C', '2H']
+          ],
+          ['KH', '9D', 'QH']
+      )
+      @table = Table.new('test', shoe: shoe, double_down_on: @dbl_on)
+      @table.shoe.shuffle
+      @table.shoe.place_marker_card
+      @player = Player.new('p', start_bank: 5000)
+      @player.join(@table, @position)
+      @bet_box = @table.bet_boxes[@position]
+      @player.make_bet(50)
+      @game_play = GamePlay.new(@table)
+      @game_play.opening_deal
+    end
+
+    it "responds correctly to can_double? when the hand is doublable" do
+      @bet_box.can_double?.must_equal(true)
+    end
+
+    it "responds correctly to can_double? when the hand has more than 2 cards" do
+      @table.dealer.deal_card_face_up_to(@bet_box)
+      @bet_box.can_double?.must_equal(false)
+    end
+  end
+
+  describe BetBox, "A BetBox with a no doublable Hand in play" do
+    before do
+      @position = 0
+      @dbl_on = [10,11] # only 10 and 11 are doublable
+      shoe = TestShoe.new(
+          ["9H", "3C"],
+          [
+            ['3C', '6H']
+          ],
+          ['KH', '9D', 'QH']
+      )
+      @table = Table.new('test', shoe: shoe, double_down_on: @dbl_on)
+      @table.shoe.shuffle
+      @table.shoe.place_marker_card
+      @player = Player.new('p', start_bank: 5000)
+      @player.join(@table, @position)
+      @bet_box = @table.bet_boxes[@position]
+      @player.make_bet(50)
+      @game_play = GamePlay.new(@table)
+      @game_play.opening_deal
+    end
+
+    it "responds correctly to can_double? when the hand is not doublable" do
+      @bet_box.can_double?.must_equal(false)
     end
   end
 
