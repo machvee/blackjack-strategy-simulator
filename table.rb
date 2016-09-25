@@ -1,9 +1,12 @@
-require 'byebug'
+require 'set'
 require 'delegate'
 require 'counter_measures'
 require 'blackjack_card'
 require 'game_randomizer'
 require 'shoe'
+require 'outcome_stat'
+require 'strategy_rule'
+require 'strategy_stats'
 require 'decision'
 require 'player_decisions'
 require 'player_hand_strategy'
@@ -61,7 +64,7 @@ module Blackjack
       player_surrender:     false,
       double_down_on:       DEFAULT_DOUBLE_DOWN_ON,
       double_after_split:   true, # can the player double down on split hands?
-      multi_hand_multiple:  2,    # player betting in multiple bet_boxes must double minimum bet
+      multi_hand_multiple:  2,    # player betting in multiple bet_boxes must multiply minimum bet by this
       minimum_bet:          DEFAULT_BET_RANGE.min,
       maximum_bet:          DEFAULT_BET_RANGE.max,
       max_player_bets:      DEFAULT_MAX_PLAYER_BETS,

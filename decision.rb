@@ -16,10 +16,12 @@ module Blackjack
 
     attr_reader :table
     attr_reader :player
+    attr_reader :stats
 
     def initialize(player)
       @player = player
       @table = player.table
+      @stats = StrategyStats.new
     end
 
     def prompt(bet_box)
@@ -34,6 +36,9 @@ module Blackjack
         player.strategy.error(name, message)
       end
       table.game_announcer.play_by_play(self, player, response)
+
+      stats.add(rule) unless rule.nil?
+
       response
     end
 
