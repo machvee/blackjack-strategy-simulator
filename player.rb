@@ -10,6 +10,7 @@ module Blackjack
     attr_reader   :stats
     attr_reader   :config
     attr_reader   :decision
+    attr_reader   :rules
 
     DEFAULT_OPTIONS = {
       start_bank: 500,
@@ -27,6 +28,7 @@ module Blackjack
       @bank = Bank.new(0)
       @buy_in = 0
       @stats = PlayerStats.new(self)
+      @rules = []
     end
 
     def join(table, desired_seat_position=nil)
@@ -170,6 +172,16 @@ module Blackjack
         marker_for([bank.initial_deposit, amount].max)
       end
       bank.balance_check(amount)
+    end
+
+    def new_rule(name, decision)
+      StrategyRule.new(name, decision).tap do |rule|
+        @rules << rule
+      end
+    end
+
+    def print_rules
+      @rules.select {|r| r.stats.total.count > 0}.each {|r| r.print}
     end
 
     def reset

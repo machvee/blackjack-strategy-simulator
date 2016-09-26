@@ -17,7 +17,7 @@ module Blackjack
 
   class BasicStrategy < TableDrivenStrategy
     def initialize(table, player, options={})
-      super(table, player, BasicStrategyTable.new, options)
+      super(table, player, BasicStrategyTable.new(player), options)
     end
   end
 end

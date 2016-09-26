@@ -50,3 +50,4 @@ player_options = {
 @table.run
 @table.report_stats
 @dave.stats.print
+@dave.print_rules

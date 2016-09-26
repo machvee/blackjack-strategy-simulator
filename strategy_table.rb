@@ -1,9 +1,6 @@
 module Blackjack
 
   class StrategyTable
-    # TODO: Need to refactor Strategy table to be a table of Rules
-    # Based on Game Conditions, a Rule is looked up in the table
-    # and returned with the decision the rule makes.
     #
     # pass in a custom strategy table (in the exact format below), or
     # default to the basic strategy table retrieved from the web
@@ -11,6 +8,7 @@ module Blackjack
     attr_reader  :lookup_table
     attr_reader  :double_split_option_table
     attr_reader  :formatted_table
+    attr_reader  :player
 
     CODE_TO_ACTION = {
       'S'  => Action::STAND,
@@ -26,7 +24,8 @@ module Blackjack
       end
     end
 
-    def initialize(formatted_table, formatted_double_split_option_table)
+    def initialize(player, formatted_table, formatted_double_split_option_table)
+      @player = player
       @formatted_table = formatted_table
       @lookup_table = parse_table(formatted_table)
       @double_split_option_table = parse_table(formatted_double_split_option_table)
@@ -158,7 +157,7 @@ module Blackjack
 
     def encoded_rules_with_ace_rotated_to_front(section, hand_val, codes)
       codes[0..-2].unshift('0', codes.last).each_with_index.map { |code, dealer_hand_val|
-        StrategyRule.new(
+        player.new_rule(
           RuleKeys.new(section, dealer_hand_val, hand_val).name,
           CODE_TO_ACTION[code]
         )
@@ -261,8 +260,8 @@ module Blackjack
         '--------+----------------------------------------------------'
       ]
 
-      def initialize
-        super(BASIC_STRATEGY_TABLE, DOUBLE_SPLIT_OPTION_TABLE)
+      def initialize(player)
+        super(player, BASIC_STRATEGY_TABLE, DOUBLE_SPLIT_OPTION_TABLE)
       end
     end
 
