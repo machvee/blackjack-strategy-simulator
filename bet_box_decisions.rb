@@ -12,6 +12,10 @@ module Blackjack
       }
     end
 
+    def update(outcome, amount_wagered, amount_won_lost)
+      @decisions.each_pair {|k,d| d.stats.update(outcome, amount_wagered, amount_won_lost) }
+    end
+
     def [](name)
       @decisions.fetch(name)
     end
