@@ -4,9 +4,10 @@ module Blackjack
     attr_reader  :name
     attr_reader  :stats
 
-    def initialize(name)
+    def initialize(name, decision)
       @name = name
-      @stats = OutcomeStat.new
+      @decision = decision
+      @stats = OutcomeStat.new(name)
     end
 
     def update(outcome, amount_wagered, amount_won_or_lost)
@@ -19,6 +20,10 @@ module Blackjack
 
     def print
       @stats.print
+    end
+
+    def inspect
+      to_s
     end
   end
 end

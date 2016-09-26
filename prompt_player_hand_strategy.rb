@@ -135,7 +135,7 @@ module Blackjack
     end
 
     def prompt_for_action(bet_box, dealer_up_card, other_hands=[])
-      @get_user_decision.suggestion = @reverse_map[suggestion_strategy.play(bet_box, dealer_up_card, other_hands)].upcase
+      @get_user_decision.suggestion = @reverse_map[suggestion_strategy.play(bet_box, dealer_up_card, other_hands).first].upcase
       super
     end
   end

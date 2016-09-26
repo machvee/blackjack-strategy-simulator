@@ -1928,7 +1928,7 @@ module Blackjack
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         ['A', *2..10].each do |dealer_up_card_val|
           up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
-          @basic_strategy.play(@bet_box, up_card).must_equal(Action::STAND)
+          @basic_strategy.play(@bet_box, up_card).first.must_equal(Action::STAND)
         end
       end
     end
@@ -1938,7 +1938,7 @@ module Blackjack
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         [*7..10].each do |dealer_up_card_val|
           up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
-          @basic_strategy.play(@bet_box, up_card).must_equal(Action::HIT)
+          @basic_strategy.play(@bet_box, up_card).first.must_equal(Action::HIT)
         end
       end
     end
@@ -1948,7 +1948,7 @@ module Blackjack
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         [*4..6].each do |dealer_up_card_val|
           up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
-          @basic_strategy.play(@bet_box, up_card).must_equal(Action::STAND)
+          @basic_strategy.play(@bet_box, up_card).first.must_equal(Action::STAND)
         end
       end
     end

@@ -20,6 +20,12 @@ module Blackjack
       '-'  => nil,
     }
 
+    RuleKeys = Struct.new(:section, :dealer_up_card, :player_hand_val) do
+      def name
+        "#{section}:#{dealer_up_card}:#{player_hand_val}"
+      end
+    end
+
     def initialize(formatted_table, formatted_double_split_option_table)
       @formatted_table = formatted_table
       @lookup_table = parse_table(formatted_table)
@@ -28,23 +34,23 @@ module Blackjack
 
     def rule_keys(dealer_up_card_value, hand)
       keys = if hand.pair?
-        [:pairs, hand[0].soft_value, dealer_up_card_value]
+        [:pairs, dealer_up_card_value, hand[0].soft_value]
       elsif hand.soft? && hand.soft_sum <= BlackjackCard::ACE_HARD_VALUE
-        [:soft, hand.soft_sum, dealer_up_card_value]
+        [:soft, dealer_up_card_value, hand.soft_sum]
       else
-        [:hard, hand.hard_sum, dealer_up_card_value]
+        [:hard, dealer_up_card_value, hand.hard_sum]
       end
-      Struct.new(:section, :player_hand_val, :dealer_up_card)[*keys]
+      RuleKeys.new(*keys)
     end
 
     def play(bet_box, dealer_up_card_value)
       lkup = rule_keys(dealer_up_card_value, bet_box.hand)
 
-      decision_from_table = lookup_table[lkup.section][lkup.player_hand_val][lkup.dealer_up_card]
+      rule_from_table = lookup_table[lkup.section][lkup.player_hand_val][lkup.dealer_up_card]
 
-      final_decision = check_double_or_split_optional_handling(bet_box, decision_from_table, lkup)
+      final_rule = check_double_or_split_optional_handling(bet_box, rule_from_table, lkup)
 
-      final_decision
+      [final_rule.decision, final_rule]
     end
 
     def inspect
@@ -53,34 +59,34 @@ module Blackjack
 
     private
 
-    def check_double_or_split_optional_handling(bet_box, decision, lkup)
+    def check_double_or_split_optional_handling(bet_box, initial_rule, lkup)
       #
       # Make sure the split/double decision is valid given the state of the player
       # hand and bank.   If not, a tweak in the decision will occur
       #
-      return case decision
+      return case initial_rule.decision
         when Action::DOUBLE_DOWN
-          double_option(bet_box, lkup)
+          double_option(bet_box, initial_rule, lkup)
         when Action::SPLIT
-          split_option(bet_box, lkup)
+          split_option(bet_box, initial_rule, lkup)
         else
-          decision
+          initial_rule
       end
     end
 
-    def double_option(bet_box, lkup)
+    def double_option(bet_box, rule, lkup)
       if !bet_box.can_double? || !bet_box.player.balance_check(1)
         double_split_option_table[lkup.section][lkup.player_hand_val][lkup.dealer_up_card]
       else
-        Action::DOUBLE_DOWN
+        rule
       end
     end
 
-    def split_option(bet_box, lkup)
+    def split_option(bet_box, rule, lkup)
       if !bet_box.can_split? || !bet_box.player.balance_check(bet_box.bet_amount)
         double_split_option_table[lkup.section][lkup.player_hand_val][lkup.dealer_up_card]
       else
-        Action::SPLIT
+        rule
       end
     end
 
@@ -109,7 +115,7 @@ module Blackjack
       table[start..finish].each do |line|
         sline = line.split("|")
         hard_sum = sline.first.to_i
-        parsed_output[:hard][hard_sum] = encoded_actions_with_ace_rotated_to_front(sline.last.split(" "))
+        parsed_output[:hard][hard_sum] = encoded_rules_with_ace_rotated_to_front(:hard, hard_sum, sline.last.split(" "))
       end
 
       #
@@ -126,7 +132,7 @@ module Blackjack
       table[start..finish].each do |line|
         sline = line.split("|")
         soft_sum = sline.first.split(",").last.to_i + 1
-        parsed_output[:soft][soft_sum] = encoded_actions_with_ace_rotated_to_front(sline.last.split(" "))
+        parsed_output[:soft][soft_sum] = encoded_rules_with_ace_rotated_to_front(:soft, soft_sum, sline.last.split(" "))
       end
  
       #
@@ -144,14 +150,19 @@ module Blackjack
         sline = line.split("|")
         half = sline.first.split("-").first
         pair_half_val = (half =~ /A/ ? 1 : half.to_i)
-        parsed_output[:pairs][pair_half_val] = encoded_actions_with_ace_rotated_to_front(sline.last.split(" "))
+        parsed_output[:pairs][pair_half_val] = encoded_rules_with_ace_rotated_to_front(:pairs, pair_half_val, sline.last.split(" "))
       end
 
       parsed_output
     end
 
-    def encoded_actions_with_ace_rotated_to_front(codes)
-      codes[0..-2].unshift('-', codes.last).map {|code| CODE_TO_ACTION[code]}
+    def encoded_rules_with_ace_rotated_to_front(section, hand_val, codes)
+      codes[0..-2].unshift('0', codes.last).each_with_index.map { |code, dealer_hand_val|
+        StrategyRule.new(
+          RuleKeys.new(section, dealer_hand_val, hand_val).name,
+          CODE_TO_ACTION[code]
+        )
+      }
     end
 
     def section_boundaries(table, section_name)
