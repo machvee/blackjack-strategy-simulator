@@ -3,11 +3,11 @@ module Blackjack
 
     private
 
-    def get_response(bet_box=nil)
-      player.strategy.bet_amount(bet_box)
+    def get_response
+      player.strategy.bet_amount
     end
 
-    def valid?(response, bet_box=nil)
+    def valid?(response)
       bet_amount = response
       legal_bet_range = table.config[:minimum_bet]..table.config[:maximum_bet]
       if !legal_bet_range.include?(bet_amount)

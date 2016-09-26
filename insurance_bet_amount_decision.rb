@@ -3,11 +3,11 @@ module Blackjack
 
     private
 
-    def get_response(bet_box=nil)
+    def get_response
       player.strategy.insurance_bet_amount(bet_box)
     end
 
-    def valid?(response, bet_box=nil)
+    def valid?(response)
       bet_amount = response
       max_legal_bet = bet_box.bet_amount / 2.0
       legal_bet_range = 1..max_legal_bet

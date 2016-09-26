@@ -759,7 +759,7 @@ module Blackjack
           bet_box.hand.blackjack? ? Action::EVEN_MONEY : Action::NO_INSURANCE
         end
 
-        def bet_amount(bet_box)
+        def bet_amount
           25
         end
       end

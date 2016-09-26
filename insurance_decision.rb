@@ -9,11 +9,11 @@ module Blackjack
 
     private
 
-    def get_response(bet_box=nil)
+    def get_response
       player.strategy.insurance?(bet_box)
     end
 
-    def valid?(response, bet_box=nil)
+    def valid?(response)
       #
       # player must have blackjack in order to ask
       # for Action::EVEN_MONEY
@@ -24,7 +24,6 @@ module Blackjack
       # Action::NO_INSURANCE is always valid
       #
       return [false, "Sorry, that's not a valid response"] unless VALID_ACTIONS.include?(response)
-      player = bet_box.player
       valid_resp, error_message = case response
         when Action::INSURANCE
           if !player.balance_check(bet_box.bet_amount/2.0)

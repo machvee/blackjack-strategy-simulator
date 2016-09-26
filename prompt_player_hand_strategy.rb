@@ -44,7 +44,7 @@ module Blackjack
       prompt_for_action(bet_box, dealer_up_card, other_hands)
     end
 
-    def bet_amount(bet_box)
+    def bet_amount
       @main_bet_maker.suggestion = @bet_amount
       @bet_amount
     end

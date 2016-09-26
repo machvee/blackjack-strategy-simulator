@@ -1,15 +1,14 @@
 module Blackjack
   class PlayerDecisions
-
+    #
+    # player decisions that precede a bet being made
+    # in a bet_box
+    #
     def initialize(player)
       @decisions = {
-        stay:                   StayDecision.new(player),
-        play:                   PlayDecision.new(player),
-        num_hands:              NumHandsDecision.new(player),
-        bet_amount:             BetAmountDecision.new(player),
-        insurance:              InsuranceDecision.new(player),
-        insurance_bet_amount:   InsuranceBetAmountDecision.new(player),
-        double_down_bet_amount: DoubleDownBetAmountDecision.new(player)
+        stay:        StayDecision.new(player),
+        num_hands:   NumHandsDecision.new(player),
+        bet_amount:  BetAmountDecision.new(player)
       }
     end
 

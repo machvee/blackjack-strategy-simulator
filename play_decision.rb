@@ -14,11 +14,11 @@ module Blackjack
 
     private
 
-    def get_response(bet_box=nil)
+    def get_response
       player.strategy.play(bet_box, table.dealer.up_card, table.other_hands(bet_box))
     end
 
-    def valid?(response, bet_box=nil)
+    def valid?(response)
       #
       # its a programming error to ask to validate a decision on an
       # already split bet_box.  decisions should be asked instead on the

@@ -3,11 +3,11 @@ module Blackjack
 
     private
 
-    def get_response(bet_box=nil)
+    def get_response
       player.strategy.num_hands
     end
 
-    def valid?(response, bet_box=nil)
+    def valid?(response)
       #
       # player must have minimum bet amount * num_hands in bank in order to
       # place a bet and ask for only the number of bets that are legal for this 

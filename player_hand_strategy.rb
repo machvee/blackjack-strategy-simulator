@@ -100,11 +100,11 @@ module Blackjack
       #
     end
 
-    def bet_amount(bet_box)
+    def bet_amount
       #
       # override in sub-class to return:
       #
-      #   for the passed bet_box, a whole dollar amount to bet for the opening bet.
+      #   a whole dollar amount to bet for the opening bet to claim a bet_box
       #
     end
 

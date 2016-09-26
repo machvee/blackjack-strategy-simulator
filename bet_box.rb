@@ -8,6 +8,8 @@ module Blackjack
     attr_reader :hand
     attr_reader :position
 
+    attr_accessor :player_decision
+
     #
     # if this bet_box came from a previously split hand
     # then parent_split_box will point back at the splitter
@@ -76,6 +78,8 @@ module Blackjack
       # player makes a bet
       #
       @player = player
+      @player_decision = BetBoxDecisions.new(player, self)
+
       (from_account||player.bank).transfer_to(box, bet_amount)
       self
     end

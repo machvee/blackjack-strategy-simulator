@@ -5,6 +5,9 @@ module Blackjack
     #
     # STAY                    stay at the table or cash-out and quit
     # NUM_HANDS               how many bet boxes to place bets (0-max available/table limit)
+    #
+    # From within a bet_box, the player must make these decisions
+    #
     # BET_AMOUNT              amount of bet in each bet box
     # INSURANCE               take INSURANCE Action if dealer up card is Ace?
     # INSURANCE_BET_AMOUNT    how much to bet on INSURANCE from 1 to bet box bet_amount/2?
@@ -17,17 +20,19 @@ module Blackjack
     attr_reader :table
     attr_reader :player
     attr_reader :stats
+    attr_reader :bet_box
 
-    def initialize(player)
+    def initialize(player, bet_box=nil)
       @player = player
       @table = player.table
+      @bet_box = bet_box
       @stats = StrategyStats.new
     end
 
-    def prompt(bet_box)
+    def prompt
       while(true) do
-        response, rule = get_response(bet_box)
-        success, message = valid?(response, bet_box)
+        response, rule = get_response
+        success, message = valid?(response)
         break if success
         #
         # player.strategy.error will either raise in the case of bot strategies
@@ -52,10 +57,10 @@ module Blackjack
 
     private 
 
-    def get_response(bet_box=nil)
+    def get_response
       #
       # override in sub-class.  Returns an Blackjack::Action or integer amount
-      # has access to bet_box (optional param), and the parent class @player and
+      # has access to bet_box (nil when optional), and the parent class @player and
       # @table.  get_response also returns a (optional) Rule class instance, which
       # represents the Strategy Rule used make the decision.  The Decision system
       # will keep track of rule(s) used for each Decision sub-class in a chain of
@@ -65,7 +70,7 @@ module Blackjack
       #
     end
 
-    def valid?(response, bet_box=nil)
+    def valid?(response)
       #
       # override in sub-class.  Returns an [true|false, nil|error_message] array
       # has access to bet_box, player and table
