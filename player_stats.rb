@@ -21,9 +21,6 @@ module Blackjack
       @bet_stats       = BetStats.new("Bets")
     end
 
-    def init_hand
-    end
-
     def reset
       reset_counters
 

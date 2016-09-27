@@ -86,7 +86,7 @@ module Blackjack
     def players_at_table?
       announce_game_state
       table.each_player do |player|
-        decision = player.decision[:stay].prompt
+        decision = player.decisions[:stay].prompt
         player.leave_table if decision == Action::LEAVE
       end
       table.any_seated_players?
@@ -209,11 +209,11 @@ module Blackjack
 
     def players_make_bets
       table.each_player do |player|
-        num_hands = player.decision[:num_hands].prompt
+        num_hands = player.decisions[:num_hands].prompt
         hand_counter = 0
         table.bet_boxes.available_for(player) do |bet_box|
           break if hand_counter == num_hands
-          bet_amount = player.decision[:bet_amount].prompt
+          bet_amount = player.decisions[:bet_amount].prompt
           player.make_bet(bet_amount, bet_box)
           hand_counter += 1
         end 

@@ -2,7 +2,6 @@ module Blackjack
 
   class StrategyStats
     attr_reader  :chain
-    attr_reader  :player
     attr_reader  :rules
 
     def initialize

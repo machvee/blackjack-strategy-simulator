@@ -9,7 +9,7 @@ module Blackjack
     attr_reader   :buy_in
     attr_reader   :stats
     attr_reader   :config
-    attr_reader   :decision
+    attr_reader   :decisions
     attr_reader   :rules
 
     DEFAULT_OPTIONS = {
@@ -40,7 +40,7 @@ module Blackjack
         self,
         config[:strategy_options]
       )
-      @decision = PlayerDecisions.new(self)
+      @decisions = PlayerDecisions.new(self)
       self
     end
 
@@ -69,7 +69,7 @@ module Blackjack
       table.leave(self)
       @table = nil
       @strategy = nil
-      @decision = nil
+      @decisions = nil
       self
     end
 
@@ -79,7 +79,6 @@ module Blackjack
       #
       balance_check(bet_amount)
       bet_box.bet(self, bet_amount)
-      stats.init_hand
       stats.hand_stats.played.incr
       table.dealer.stats.hand.played.incr
       stats.bet_stats.wagered.add(bet_amount)
@@ -90,7 +89,7 @@ module Blackjack
       stats.double_stats.won.incr if bet_box.doubled_down?
       stats.bet_stats.winnings.add(winnings)
       bet_box.update_player_decisions(Outcome::WON, bet_box.total_player_bet, winnings)
-      decision.update(Outcome::WON, bet_box.total_player_bet, winnings)
+      decisions.update(Outcome::WON, bet_box.total_player_bet, winnings)
       stats.hand_stats.won.incr
       stats.split_stats.won.incr if bet_box.from_split?
 
@@ -103,7 +102,7 @@ module Blackjack
       stats.hand_stats.lost.incr
       stats.bet_stats.winnings.sub(bet_box.total_player_bet)
       bet_box.update_player_decisions(Outcome::LOST, bet_box.total_player_bet, bet_box.total_player_bet)
-      decision.update(Outcome::LOST, bet_box.total_player_bet, bet_box.total_player_bet)
+      decisions.update(Outcome::LOST, bet_box.total_player_bet, bet_box.total_player_bet)
       stats.split_stats.lost.incr if bet_box.from_split?
       stats.double_stats.lost.incr if bet_box.doubled_down?
 
@@ -113,7 +112,7 @@ module Blackjack
     def busted(bet_box)
       stats.hand_stats.busted.incr
       bet_box.update_player_decisions(Outcome::BUST, bet_box.total_player_bet, bet_box.total_player_bet)
-      decision.update(Outcome::BUST, bet_box.total_player_bet, bet_box.total_player_bet)
+      decisions.update(Outcome::BUST, bet_box.total_player_bet, bet_box.total_player_bet)
       stats.split_stats.busted.incr if bet_box.from_split?
       stats.bet_stats.winnings.sub(bet_box.total_player_bet)
       self
@@ -122,7 +121,7 @@ module Blackjack
     def push_bet(bet_box)
       stats.double_stats.pushed.incr if bet_box.doubled_down?
       bet_box.update_player_decisions(Outcome::PUSH, bet_box.total_player_bet, 0)
-      decision.update(Outcome::PUSH, bet_box.total_player_bet, 0)
+      decisions.update(Outcome::PUSH, bet_box.total_player_bet, 0)
       bet_box.take_down_bet
       stats.hand_stats.pushed.incr
       stats.split_stats.pushed.incr if bet_box.from_split?
@@ -184,12 +183,21 @@ module Blackjack
     end
 
     def print_rules
-      @rules.select {|r| r.stats.total.count > 0}.each {|r| r.print}
+      rules_used.each {|r| r.print}
+    end
+
+    def rules_used
+      @rules.select {|r| r.stats.total.count > 0}
     end
 
     def reset
       stats.reset
       bank.reset
+      reset_rules
+    end
+
+    def reset_rules
+      rules_used.each {|r| r.stats.reset}
     end
 
     def inspect

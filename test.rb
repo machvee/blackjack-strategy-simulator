@@ -821,15 +821,16 @@ module Blackjack
       shoe = TestShoe.new(
           ["2H", "5C"], # dealer hand
           [
-            ['3C', '3H'] #player hand
+            ['3C', '3H'] #player hand SPLIT against deals 2 upcard (rule pairs:2:3 push=1 won=1 lost=1)
           ],
-          # player is dealt 3,5,9 stands. #split hand 1
-          # player is dealt 3,3 SPLITs again # split hand 1
-          # player is dealt 3,9,8 STANDS # split hand 2
-          # player is dealt 3,Q STANDS # split hand 3
+          # split hand 1: player is dealt 3,5,9, stand on 17 (rule hard:2:17)
+          # split hand 2: player is dealt 3,3 SPLITs again (rule pairs:2:3 (2) won=1 lost=1)
+          # player is dealt 3,9,8 STANDS 20 (rule hard:2:20 won=1)
+          # player is dealt 3,Q STANDS 13 (rule hard:2:13 lost=1)
           # Dealer HITS Q for 17 STANDS
           ['5D', '9D', '3D', '9H', '8H', 'QD', 'QH']
       )
+      @expected_rules_count = 6
       @table_options = {
         shoe: shoe,
         minimum_bet: 10,
@@ -854,6 +855,7 @@ module Blackjack
       @dave.stats.split_stats.won.count.must_equal(1)
       @dave.stats.split_stats.lost.count.must_equal(1)
       @dave.stats.split_stats.pushed.count.must_equal(1)
+      @dave.rules_used.count.must_equal(@expected_rules_count)
     end
   end
 
