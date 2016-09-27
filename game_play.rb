@@ -117,7 +117,7 @@ module Blackjack
 
       while(true) do
 
-        response = player_must_stand?(bet_box) ? Action::STAND : bet_box.player_decision[:play].prompt
+        response = player_must_stand?(bet_box) ? Action::STAND : bet_box.player_decisions[:play].prompt
 
         case response
           when Action::HIT
@@ -142,7 +142,7 @@ module Blackjack
             end
             break
           when Action::DOUBLE_DOWN
-            double_down_bet_amt = bet_box.player_decision[:double_down_bet_amount].prompt
+            double_down_bet_amt = bet_box.player_decisions[:double_down_bet_amount].prompt
             bet_box.double_down(double_down_bet_amt)
             deal_player_card(bet_box)
             announce_hand(bet_box, response, double_down_bet_amt)

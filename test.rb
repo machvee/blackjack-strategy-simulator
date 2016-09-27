@@ -789,15 +789,16 @@ module Blackjack
           [
             ['3C', '3H'] #player hand
           ],
+          # player splits 3's
           # player is dealt 3,K stands.
-          # 3,9 HITs then 3,9,5 STANDs
-          # Dealer HITS Q for 17 STANDS
+          # player is dealt 3,9and hits, gets 5, and STANDS with 17
+          # Dealer HITS and gets Q for 17 STANDS
           ['KH', '9D', '5D', 'QH']
       )
       @table_options = {
         shoe: shoe,
         minimum_bet: 10,
-        maximum_bet: 2000
+        maximum_bet: 2000,
       }
 
       @player_options = {
@@ -832,7 +833,8 @@ module Blackjack
       @table_options = {
         shoe: shoe,
         minimum_bet: 10,
-        maximum_bet: 2000
+        maximum_bet: 2000,
+        game_announcer_class: StdoutGameAnnouncer # test only DELETE ME
       }
 
       @player_options = {
@@ -847,6 +849,7 @@ module Blackjack
       @dave.join(@table)
       @game_play = GamePlay.new(@table)
       @game_play.run
+      @dave.print_rules
       @dave.stats.split_stats.played.count.must_equal(3)
       @dave.stats.split_stats.won.count.must_equal(1)
       @dave.stats.split_stats.lost.count.must_equal(1)

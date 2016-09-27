@@ -89,27 +89,30 @@ module Blackjack
     def won_bet(bet_box, winnings)
       stats.double_stats.won.incr if bet_box.doubled_down?
       stats.bet_stats.winnings.add(winnings)
-      bet_box.player_decision.update(Outcome::WON, bet_box.total_player_bet, winnings)
+      bet_box.update_player_decisions(Outcome::WON, bet_box.total_player_bet, winnings)
       decision.update(Outcome::WON, bet_box.total_player_bet, winnings)
-      bet_box.take_winnings
       stats.hand_stats.won.incr
       stats.split_stats.won.incr if bet_box.from_split?
+
+      bet_box.take_winnings
+
       self
     end
 
     def lost_bet(bet_box)
       stats.hand_stats.lost.incr
       stats.bet_stats.winnings.sub(bet_box.total_player_bet)
-      bet_box.player_decision.update(Outcome::LOST, bet_box.total_player_bet, bet_box.total_player_bet)
+      bet_box.update_player_decisions(Outcome::LOST, bet_box.total_player_bet, bet_box.total_player_bet)
       decision.update(Outcome::LOST, bet_box.total_player_bet, bet_box.total_player_bet)
       stats.split_stats.lost.incr if bet_box.from_split?
       stats.double_stats.lost.incr if bet_box.doubled_down?
+
       self
     end
 
     def busted(bet_box)
       stats.hand_stats.busted.incr
-      bet_box.player_decision.update(Outcome::BUST, bet_box.total_player_bet, bet_box.total_player_bet)
+      bet_box.update_player_decisions(Outcome::BUST, bet_box.total_player_bet, bet_box.total_player_bet)
       decision.update(Outcome::BUST, bet_box.total_player_bet, bet_box.total_player_bet)
       stats.split_stats.busted.incr if bet_box.from_split?
       stats.bet_stats.winnings.sub(bet_box.total_player_bet)
@@ -118,7 +121,7 @@ module Blackjack
 
     def push_bet(bet_box)
       stats.double_stats.pushed.incr if bet_box.doubled_down?
-      bet_box.player_decision.update(Outcome::PUSH, bet_box.total_player_bet, 0)
+      bet_box.update_player_decisions(Outcome::PUSH, bet_box.total_player_bet, 0)
       decision.update(Outcome::PUSH, bet_box.total_player_bet, 0)
       bet_box.take_down_bet
       stats.hand_stats.pushed.incr

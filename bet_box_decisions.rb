@@ -3,7 +3,11 @@ module Blackjack
     #
     # Player decisions that are tied to a particular bet_box
     #
+
+    attr_reader  :bet_box
+
     def initialize(player, bet_box)
+      @bet_box = bet_box
       @decisions = {
         play:                   PlayDecision.new(player, bet_box),
         insurance:              InsuranceDecision.new(player, bet_box),

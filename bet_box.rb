@@ -8,7 +8,7 @@ module Blackjack
     attr_reader :hand
     attr_reader :position
 
-    attr_accessor :player_decision
+    attr_reader :player_decisions
 
     #
     # if this bet_box came from a previously split hand
@@ -78,7 +78,7 @@ module Blackjack
       # player makes a bet
       #
       @player = player
-      @player_decision = BetBoxDecisions.new(player, self)
+      @player_decisions = BetBoxDecisions.new(player, self)
 
       (from_account||player.bank).transfer_to(box, bet_amount)
       self
@@ -111,6 +111,21 @@ module Blackjack
 
     def double_bet_amount
       double.balance
+    end
+
+    def update_player_decisions(outcome, amount_wagered, amount_won_lost)
+      player_decisions.update(outcome, amount_wagered, amount_won_lost)
+
+      #
+      # follow any split hierarchy back and update each of those bet_boxes
+      #
+      sb = parent_split_box
+      while(!sb.nil?) do
+        bet_box = sb.parent_bet_box
+        bet_box.player_decisions.update(outcome, amount_wagered, amount_won_lost)
+        sb = bet_box.parent_split_box
+      end
+      self
     end
 
     def split
@@ -181,7 +196,7 @@ module Blackjack
         @player.name
       else
         "unoccupied"
-      end + "[#{position}]"
+      end + (position == 0 ? '' : " #{position+1}")
     end
 
     def discard

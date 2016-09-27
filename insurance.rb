@@ -13,13 +13,13 @@ module Blackjack
       table.bet_boxes.each_active do |bet_box|
         player = bet_box.player
 
-        response = bet_box.player_decision[:insurance].prompt
+        response = bet_box.player_decisions[:insurance].prompt
 
         case response
           when Action::NO_INSURANCE
             next
           when Action::INSURANCE
-            insurance_bet_amt = bet_box.player_decision[:insurance_bet_amount].prompt
+            insurance_bet_amt = bet_box.player_decisions[:insurance_bet_amount].prompt
             player.make_insurance_bet(bet_box, insurance_bet_amt)
           when Action::EVEN_MONEY
             #
@@ -38,7 +38,7 @@ module Blackjack
         if bet_box.insurance.balance > 0
           winnings = dealer.money.pay_insurance(bet_box)
           table.game_announcer.hand_outcome(bet_box, Outcome::INSURANCE_WON, winnings)
-          bet_box.player_decision.update(Outcome::WON_INSURANCE, bet_box.insurance.balance, winnings)
+          bet_box.update_player_decisions(Outcome::WON_INSURANCE, bet_box.insurance.balance, winnings)
           bet_box.player.won_insurance_bet(bet_box)
         end
       end
@@ -48,7 +48,7 @@ module Blackjack
       table.bet_boxes.each_active do |bet_box|
         if bet_box.insurance.balance > 0
           table.game_announcer.hand_outcome(bet_box, Outcome::INSURANCE_LOST, bet_box.insurance.balance)
-          bet_box.player_decision.update(Outcome::LOST_INSURANCE, bet_box.insurance.balance, bet_box.insurance.balance)
+          bet_box.update_player_decisions(Outcome::LOST_INSURANCE, bet_box.insurance.balance, bet_box.insurance.balance)
           bet_box.player.lost_insurance_bet(bet_box)
           dealer.money.collect_insurance_bet(bet_box)
         end
