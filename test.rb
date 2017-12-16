@@ -517,8 +517,8 @@ module Blackjack
       }
 
       @configured_table = Table.new("configured_table", @configuration)
-      [:blackjack_payout, :dealer_hits_soft_17, :shoe, :num_seats].each do |item|
-        @configured_table.config[:item].must_equal @configuration[:item]
+      @configuration.keys.each do |item|
+        @configured_table.config[item].must_equal @configuration[item]
       end
     end
 
@@ -576,7 +576,7 @@ module Blackjack
       seat_position.must_be :>=, 0
       seat_position.must_be :<, @table.config[:num_seats]
       @table.leave(@player)
-      @player.table.must_equal nil
+      assert_nil @player.table
       @table.seated_players.all?(&:nil?).must_equal true
     end
 
@@ -1173,7 +1173,7 @@ module Blackjack
       @player.join(@table)
       @table.find_player(@player.name).must_equal(@player)
       @player.leave_table
-      @table.find_player(@player.name).must_equal(nil)
+      assert_nil @table.find_player(@player.name)
     end
 
     it "should be able to make a bet" do
@@ -1775,7 +1775,7 @@ module Blackjack
       @shoe.place_marker_card
       @shoe.decks.marker.offset.must_be :>, 0
       @shoe.shuffle
-      @shoe.decks.marker.offset.must_equal nil
+      assert_nil @shoe.decks.marker.offset
     end
 
     it "should allow a force_shuffle to be invoked, causing needs_shuffle? to be true" do
