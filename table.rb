@@ -136,7 +136,8 @@ module Blackjack
         end
       end
       seat(seat_position, player)
-      game_announcer.says("Hey %s! Welcome to %s. You're in seat %d" % [player.name, name, seat_position])
+      game_announcer.says("Hey %s! Welcome to %s with a %d deck shoe. You're in seat %d" %
+                          [player.name, name, @shoe.num_decks, seat_position])
       seat_position
     end
 

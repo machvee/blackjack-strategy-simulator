@@ -22,13 +22,7 @@ module Blackjack
         puts "You're down to #{player.bank.balance} which is below the minimum bet."
         resp = @marker_prompter.get_command
         amt = (resp == 'q' ? 0 : resp.to_i)
-        case amt
-          when 0
-            Action::LEAVE
-          else
-            player.marker_for(amt)
-            Action::PLAY
-        end
+        player.marker_for(amt) if amt != 0
       end
       
       bet_response = @main_bet_maker.get_command
