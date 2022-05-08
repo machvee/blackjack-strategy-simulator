@@ -196,7 +196,7 @@ module Blackjack
         expect(c[:b]).must_equal @inc
         expect(c[:c]).must_equal @inc
 
-        proc {c[:c] += 1}.must_raise RuntimeError
+        expect(proc {c[:c] += 1}).must_raise RuntimeError
       end
 
       it "should act like a rising and falling quantity, with high and low watermarks" do
@@ -480,15 +480,15 @@ module Blackjack
     end
 
     it "should have seats where players join" do
-      @table.seated_players.wont_equal nil
+      expect(@table.seated_players).wont_equal nil
     end
 
     it "should have bet boxes" do
-      @table.bet_boxes.wont_equal nil
+      expect(@table.bet_boxes).wont_equal nil
     end
 
     it "should have a dealer" do
-      @table.dealer.wont_equal nil
+      expect(@table.dealer).wont_equal nil
     end
 
     it "should default to a SixDeckShoe if none is passed in" do
@@ -526,8 +526,8 @@ module Blackjack
       @player = MiniTest::Mock.new
       @player.expect(:name, "fugdup", [])
       seat_position = @table.join(@player)
-      seat_position.must_be :>=, 0
-      seat_position.must_be :<, @table.config[:num_seats]
+      expect(seat_position).must_be :>=, 0
+      expect(seat_position).must_be :<, @table.config[:num_seats]
       @player.verify
     end
 
@@ -535,8 +535,8 @@ module Blackjack
       @player = MiniTest::Mock.new
       @player.expect(:name, "fugdup", [])
       seat_position = @table.join(@player)
-      seat_position.must_be :>=, 0
-      seat_position.must_be :<, @table.config[:num_seats]
+      expect(seat_position).must_be :>=, 0
+      expect(seat_position).must_be :<, @table.config[:num_seats]
       expect(@table.any_seated_players?).must_equal(true)
       @player.verify
     end
@@ -573,8 +573,8 @@ module Blackjack
     it "should allow a player to leave the table" do
       @player = Player.new('ted2')
       seat_position = @table.join(@player)
-      seat_position.must_be :>=, 0
-      seat_position.must_be :<, @table.config[:num_seats]
+      expect(seat_position).must_be :>=, 0
+      expect(seat_position).must_be :<, @table.config[:num_seats]
       @table.leave(@player)
       assert_nil @player.table
       expect(@table.seated_players.all?(&:nil?)).must_equal true
@@ -708,7 +708,7 @@ module Blackjack
         expect(seat_position).must_equal i
       end
       @player = Player.new('machvee')
-      proc {@table.join(@player)}.must_raise RuntimeError
+      expect(proc {@table.join(@player)}).must_raise RuntimeError
     end
 
     it "should not allow a player to take a specified seat if that seat is filled" do
@@ -717,7 +717,7 @@ module Blackjack
       seat_position = @table.join(@player, @bubbas_fav_seat)
       expect(seat_position).must_equal @bubbas_fav_seat
       @player = Player.new("machvee")
-      proc {@table.join(@player, @bubbas_fav_seat)}.must_raise RuntimeError
+      expect(proc {@table.join(@player, @bubbas_fav_seat)}).must_raise RuntimeError
     end
 
     it "should allow people to ask if a specific seat is available, and return true if it is" do
@@ -1031,9 +1031,9 @@ module Blackjack
         #
         bet_box.hand.set(BlackjackCard.make('8D', '8S'))
         assert !bet_box.can_split?, "shouldn't be able to split"
-        proc {
+        expect(proc {
           bet_box.split
-        }.must_raise RuntimeError
+        }).must_raise RuntimeError
         break
       end
     end
@@ -1136,9 +1136,9 @@ module Blackjack
       expect(@player.bank.balance).must_equal(500)
       @player.marker_for(500)
       expect(@player.bank.balance).must_equal(500+500)
-      proc {
+      expect(proc {
         @player.repay_any_markers(1250)
-      }.must_raise RuntimeError
+      }).must_raise RuntimeError
     end
   end
 
@@ -1200,8 +1200,8 @@ module Blackjack
     end
 
     it "should have initial balances" do
-      @bank1.balance.must_equal(@initial_balance)
-      @bank2.balance.must_equal(@initial_balance)
+      expect(@bank1.balance).must_equal(@initial_balance)
+      expect(@bank2.balance).must_equal(@initial_balance)
     end
 
     it "should allow direct credit and debiting" do
@@ -1259,9 +1259,9 @@ module Blackjack
     it "should raise an exception if trying to debit below 0 balance" do
       @bank1.debit(@initial_balance) # ok
       expect(@bank1.balance).must_equal(0)
-      proc {
+      expect(proc {
         @bank2.debit(@initial_balance+1)
-      }.must_raise RuntimeError
+      }).must_raise RuntimeError
       expect(@bank2.balance).must_equal(@initial_balance)
     end
 
@@ -1288,8 +1288,8 @@ module Blackjack
     end
 
     it "should have validate inputs" do
-      proc { BlackjackCard.new('-', '*')}.must_raise RuntimeError
-      proc { BlackjackCard.new('*', '-')}.must_raise RuntimeError
+      expect(proc { BlackjackCard.new('-', '*')}).must_raise RuntimeError
+      expect(proc { BlackjackCard.new('*', '-')}).must_raise RuntimeError
     end
 
     it "should have a default orientation facing down" do
@@ -1738,7 +1738,7 @@ module Blackjack
 
     it "should have a functioning random cut card somewhere past half the deck" do
       @shoe.place_marker_card
-      @shoe.decks.marker.offset.must_be :<, @shoe.remaining/3
+      expect(@shoe.decks.marker.offset).must_be :<, @shoe.remaining/3
     end
 
     it "should not need shuffle upon initial cut card placement" do
@@ -1771,7 +1771,7 @@ module Blackjack
 
     it "shuffle up should set marker.offset to nil" do
       @shoe.place_marker_card
-      @shoe.decks.marker.offset.must_be :>, 0
+      expect(@shoe.decks.marker.offset).must_be :>, 0
       @shoe.shuffle
       assert_nil @shoe.decks.marker.offset
     end
@@ -1858,7 +1858,7 @@ module Blackjack
         @destination.expect(:add, nil, [[top_card]])
         @shoe.deal_one_up(@destination)
         @destination.verify
-        @shoe.needs_shuffle?.wont_equal true
+        expect(@shoe.needs_shuffle?).wont_equal true
       end
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
