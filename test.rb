@@ -107,7 +107,7 @@ module Blackjack
         tues_temps.each do |temp|
           f.reading(temp)
         end
-        f.daily_readings.count.must_equal(tues_temps.length)
+        expect(f.daily_readings.count).must_equal(tues_temps.length)
         f.end_of_day; cold_days += 1
 
         really_hot_days.times do |i|
@@ -120,15 +120,15 @@ module Blackjack
         f.end_of_day; cold_days += 1
         total_days = hot_days + cold_days + just_right
 
-        f.cold_day.passed.must_equal(cold_days)
-        f.cold_day.count.must_equal(total_days)
-        f.hot_day.passed.must_equal(hot_days)
-        f.hot_day.failed.must_equal(cold_days + just_right)
-        f.hot_day.count.must_equal(total_days)
-        f.heat_wave.passed.must_equal(really_hot_days - Temperature::HEAT_WAVE_DAYS + 1)
+        expect(f.cold_day.passed).must_equal(cold_days)
+        expect(f.cold_day.count).must_equal(total_days)
+        expect(f.hot_day.passed).must_equal(hot_days)
+        expect(f.hot_day.failed).must_equal(cold_days + just_right)
+        expect(f.hot_day.count).must_equal(total_days)
+        expect(f.heat_wave.passed).must_equal(really_hot_days - Temperature::HEAT_WAVE_DAYS + 1)
         f.reset_events
-        f.cold_day.passed.must_equal(0)
-        f.hot_day.passed.must_equal(0)
+        expect(f.cold_day.passed).must_equal(0)
+        expect(f.hot_day.passed).must_equal(0)
       end
     end
 
@@ -142,59 +142,59 @@ module Blackjack
       end
 
       it "should allow named counter access" do
-        assert @f.a.count.must_equal 0
-        assert @f.b.count.must_equal 0
-        assert @f.c.count.must_equal 0
+        expect(@f.a.count).must_equal 0
+        expect(@f.b.count).must_equal 0
+        expect(@f.c.count).must_equal 0
       end
 
       it "should allow increment function" do
         @inc = 5
         @inc.times {@f.a.incr}
-        @f.a.count.must_equal @inc
+        expect(@f.a.count).must_equal @inc
       end
 
       it "should allow decrement function" do
         @inc = 10
         @inc.times {@f.c.incr}
-        @f.c.count.must_equal @inc
+        expect(@f.c.count).must_equal @inc
         @dec = 2
         @dec.times { @f.c.decr}
-        @f.c.count.must_equal @inc - @dec
+        expect(@f.c.count).must_equal @inc - @dec
       end
 
       it "should support a reset for one counter" do 
         @inc = 10
         @inc.times {@f.b.incr}
         @f.a.incr
-        @f.a.count.must_equal 1
-        @f.b.count.must_equal @inc
+        expect(@f.a.count).must_equal 1
+        expect(@f.b.count).must_equal @inc
         @f.b.reset
-        @f.b.count.must_equal 0
-        @f.a.count.must_equal 1
+        expect(@f.b.count).must_equal 0
+        expect(@f.a.count).must_equal 1
       end
 
       it "should support a reset for all counters" do 
         @inc = 5
         @inc.times {@f.a.incr; @f.b.incr; @f.c.incr}
-        @f.a.count.must_equal @inc
-        @f.b.count.must_equal @inc
-        @f.c.count.must_equal @inc
+        expect(@f.a.count).must_equal @inc
+        expect(@f.b.count).must_equal @inc
+        expect(@f.c.count).must_equal @inc
         @f.reset_counters
-        @f.a.count.must_equal 0
-        @f.b.count.must_equal 0
-        @f.c.count.must_equal 0
+        expect(@f.a.count).must_equal 0
+        expect(@f.b.count).must_equal 0
+        expect(@f.c.count).must_equal 0
       end
 
       it "should allow access to all counters as a copied hash but frozen" do
         @inc = 9
         @inc.times {@f.a.incr; @f.b.incr; @f.c.incr}
-        @f.a.count.must_equal @inc
-        @f.b.count.must_equal @inc
-        @f.c.count.must_equal @inc
+        expect(@f.a.count).must_equal @inc
+        expect(@f.b.count).must_equal @inc
+        expect(@f.c.count).must_equal @inc
         c = @f.counters
-        c[:a].must_equal @inc
-        c[:b].must_equal @inc
-        c[:c].must_equal @inc
+        expect(c[:a]).must_equal @inc
+        expect(c[:b]).must_equal @inc
+        expect(c[:c]).must_equal @inc
 
         proc {c[:c] += 1}.must_raise RuntimeError
       end
@@ -206,9 +206,9 @@ module Blackjack
         @f.a.add(100)
         @f.a.add(1000)
         @f.a.sub(5000)
-        @f.a.count.must_equal(10000+50+50+100+1000-5000)
-        @f.a.high.must_equal(10000+50+50+100+1000)
-        @f.a.low.must_equal(10000+50+50+100+1000-5000)
+        expect(@f.a.count).must_equal(10000+50+50+100+1000-5000)
+        expect(@f.a.high).must_equal(10000+50+50+100+1000)
+        expect(@f.a.low).must_equal(10000+50+50+100+1000-5000)
       end
     end
 
@@ -228,8 +228,8 @@ module Blackjack
         @w.rainy_days.incr
         @w.rainy_days.incr
         @w.sunny_days.incr
-        @w.rainy_days.count.must_equal 4
-        @w.sunny_days.count.must_equal 1
+        expect(@w.rainy_days.count).must_equal 4
+        expect(@w.sunny_days.count).must_equal 1
 
         readings = [2,1,3,1]
         readings.each do |inches_of_rain|
@@ -239,13 +239,13 @@ module Blackjack
         first_reading = @w.rainfall.total
         readings2 = [4,2,0]
         @w.rainfall.add(*readings2)
-        @w.rainfall.total.must_be :==, readings.reduce(:+) + readings2.reduce(:+)
-        @w.rainfall.count.must_equal 4
-        @w.rainfall.last.must_equal(0)
-        @w.rainfall.last(3).must_equal(readings2)
-        @w.rainfall.last(4).must_equal([first_reading] + readings2)
+        expect(@w.rainfall.total).must_be :==, readings.reduce(:+) + readings2.reduce(:+)
+        expect(@w.rainfall.count).must_equal 4
+        expect(@w.rainfall.last).must_equal(0)
+        expect(@w.rainfall.last(3)).must_equal(readings2)
+        expect(@w.rainfall.last(4)).must_equal([first_reading] + readings2)
         @w.reset_measures
-        @w.rainfall.count.must_equal 0
+        expect(@w.rainfall.count).must_equal 0
       end
     end
   end
@@ -280,7 +280,7 @@ module Blackjack
       @dealer.deal_up_card
       @dealer.deal_one_card_face_up_to_each_active_bet_box
       @dealer.deal_hole_card
-      @dealer.hit?.must_equal(true)
+      expect(@dealer.hit?).must_equal(true)
     end
   end
 
@@ -308,7 +308,7 @@ module Blackjack
       @dealer.deal_up_card
       @dealer.deal_one_card_face_up_to_each_active_bet_box
       @dealer.deal_hole_card
-      @dealer.hit?.must_equal(false)
+      expect(@dealer.hit?).must_equal(false)
     end
   end
 
@@ -336,7 +336,7 @@ module Blackjack
       @dealer.deal_up_card
       @dealer.deal_one_card_face_up_to_each_active_bet_box
       @dealer.deal_hole_card
-      @dealer.hit?.must_equal(false)
+      expect(@dealer.hit?).must_equal(false)
     end
   end
 
@@ -364,7 +364,7 @@ module Blackjack
       @dealer.deal_up_card
       @dealer.deal_one_card_face_up_to_each_active_bet_box
       @dealer.deal_hole_card
-      @dealer.hit?.must_equal(false)
+      expect(@dealer.hit?).must_equal(false)
     end
   end
 
@@ -401,31 +401,31 @@ module Blackjack
       @dealer.deal_card_face_up_to(@players[2].default_bet_box)
       @dealer.flip_hole_card
       @dealer.play_hand
-      @dealer.hand.inspect.must_equal("[AC, 5D, KD, 4H]")
-      @dealer.hand.hard_sum.must_equal(20)
-      @dealer.hand.length.must_equal(4)
+      expect(@dealer.hand.inspect).must_equal("[AC, 5D, KD, 4H]")
+      expect(@dealer.hand.hard_sum).must_equal(20)
+      expect(@dealer.hand.length).must_equal(4)
       @dealer.discard_hand
-      @dealer.hand.length.must_equal(0)
+      expect(@dealer.hand.length).must_equal(0)
     end
 
     it "should collect bets" do
       sb = @table.house.balance
       p = @players[0]
-      p.default_bet_box.bet_amount.must_equal(@bet_amount)
+      expect(p.default_bet_box.bet_amount).must_equal(@bet_amount)
       @dealer.money.collect_bet(p.default_bet_box)
-      p.default_bet_box.bet_amount.must_equal(0)
-      @table.house.balance.must_equal(sb + @bet_amount)
+      expect(p.default_bet_box.bet_amount).must_equal(0)
+      expect(@table.house.balance).must_equal(sb + @bet_amount)
     end
 
     it "should pay winnings" do
       p = @players[0]
       sb = @table.house.balance
       sp = p.default_bet_box.bet_amount
-      p.default_bet_box.bet_amount.must_equal(@bet_amount)
+      expect(p.default_bet_box.bet_amount).must_equal(@bet_amount)
       @dealer.money.pay_bet(p.default_bet_box, [7,2])
       payout = (@bet_amount / 2) * 7
-      p.default_bet_box.bet_amount.must_equal(sp + payout)
-      @table.house.balance.must_equal(sb - payout)
+      expect(p.default_bet_box.bet_amount).must_equal(sp + payout)
+      expect(@table.house.balance).must_equal(sb - payout)
     end
 
     it "should deal hands to players with bets made" do
@@ -434,33 +434,33 @@ module Blackjack
       @dealer.deal_up_card
       @dealer.deal_one_card_face_up_to_each_active_bet_box
       @dealer.deal_hole_card
-      @table.shoe.decks.length.must_equal(num_cards_before_deal - ((@players.length*2) + 2))
-      @players[0].default_bet_box.hand.inspect.must_equal("[9H, 7C]")
-      @players[1].default_bet_box.hand.inspect.must_equal("[7H, KC]")
-      @players[2].default_bet_box.hand.inspect.must_equal("[AH, 4D]")
-      @dealer.hand.inspect.must_equal("[AC, XX]")
+      expect(@table.shoe.decks.length).must_equal(num_cards_before_deal - ((@players.length*2) + 2))
+      expect(@players[0].default_bet_box.hand.inspect).must_equal("[9H, 7C]")
+      expect(@players[1].default_bet_box.hand.inspect).must_equal("[7H, KC]")
+      expect(@players[2].default_bet_box.hand.inspect).must_equal("[AH, 4D]")
+      expect(@dealer.hand.inspect).must_equal("[AC, XX]")
       @players.each do |p|
-        @dealer.check_player_hand_busted?(p.default_bet_box).must_equal(false)
+        expect(@dealer.check_player_hand_busted?(p.default_bet_box)).must_equal(false)
       end
-      @dealer.hole_card.face_down?.must_equal true
+      expect(@dealer.hole_card.face_down?).must_equal true
       @dealer.flip_hole_card
-      @dealer.up_card.face_up?.must_equal true
-      @dealer.hand.inspect.must_equal("[AC, 5D]")
-      @dealer.hole_card.face_down?.must_equal false
+      expect(@dealer.up_card.face_up?).must_equal true
+      expect(@dealer.hand.inspect).must_equal("[AC, 5D]")
+      expect(@dealer.hole_card.face_down?).must_equal false
       @dealer.deal_card_face_up_to(@players[0].default_bet_box)
-      @players[0].default_bet_box.hand.inspect.must_equal("[9H, 7C, 9D]")
-      @dealer.check_player_hand_busted?(@players[0].default_bet_box).must_equal(true)
+      expect(@players[0].default_bet_box.hand.inspect).must_equal("[9H, 7C, 9D]")
+      expect(@dealer.check_player_hand_busted?(@players[0].default_bet_box)).must_equal(true)
       @dealer.deal_card_face_up_to(@players[2].default_bet_box)
-      @players[2].default_bet_box.hand.inspect.must_equal("[AH, 4D, 6C]")
-      @dealer.hit?.must_equal(true)
+      expect(@players[2].default_bet_box.hand.inspect).must_equal("[AH, 4D, 6C]")
+      expect(@dealer.hit?).must_equal(true)
       @dealer.deal_card_to_hand
-      @dealer.hand.inspect.must_equal("[AC, 5D, KD]")
-      @dealer.hit?.must_equal(true)
+      expect(@dealer.hand.inspect).must_equal("[AC, 5D, KD]")
+      expect(@dealer.hit?).must_equal(true)
       @dealer.deal_card_to_hand
-      @dealer.hand.inspect.must_equal("[AC, 5D, KD, 4H]")
-      @dealer.hand.hard_sum.must_equal(20)
-      @dealer.hit?.must_equal(false)
-      @dealer.busted?.must_equal(false)
+      expect(@dealer.hand.inspect).must_equal("[AC, 5D, KD, 4H]")
+      expect(@dealer.hand.hard_sum).must_equal(20)
+      expect(@dealer.hit?).must_equal(false)
+      expect(@dealer.busted?).must_equal(false)
     end
   end
 
@@ -476,7 +476,7 @@ module Blackjack
     end
 
     it "should have a name" do
-      @table.name.must_equal @table_name  
+      expect(@table.name).must_equal @table_name  
     end
 
     it "should have seats where players join" do
@@ -492,19 +492,19 @@ module Blackjack
     end
 
     it "should default to a SixDeckShoe if none is passed in" do
-      @table.shoe.class.name.must_equal "Blackjack::SixDeckShoe"
+      expect(@table.shoe.class.name).must_equal "Blackjack::SixDeckShoe"
     end
 
     it "should support default configuration" do 
-      @table.config[:blackjack_payout].must_equal [3,2]
-      @table.config[:dealer_hits_soft_17].must_equal false
-      @table.config[:player_surrender].must_equal false
-      @table.config[:num_seats].must_equal 6
-      @table.config[:minimum_bet].must_equal 25
-      @table.config[:maximum_bet].must_equal 5000
-      @table.config[:double_down_on].must_equal []
-      @table.config[:max_player_splits].must_equal 3
-      @table.config[:max_player_bets].must_equal 3
+      expect(@table.config[:blackjack_payout]).must_equal [3,2]
+      expect(@table.config[:dealer_hits_soft_17]).must_equal false
+      expect(@table.config[:player_surrender]).must_equal false
+      expect(@table.config[:num_seats]).must_equal 6
+      expect(@table.config[:minimum_bet]).must_equal 25
+      expect(@table.config[:maximum_bet]).must_equal 5000
+      expect(@table.config[:double_down_on]).must_equal []
+      expect(@table.config[:max_player_splits]).must_equal 3
+      expect(@table.config[:max_player_bets]).must_equal 3
     end
 
     it "should support options for configuration" do
@@ -518,7 +518,7 @@ module Blackjack
 
       @configured_table = Table.new("configured_table", @configuration)
       @configuration.keys.each do |item|
-        @configured_table.config[item].must_equal @configuration[item]
+        expect(@configured_table.config[item]).must_equal @configuration[item]
       end
     end
 
@@ -537,20 +537,20 @@ module Blackjack
       seat_position = @table.join(@player)
       seat_position.must_be :>=, 0
       seat_position.must_be :<, @table.config[:num_seats]
-      @table.any_seated_players?.must_equal(true)
+      expect(@table.any_seated_players?).must_equal(true)
       @player.verify
     end
 
     it "should allow respond false to any_seated_players? when table is empty" do 
-      @table.any_seated_players?.must_equal(false)
+      expect(@table.any_seated_players?).must_equal(false)
     end
 
     it "should increment the players_seated counter when a player joins" do
-      @table.stats.players_seated.count.must_equal 0
+      expect(@table.stats.players_seated.count).must_equal 0
       @player = MiniTest::Mock.new
       @player.expect(:name, "fugdup", [])
       seat_position = @table.join(@player)
-      @table.stats.players_seated.count.must_equal 1
+      expect(@table.stats.players_seated.count).must_equal 1
       @player.verify
     end
 
@@ -558,7 +558,7 @@ module Blackjack
       (0..(@table.config[:num_seats]-1)).each do |i|
         player = Player.new("player_#{i}")
         seat_position = @table.join(player)
-        seat_position.must_equal i
+        expect(seat_position).must_equal i
       end
     end
 
@@ -567,7 +567,7 @@ module Blackjack
       @player.expect(:name, "fugdup", [])
       @fav_seat = @table.config[:num_seats]-1
       seat_position = @table.join(@player, @fav_seat)
-      seat_position.must_equal @fav_seat
+      expect(seat_position).must_equal @fav_seat
     end
 
     it "should allow a player to leave the table" do
@@ -577,21 +577,21 @@ module Blackjack
       seat_position.must_be :<, @table.config[:num_seats]
       @table.leave(@player)
       assert_nil @player.table
-      @table.seated_players.all?(&:nil?).must_equal true
+      expect(@table.seated_players.all?(&:nil?)).must_equal true
     end
 
     it "should allow a player to inquire his/her seat position at the table" do
       @fav_seat = 4
       @player = Player.new('ted2')
       seat_position = @table.join(@player, @fav_seat)
-      @table.seat_position(@player).must_equal @fav_seat
+      expect(@table.seat_position(@player)).must_equal @fav_seat
     end
 
     it "should provide the player way to reach their designated bet_box" do
       @fav_seat = 4
       @player = Player.new('ted4')
       seat_position = @table.join(@player, @fav_seat)
-      @table.bet_boxes.dedicated_to(@player).must_equal(@table.bet_boxes[@fav_seat])
+      expect(@table.bet_boxes.dedicated_to(@player)).must_equal(@table.bet_boxes[@fav_seat])
     end
 
     it "should provide a mid-table player way to reach adjacent, available bet_boxes for multi-bet play" do
@@ -604,7 +604,7 @@ module Blackjack
         @table.bet_boxes[@fav_seat+1]
       ].each
       @table.bet_boxes.available_for(@player) do |bet_box|
-        bet_box.must_equal(expected_results.next)
+        expect(bet_box).must_equal(expected_results.next)
       end
     end
 
@@ -620,7 +620,7 @@ module Blackjack
         @table.bet_boxes[@fav_seat+2]
       ].each
       @table.bet_boxes.available_for(@player) do |bet_box|
-        bet_box.must_equal(expected_results.next)
+        expect(bet_box).must_equal(expected_results.next)
       end
     end
 
@@ -636,7 +636,7 @@ module Blackjack
         @table.bet_boxes[@fav_seat-2]
       ].each
       @table.bet_boxes.available_for(@player) do |bet_box|
-        bet_box.must_equal(expected_results.next)
+        expect(bet_box).must_equal(expected_results.next)
       end
     end
 
@@ -652,7 +652,7 @@ module Blackjack
         @table.bet_boxes[@fav_seat]
       ].each
       @table.bet_boxes.available_for(@player) do |bet_box|
-        bet_box.must_equal(expected_results.next)
+        expect(bet_box).must_equal(expected_results.next)
       end
     end
 
@@ -669,7 +669,7 @@ module Blackjack
         @table.bet_boxes[@fav_seat-1]
       ].each
       @table.bet_boxes.available_for(@player) do |bet_box|
-        bet_box.must_equal(expected_results.next)
+        expect(bet_box).must_equal(expected_results.next)
       end
     end
 
@@ -683,7 +683,7 @@ module Blackjack
         @table.bet_boxes[@fav_seat+2]
       ].each
       @table.bet_boxes.available_for(@player) do |bet_box|
-        bet_box.must_equal(expected_results.next)
+        expect(bet_box).must_equal(expected_results.next)
       end
     end
 
@@ -697,7 +697,7 @@ module Blackjack
         @table.bet_boxes[@fav_seat-2]
       ].each
       @table.bet_boxes.available_for(@player) do |bet_box|
-        bet_box.must_equal(expected_results.next)
+        expect(bet_box).must_equal(expected_results.next)
       end
     end
 
@@ -705,7 +705,7 @@ module Blackjack
       (0..(@table.config[:num_seats]-1)).each do |i|
         player = Player.new("player_#{i}")
         seat_position = @table.join(player)
-        seat_position.must_equal i
+        expect(seat_position).must_equal i
       end
       @player = Player.new('machvee')
       proc {@table.join(@player)}.must_raise RuntimeError
@@ -715,34 +715,34 @@ module Blackjack
       @player = Player.new("bubba")
       @bubbas_fav_seat = @table.config[:num_seats]-1
       seat_position = @table.join(@player, @bubbas_fav_seat)
-      seat_position.must_equal @bubbas_fav_seat
+      expect(seat_position).must_equal @bubbas_fav_seat
       @player = Player.new("machvee")
       proc {@table.join(@player, @bubbas_fav_seat)}.must_raise RuntimeError
     end
 
     it "should allow people to ask if a specific seat is available, and return true if it is" do
-      @table.seat_available?(2).must_equal true
+      expect(@table.seat_available?(2)).must_equal true
     end
 
     it "should allow people to ask if ANY seat is available, and return true if it is" do
-      @table.seat_available?.must_equal true
+      expect(@table.seat_available?).must_equal true
     end
 
     it "should allow people to ask if ANY seat is available, and return false when all taken" do
       (0..(@table.config[:num_seats]-1)).each do |i|
         player = Player.new("player_#{i}")
         seat_position = @table.join(player)
-        seat_position.must_equal i
+        expect(seat_position).must_equal i
       end
-      @table.seat_available?.must_equal false
+      expect(@table.seat_available?).must_equal false
     end
 
     it "should allow people to ask if a specific seat is available, and return false if not" do
       @player = Player.new("bubba")
       @bubbas_fav_seat = @table.config[:num_seats]-1
       seat_position = @table.join(@player, @bubbas_fav_seat)
-      seat_position.must_equal @bubbas_fav_seat
-      @table.seat_available?(@bubbas_fav_seat).must_equal false
+      expect(seat_position).must_equal @bubbas_fav_seat
+      expect(@table.seat_available?(@bubbas_fav_seat)).must_equal false
     end
 
     it "should allow use of the game play class with many players" do
@@ -766,19 +766,19 @@ module Blackjack
       names = %w{dave davey katie vader cass erica}
       players = names.map {|n| Player.new(n, strategy_class: TestStrategy)}
       players.each {|p| p.join(@table)}
-      @table.num_players.must_equal(names.length)
+      expect(@table.num_players).must_equal(names.length)
       gp = GamePlay.new(@table)
       gp.players_make_bets
       gp.shuffle_check
       gp.opening_deal
       @table.bet_boxes.each_active do |bb|
-        bb.box.balance.must_equal(25)
-        bb.hand.length.must_equal(2)
-        bb.hand[0].face_up?.must_equal(true)
-        bb.hand[1].face_up?.must_equal(true)
+        expect(bb.box.balance).must_equal(25)
+        expect(bb.hand.length).must_equal(2)
+        expect(bb.hand[0].face_up?).must_equal(true)
+        expect(bb.hand[1].face_up?).must_equal(true)
       end
-      @table.dealer.up_card.face_up?.must_equal(true)
-      @table.dealer.hole_card.face_down?.must_equal(true)
+      expect(@table.dealer.up_card.face_up?).must_equal(true)
+      expect(@table.dealer.hole_card.face_down?).must_equal(true)
     end
   end
 
@@ -851,11 +851,11 @@ module Blackjack
       @game_play = GamePlay.new(@table)
       @game_play.run
       @dave.print_rules
-      @dave.stats.split_stats.played.count.must_equal(3)
-      @dave.stats.split_stats.won.count.must_equal(1)
-      @dave.stats.split_stats.lost.count.must_equal(1)
-      @dave.stats.split_stats.pushed.count.must_equal(1)
-      @dave.rules_used.count.must_equal(@expected_rules_count)
+      expect(@dave.stats.split_stats.played.count).must_equal(3)
+      expect(@dave.stats.split_stats.won.count).must_equal(1)
+      expect(@dave.stats.split_stats.lost.count).must_equal(1)
+      expect(@dave.stats.split_stats.pushed.count).must_equal(1)
+      expect(@dave.rules_used.count).must_equal(@expected_rules_count)
     end
   end
 
@@ -879,18 +879,18 @@ module Blackjack
     end
 
     it "should play correctly for players who have split their hand" do
-      @player.default_bet_box.hand.hard_sum.must_equal(6)
+      expect(@player.default_bet_box.hand.hard_sum).must_equal(6)
       @player.default_bet_box.split
       vals = [13,12].each
       @table.bet_boxes.each_active do |bb|
         @table.dealer.deal_card_face_up_to(bb)
-        bb.hand.hard_sum.must_equal(vals.next)
+        expect(bb.hand.hard_sum).must_equal(vals.next)
       end
 
       @table.bet_boxes.each_active do |bb|
         next if bb.hand.hard_sum == 13
         @table.dealer.deal_card_face_up_to(bb)
-        bb.hand.hard_sum.must_equal(22)
+        expect(bb.hand.hard_sum).must_equal(22)
         @table.dealer.money.collect_bet(bb)
         bb.discard
       end
@@ -921,12 +921,12 @@ module Blackjack
       @player.join(@table)
       @player.make_bet(50)
       @game_play = GamePlay.new(@table)
-      @player.stats.hand_stats.pushed.count.must_equal(0)
+      expect(@player.stats.hand_stats.pushed.count).must_equal(0)
       @game_play.run
     end
 
     it "should be a player push" do
-      @player.stats.hand_stats.pushed.count.must_equal(1)
+      expect(@player.stats.hand_stats.pushed.count).must_equal(1)
     end
   end
 
@@ -943,28 +943,28 @@ module Blackjack
     end
 
     it "should be dedicated? because a player sits in front of it" do
-      @bet_box.dedicated?.must_equal(true)
+      expect(@bet_box.dedicated?).must_equal(true)
     end
 
     it "should not be dedicated? because no player sits in front of it" do
-      @bet_box_empty.dedicated?.must_equal(false)
+      expect(@bet_box_empty.dedicated?).must_equal(false)
     end
 
     it "must not be available? because its dedicated" do
-      @bet_box.available?.must_equal(false)
+      expect(@bet_box.available?).must_equal(false)
     end
 
     it "must be available? because its not dedicated" do
-      @bet_box_empty.available?.must_equal(true)
+      expect(@bet_box_empty.available?).must_equal(true)
     end
 
     it "is not active yet because no bet" do
-      @bet_box.active?.must_equal(false)
+      expect(@bet_box.active?).must_equal(false)
     end
 
     it "is active when a player has made a bet" do
       @player.make_bet(50, @bet_box)
-      @bet_box.active?.must_equal(true)
+      expect(@bet_box.active?).must_equal(true)
     end
 
     it "lets a player take insurance bet winnings" do
@@ -976,23 +976,23 @@ module Blackjack
       ins_winnings = @bet_box.insurance_bet_amount
       player_balance = @player.bank.balance
       @bet_box.take_insurance
-      @player.bank.balance.must_equal(player_balance + ins_winnings)
-      @bet_box.insurance.balance.must_equal(0)
+      expect(@player.bank.balance).must_equal(player_balance + ins_winnings)
+      expect(@bet_box.insurance.balance).must_equal(0)
     end
 
     it "lets a player make an insurance bet" do
       bet_amt = 50
       @bet_box.bet(@player, bet_amt)
       @bet_box.insurance_bet(bet_amt/2)
-      @bet_box.insurance.balance.must_equal(bet_amt/2)
+      expect(@bet_box.insurance.balance).must_equal(bet_amt/2)
     end
 
     it "supports bet making" do
       start_bank = @player.bank.balance
       bet_amt = 50
       @bet_box.bet(@player, bet_amt)
-      @bet_box.active?.must_equal(true)
-      @player.bank.balance.must_equal(start_bank-bet_amt)
+      expect(@bet_box.active?).must_equal(true)
+      expect(@player.bank.balance).must_equal(start_bank-bet_amt)
     end
 
     it "lets the player win a bet" do
@@ -1001,8 +1001,8 @@ module Blackjack
       @player.make_bet(bet_amt)
       @bet_box.box.credit(bet_amt)
       @player.won_bet(@bet_box, bet_amt)
-      @bet_box.box.balance.must_equal(0)
-      @player.bank.balance.must_equal(start_bank + bet_amt)
+      expect(@bet_box.box.balance).must_equal(0)
+      expect(@player.bank.balance).must_equal(start_bank + bet_amt)
     end
 
     it "allows a player to split the hand" do
@@ -1010,21 +1010,21 @@ module Blackjack
       @player.make_bet(bet_amt)
       @player.default_bet_box.hand.set(BlackjackCard.make('8D', '8H'))
       @bet_box.split
-      @bet_box.split?.must_equal(true) # this hand was split
-      @bet_box.num_splits.must_equal(1)
+      expect(@bet_box.split?).must_equal(true) # this hand was split
+      expect(@bet_box.num_splits).must_equal(1)
       @bet_box.split_boxes.each do |bet_box|
-        bet_box.active?.must_equal(true)
-        bet_box.hand.hard_sum.must_equal(8)
+        expect(bet_box.active?).must_equal(true)
+        expect(bet_box.hand.hard_sum).must_equal(8)
         bet_box.hand.set(BlackjackCard.make('8D', '8S'))
-        bet_box.from_split?.must_equal(true) # this hand came from a split
+        expect(bet_box.from_split?).must_equal(true) # this hand came from a split
         bet_box.split # split the split hand again
       end
-      @bet_box.num_splits.must_equal(3)
+      expect(@bet_box.num_splits).must_equal(3)
       counter = 0
       @table.bet_boxes.each_active do |bet_box|
         counter +=1
       end
-      counter.must_equal(4)
+      expect(counter).must_equal(4)
       @table.bet_boxes.each_active do |bet_box|
         #
         # attempt to split the again should exceed table limit
@@ -1062,12 +1062,12 @@ module Blackjack
     end
 
     it "responds correctly to can_double? when the hand is doublable" do
-      @bet_box.can_double?.must_equal(true)
+      expect(@bet_box.can_double?).must_equal(true)
     end
 
     it "responds correctly to can_double? when the hand has more than 2 cards" do
       @table.dealer.deal_card_face_up_to(@bet_box)
-      @bet_box.can_double?.must_equal(false)
+      expect(@bet_box.can_double?).must_equal(false)
     end
   end
 
@@ -1094,7 +1094,7 @@ module Blackjack
     end
 
     it "responds correctly to can_double? when the hand is not doublable" do
-      @bet_box.can_double?.must_equal(false)
+      expect(@bet_box.can_double?).must_equal(false)
     end
   end
 
@@ -1106,36 +1106,36 @@ module Blackjack
 
     it "should allow a player to borrow" do
       @player.join(@table)
-      @player.bank.balance.must_equal(500)
+      expect(@player.bank.balance).must_equal(500)
       @player.marker_for(500)
-      @player.bank.balance.must_equal(500+500)
+      expect(@player.bank.balance).must_equal(500+500)
     end
 
     it "should allow a player to repay what they've borrowed" do
       @player.join(@table)
-      @player.bank.balance.must_equal(500)
+      expect(@player.bank.balance).must_equal(500)
       @player.marker_for(500)
-      @player.bank.balance.must_equal(500+500)
+      expect(@player.bank.balance).must_equal(500+500)
       @player.repay_any_markers(500)
-      @player.bank.balance.must_equal(500)
+      expect(@player.bank.balance).must_equal(500)
       @table.markers.for_player(@player).length == 0
     end
 
     it "should allow a player to repay an amount less than they've borrowed" do
       @player.join(@table)
-      @player.bank.balance.must_equal(500)
+      expect(@player.bank.balance).must_equal(500)
       @player.marker_for(500)
-      @player.bank.balance.must_equal(500+500)
+      expect(@player.bank.balance).must_equal(500+500)
       @player.repay_any_markers(250)
-      @table.markers.for_player(@player).first[:amount].must_equal(500-250)
-      @player.bank.balance.must_equal(500+500-250)
+      expect(@table.markers.for_player(@player).first[:amount]).must_equal(500-250)
+      expect(@player.bank.balance).must_equal(500+500-250)
     end
 
     it "should raise if player attempts to pay back more than their bank balance" do
       @player.join(@table)
-      @player.bank.balance.must_equal(500)
+      expect(@player.bank.balance).must_equal(500)
       @player.marker_for(500)
-      @player.bank.balance.must_equal(500+500)
+      expect(@player.bank.balance).must_equal(500+500)
       proc {
         @player.repay_any_markers(1250)
       }.must_raise RuntimeError
@@ -1148,30 +1148,30 @@ module Blackjack
     end
 
     it "should have a name" do
-      @player.name.must_equal(@name)
+      expect(@player.name).must_equal(@name)
     end
 
     it "should have an initial zero balance bank" do
-      @player.bank.balance.must_equal 0
+      expect(@player.bank.balance).must_equal 0
     end
 
     it "should be able to join a table" do
       @table = Table.new('t')
       @player.join(@table)
-      @table.find_player(@player.name).must_equal(@player)
+      expect(@table.find_player(@player.name)).must_equal(@player)
     end
 
     it "should be able to join a table at a specific seat position" do
       @table = Table.new('t')
       @seat = 3
       @player.join(@table, @seat)
-      @table.seat_position(@player).must_equal(@seat)
+      expect(@table.seat_position(@player)).must_equal(@seat)
     end
 
     it "should be able to join, then leave a table" do
       @table = Table.new('t')
       @player.join(@table)
-      @table.find_player(@player.name).must_equal(@player)
+      expect(@table.find_player(@player.name)).must_equal(@player)
       @player.leave_table
       assert_nil @table.find_player(@player.name)
     end
@@ -1181,7 +1181,7 @@ module Blackjack
       table = Table.new('player_table')
       @player.join(table)
       @player.make_bet(bet_amt)
-      @player.default_bet_box.bet_amount.must_equal(bet_amt)
+      expect(@player.default_bet_box.bet_amount).must_equal(bet_amt)
     end
 
     it "should be able to win a bet" do
@@ -1208,61 +1208,61 @@ module Blackjack
       amount_to_credit = 91
       amount_to_debit = 83
       @bank1.credit(amount_to_credit)
-      @bank1.balance.must_equal(@initial_balance + amount_to_credit)
-      @bank1.credits.count.must_equal(1)
+      expect(@bank1.balance).must_equal(@initial_balance + amount_to_credit)
+      expect(@bank1.credits.count).must_equal(1)
       @bank2.debit(amount_to_debit)
-      @bank2.balance.must_equal(@initial_balance - amount_to_debit)
-      @bank2.debits.count.must_equal(1)
+      expect(@bank2.balance).must_equal(@initial_balance - amount_to_debit)
+      expect(@bank2.debits.count).must_equal(1)
     end
 
     it "should allow a reset back to initial balance" do
       amount_to_credit = 91
       amount_to_debit = 83
       @bank1.credit(amount_to_credit)
-      @bank1.balance.must_equal(@initial_balance + amount_to_credit)
-      @bank1.credits.count.must_equal(1)
+      expect(@bank1.balance).must_equal(@initial_balance + amount_to_credit)
+      expect(@bank1.credits.count).must_equal(1)
       @bank2.debit(amount_to_debit)
-      @bank2.balance.must_equal(@initial_balance - amount_to_debit)
-      @bank2.debits.count.must_equal(1)
+      expect(@bank2.balance).must_equal(@initial_balance - amount_to_debit)
+      expect(@bank2.debits.count).must_equal(1)
       @bank1.reset
       @bank2.reset
-      @bank1.balance.must_equal(@initial_balance)
-      @bank2.balance.must_equal(@initial_balance)
-      @bank1.credits.count.must_equal(0)
-      @bank2.credits.count.must_equal(0)
-      @bank1.debits.count.must_equal(0)
-      @bank2.debits.count.must_equal(0)
+      expect(@bank1.balance).must_equal(@initial_balance)
+      expect(@bank2.balance).must_equal(@initial_balance)
+      expect(@bank1.credits.count).must_equal(0)
+      expect(@bank2.credits.count).must_equal(0)
+      expect(@bank1.debits.count).must_equal(0)
+      expect(@bank2.debits.count).must_equal(0)
     end
 
     it "should allow transfer_to another account" do
       amount_to_transfer = 382
       @bank1.transfer_to(@bank2, amount_to_transfer)
-      @bank1.balance.must_equal(@initial_balance - amount_to_transfer)
-      @bank2.balance.must_equal(@initial_balance + amount_to_transfer)
-      @bank1.credits.count.must_equal(0)
-      @bank1.debits.count.must_equal(1)
-      @bank2.credits.count.must_equal(1)
-      @bank2.debits.count.must_equal(0)
+      expect(@bank1.balance).must_equal(@initial_balance - amount_to_transfer)
+      expect(@bank2.balance).must_equal(@initial_balance + amount_to_transfer)
+      expect(@bank1.credits.count).must_equal(0)
+      expect(@bank1.debits.count).must_equal(1)
+      expect(@bank2.credits.count).must_equal(1)
+      expect(@bank2.debits.count).must_equal(0)
     end
 
     it "should allow transfer_from another account" do
       amount_to_transfer = 98
       @bank1.transfer_from(@bank2, amount_to_transfer)
-      @bank1.balance.must_equal(@initial_balance + amount_to_transfer)
-      @bank2.balance.must_equal(@initial_balance - amount_to_transfer)
-      @bank1.credits.count.must_equal(1)
-      @bank1.debits.count.must_equal(0)
-      @bank2.credits.count.must_equal(0)
-      @bank2.debits.count.must_equal(1)
+      expect(@bank1.balance).must_equal(@initial_balance + amount_to_transfer)
+      expect(@bank2.balance).must_equal(@initial_balance - amount_to_transfer)
+      expect(@bank1.credits.count).must_equal(1)
+      expect(@bank1.debits.count).must_equal(0)
+      expect(@bank2.credits.count).must_equal(0)
+      expect(@bank2.debits.count).must_equal(1)
     end
 
     it "should raise an exception if trying to debit below 0 balance" do
       @bank1.debit(@initial_balance) # ok
-      @bank1.balance.must_equal(0)
+      expect(@bank1.balance).must_equal(0)
       proc {
         @bank2.debit(@initial_balance+1)
       }.must_raise RuntimeError
-      @bank2.balance.must_equal(@initial_balance)
+      expect(@bank2.balance).must_equal(@initial_balance)
     end
 
     it "should keep min and max" do
@@ -1277,8 +1277,8 @@ module Blackjack
       @bank1.credit(100)
       @bank1.credit(100)
       @bank1.credit(100)
-      @bank1.high_balance.must_equal(@initial_balance - 200 + 500)
-      @bank1.low_balance.must_equal(@initial_balance - 200)
+      expect(@bank1.high_balance).must_equal(@initial_balance - 200 + 500)
+      expect(@bank1.low_balance).must_equal(@initial_balance - 200)
     end
   end
 
@@ -1293,24 +1293,23 @@ module Blackjack
     end
 
     it "should have a default orientation facing down" do
-      @a_card.face_down?.must_equal true
-      @a_card.face_up?.must_equal false
+      expect(@a_card.face_down?).must_equal true
+      expect(@a_card.face_up?).must_equal false
     end
 
     it "should allow the orientation to be set up" do
-      @a_card.face_up?.must_equal false
+      expect(@a_card.face_up?).must_equal false
       @a_card.up
-      @a_card.face_up?.must_equal true
+      expect(@a_card.face_up?).must_equal true
     end
 
     it "should allow the orientation to be set down" do
       @a_card.up
-      @a_card.face_up?.must_equal true
+      expect(@a_card.face_up?).must_equal true
       @a_card.down
-      @a_card.face_up?.must_equal false
-      @a_card.face_down?.must_equal true
+      expect(@a_card.face_up?).must_equal false
+      expect(@a_card.face_down?).must_equal true
     end
-
   end
 
   describe BlackjackCard, "A single Blackjack Ace Card" do 
@@ -1319,24 +1318,24 @@ module Blackjack
     end
 
     it "should have 'A' as its value" do
-      @ace_spades.face.must_equal 'A'
-      @ace_spades.ace?.must_equal true
+      expect(@ace_spades.face).must_equal 'A'
+      expect(@ace_spades.ace?).must_equal true
     end
 
     it "should have 'S' as its suit" do
-      @ace_spades.suit.must_equal 'S'
+      expect(@ace_spades.suit).must_equal 'S'
     end
 
     it "should have soft value of 1 for 'A'" do 
-      @ace_spades.face_value.must_equal 1
+      expect(@ace_spades.face_value).must_equal 1
     end
 
     it "should have default face value of the soft value for 'A'" do 
-      @ace_spades.face_value.must_equal @ace_spades.soft_value
+      expect(@ace_spades.face_value).must_equal @ace_spades.soft_value
     end
 
     it "should have hard value of 11 for 'A'" do 
-      @ace_spades.hard_value.must_equal 11
+      expect(@ace_spades.hard_value).must_equal 11
     end
   end
 
@@ -1346,25 +1345,25 @@ module Blackjack
     end
 
     it "should have 'J' as its value" do
-      @jack_clubs.face.must_equal 'J'
+      expect(@jack_clubs.face).must_equal 'J'
     end
 
     it "should not be an ace" do
-      @jack_clubs.ace?.must_equal false
+      expect(@jack_clubs.ace?).must_equal false
     end
 
     it "should have 'C' as its suit" do
-      @jack_clubs.suit.must_equal 'C'
+      expect(@jack_clubs.suit).must_equal 'C'
     end
 
     it "should have 10 for its hard and soft values" do
-      @jack_clubs.face_value.must_equal 10
-      @jack_clubs.soft_value.must_equal 10
-      @jack_clubs.hard_value.must_equal 10
+      expect(@jack_clubs.face_value).must_equal 10
+      expect(@jack_clubs.soft_value).must_equal 10
+      expect(@jack_clubs.hard_value).must_equal 10
     end
 
     it "should respond to being a face_card?" do
-      @jack_clubs.face_card?.must_equal true
+      expect(@jack_clubs.face_card?).must_equal true
     end
   end
 
@@ -1375,17 +1374,17 @@ module Blackjack
     end
 
     it "must have 52 cards" do
-      @deck.length.must_equal 52
+      expect(@deck.length).must_equal 52
     end
 
     it "must have all four suits" do
-      @deck.map(&:suit).uniq.length.must_equal 4
-      @deck.map(&:suit).uniq.sort.must_equal ['C', 'D', 'H', 'S']
+      expect(@deck.map(&:suit).uniq.length).must_equal 4
+      expect(@deck.map(&:suit).uniq.sort).must_equal ['C', 'D', 'H', 'S']
     end
 
     it "must have all 13 cards in each suit" do
       @deck.group_by(&:suit).each_pair do |s, faces|
-        faces.map(&:face).must_equal [*'2'..'9', '10', 'J', 'Q', 'K', 'A']
+        expect(faces.map(&:face)).must_equal [*'2'..'9', '10', 'J', 'Q', 'K', 'A']
       end
     end
   end
@@ -1396,15 +1395,15 @@ module Blackjack
     end
 
     it "should respond to pair" do
-      @eight_eight.pair?.must_equal true
+      expect(@eight_eight.pair?).must_equal true
     end
 
     it "should have a value of 16" do
-      @eight_eight.soft_sum.must_equal 16
+      expect(@eight_eight.soft_sum).must_equal 16
     end
 
     it "should not be busted" do
-      @eight_eight.bust?.must_equal false
+      expect(@eight_eight.bust?).must_equal false
     end
   end
 
@@ -1414,19 +1413,19 @@ module Blackjack
     end
 
     it "should not respond to pair" do
-      @eight_nine.pair?.must_equal false
+      expect(@eight_nine.pair?).must_equal false
     end
 
     it "should have a value of 17" do
-      @eight_nine.soft_sum.must_equal 17
+      expect(@eight_nine.soft_sum).must_equal 17
     end
 
     it "should not be busted" do
-      @eight_nine.bust?.must_equal false
+      expect(@eight_nine.bust?).must_equal false
     end
 
     it "should not has_ace?" do
-      @eight_nine.has_ace?.must_equal false
+      expect(@eight_nine.has_ace?).must_equal false
     end
   end
 
@@ -1436,20 +1435,20 @@ module Blackjack
     end
 
     it "should respond to pair" do
-      @jack_q.pair?.must_equal false
+      expect(@jack_q.pair?).must_equal false
     end
 
     it "should have a value of 20" do
-      @jack_q.soft_sum.must_equal 20
-      @jack_q.hard_sum.must_equal 20
+      expect(@jack_q.soft_sum).must_equal 20
+      expect(@jack_q.hard_sum).must_equal 20
     end
 
     it "should not be busted" do
-      @jack_q.bust?.must_equal false
+      expect(@jack_q.bust?).must_equal false
     end
 
     it "should not has_ace?" do
-      @jack_q.has_ace?.must_equal false
+      expect(@jack_q.has_ace?).must_equal false
     end
   end
 
@@ -1459,24 +1458,24 @@ module Blackjack
     end
 
     it "should respond to pair" do
-      @k_10.pair?.must_equal false
+      expect(@k_10.pair?).must_equal false
     end
 
     it "should have a value of 20" do
-      @k_10.soft_sum.must_equal 20
-      @k_10.hard_sum.must_equal 20
+      expect(@k_10.soft_sum).must_equal 20
+      expect(@k_10.hard_sum).must_equal 20
     end
 
     it "should not be busted" do
-      @k_10.bust?.must_equal false
+      expect(@k_10.bust?).must_equal false
     end
 
     it "should not be blackjack?" do
-      @k_10.blackjack?.must_equal false
+      expect(@k_10.blackjack?).must_equal false
     end
 
     it "should not has_ace?" do
-      @k_10.has_ace?.must_equal false
+      expect(@k_10.has_ace?).must_equal false
     end
   end
 
@@ -1486,24 +1485,24 @@ module Blackjack
     end
 
     it "should respond to pair" do
-      @k_k.pair?.must_equal true
+      expect(@k_k.pair?).must_equal true
     end
 
     it "should have a value of 20" do
-      @k_k.soft_sum.must_equal 20
-      @k_k.hard_sum.must_equal 20
+      expect(@k_k.soft_sum).must_equal 20
+      expect(@k_k.hard_sum).must_equal 20
     end
 
     it "should not be busted" do
-      @k_k.bust?.must_equal false
+      expect(@k_k.bust?).must_equal false
     end
 
     it "should not be blackjack?" do
-      @k_k.blackjack?.must_equal false
+      expect(@k_k.blackjack?).must_equal false
     end
 
     it "should not has_ace?" do
-      @k_k.has_ace?.must_equal false
+      expect(@k_k.has_ace?).must_equal false
     end
   end
 
@@ -1513,31 +1512,31 @@ module Blackjack
     end
 
     it "should not respond to pair" do
-      @blackjack.pair?.must_equal false
+      expect(@blackjack.pair?).must_equal false
     end
 
     it "should have a hard value of 21" do
-      @blackjack.hard_sum.must_equal 21
+      expect(@blackjack.hard_sum).must_equal 21
     end
 
     it "should have a soft value of 11" do
-      @blackjack.soft_sum.must_equal 11
+      expect(@blackjack.soft_sum).must_equal 11
     end
 
     it "should not be busted" do
-      @blackjack.bust?.must_equal false
+      expect(@blackjack.bust?).must_equal false
     end
 
     it "should be blackjack?" do
-      @blackjack.blackjack?.must_equal true
+      expect(@blackjack.blackjack?).must_equal true
     end
 
     it "should respond true to has_ace?" do
-      @blackjack.has_ace?.must_equal true
+      expect(@blackjack.has_ace?).must_equal true
     end
 
     it "should be soft?" do
-      @blackjack.soft?.must_equal true
+      expect(@blackjack.soft?).must_equal true
     end
   end
 
@@ -1548,34 +1547,33 @@ module Blackjack
     end
 
     it "should not respond to pair" do
-      @hand.pair?.must_equal false
+      expect(@hand.pair?).must_equal false
     end
 
     it "should have a hard value of 21" do
-      @hand.hard_sum.must_equal 21
+      expect(@hand.hard_sum).must_equal 21
     end
 
     it "should have a soft value of 11" do
-      @hand.soft_sum.must_equal 11
+      expect(@hand.soft_sum).must_equal 11
     end
 
     it "should not be busted" do
-      @hand.bust?.must_equal false
+      expect(@hand.bust?).must_equal false
     end
 
     it "should not be blackjack?" do
-      @hand.blackjack?.must_equal false
+      expect(@hand.blackjack?).must_equal false
     end
 
     it "should respond true to has_ace?" do
-      @hand.has_ace?.must_equal true
+      expect(@hand.has_ace?).must_equal true
     end
 
     it "should be soft?" do
-      @hand.soft?.must_equal true
+      expect(@hand.soft?).must_equal true
     end
   end
-
 
   describe BlackjackHand, "A hand that has an aces and is more than 21" do
     before do
@@ -1583,31 +1581,31 @@ module Blackjack
     end
 
     it "should not respond to pair" do
-      @hand.pair?.must_equal false
+      expect(@hand.pair?).must_equal false
     end
 
     it "should have a hard value of 24" do
-      @hand.hard_sum.must_equal 24
+      expect(@hand.hard_sum).must_equal 24
     end
 
     it "should have a soft value of hard value when the soft_value is a bust" do
-      @hand.soft_sum.must_equal 24
+      expect(@hand.soft_sum).must_equal 24
     end
 
     it "should be busted" do
-      @hand.bust?.must_equal true
+      expect(@hand.bust?).must_equal true
     end
 
     it "should not be blackjack?" do
-      @hand.blackjack?.must_equal false
+      expect(@hand.blackjack?).must_equal false
     end
 
     it "should respond true to has_ace?" do
-      @hand.has_ace?.must_equal true
+      expect(@hand.has_ace?).must_equal true
     end
 
     it "should be soft?" do
-      @hand.soft?.must_equal true
+      expect(@hand.soft?).must_equal true
     end
   end
 
@@ -1618,31 +1616,31 @@ module Blackjack
     end
 
     it "should not respond to pair" do
-      @hand.pair?.must_equal false
+      expect(@hand.pair?).must_equal false
     end
 
     it "should have a hard value of 25" do
-      @hand.hard_sum.must_equal 25
+      expect(@hand.hard_sum).must_equal 25
     end
 
     it "should have a soft value of hard value" do
-      @hand.soft_sum.must_equal 25
+      expect(@hand.soft_sum).must_equal 25
     end
 
     it "should be busted" do
-      @hand.bust?.must_equal true
+      expect(@hand.bust?).must_equal true
     end
 
     it "should not be blackjack?" do
-      @hand.blackjack?.must_equal false
+      expect(@hand.blackjack?).must_equal false
     end
 
     it "should not respond true to has_ace?" do
-      @hand.has_ace?.must_equal false
+      expect(@hand.has_ace?).must_equal false
     end
 
     it "should not be soft?" do
-      @hand.soft?.must_equal false
+      expect(@hand.soft?).must_equal false
     end
   end
 
@@ -1653,31 +1651,31 @@ module Blackjack
     end
 
     it "should not respond to pair" do
-      @hand.pair?.must_equal false
+      expect(@hand.pair?).must_equal false
     end
 
     it "should have a hard value of 21" do
-      @hand.hard_sum.must_equal 21
+      expect(@hand.hard_sum).must_equal 21
     end
 
     it "should have a soft value of hard value" do
-      @hand.soft_sum.must_equal 21
+      expect(@hand.soft_sum).must_equal 21
     end
 
     it "should not be busted" do
-      @hand.bust?.must_equal false
+      expect(@hand.bust?).must_equal false
     end
 
     it "should not be blackjack?" do
-      @hand.blackjack?.must_equal false
+      expect(@hand.blackjack?).must_equal false
     end
 
     it "should not respond true to has_ace?" do
-      @hand.has_ace?.must_equal false
+      expect(@hand.has_ace?).must_equal false
     end
 
     it "should not be soft?" do
-      @hand.soft?.must_equal false
+      expect(@hand.soft?).must_equal false
     end
   end
 
@@ -1687,11 +1685,11 @@ module Blackjack
     end
 
     it "should have a deck with cards face down" do
-      @deck.all? {|c| c.face_down?}.must_equal true
+      expect(@deck.all? {|c| c.face_down?}).must_equal true
     end
 
     it "should have 52 cards" do
-      @deck.length.must_equal 52
+      expect(@deck.length).must_equal 52
     end
   end
 
@@ -1701,7 +1699,7 @@ module Blackjack
     end
 
     it "should have a deck with cards face down by default" do
-      @deck.all? {|c| c.face_down?}.must_equal true
+      expect(@deck.all? {|c| c.face_down?}).must_equal true
     end
 
   end
@@ -1712,7 +1710,7 @@ module Blackjack
     end
 
     it "should have a deck with cards face down by default" do
-      @deck.all? {|c| c.face_down?}.must_equal true
+      expect(@deck.all? {|c| c.face_down?}).must_equal true
     end
 
   end
@@ -1720,16 +1718,16 @@ module Blackjack
   describe Shoe, "shoes come in a variety of sizes" do
     it "should have the correct number of cards" do
       @shoe = Shoe.new
-      @shoe.remaining.must_equal (1*52)
+      expect(@shoe.remaining).must_equal (1*52)
 
       @shoe = OneDeckShoe.new
-      @shoe.remaining.must_equal (1*52)
+      expect(@shoe.remaining).must_equal (1*52)
 
       @shoe = TwoDeckShoe.new
-      @shoe.remaining.must_equal (2*52)
+      expect(@shoe.remaining).must_equal (2*52)
 
       @shoe = SixDeckShoe.new
-      @shoe.remaining.must_equal (6*52)
+      expect(@shoe.remaining).must_equal (6*52)
     end
   end
 
@@ -1745,7 +1743,7 @@ module Blackjack
 
     it "should not need shuffle upon initial cut card placement" do
       @shoe.place_marker_card
-      @shoe.needs_shuffle?.must_equal false
+      expect(@shoe.needs_shuffle?).must_equal false
     end
 
     it "should support options for cut card" do
@@ -1760,15 +1758,15 @@ module Blackjack
       @custom_shoe.shuffle
       100.times {
         @custom_shoe.place_marker_card
-        @custom_shoe.decks.marker.offset.must_be :<=, @shoe.remaining/4
+        expect(@custom_shoe.decks.marker.offset).must_be :<=, @shoe.remaining/4
       }
-      @custom_shoe.remaining.must_equal (@num_decks*52)
+      expect(@custom_shoe.remaining).must_equal (@num_decks*52)
     end
 
     it "should let the cut card be placed at a specific offset" do
       @my_offset = 84
       @shoe.place_marker_card(@my_offset)
-      @shoe.decks.marker.offset.must_equal @my_offset
+      expect(@shoe.decks.marker.offset).must_equal @my_offset
     end
 
     it "shuffle up should set marker.offset to nil" do
@@ -1780,12 +1778,12 @@ module Blackjack
 
     it "should allow a force_shuffle to be invoked, causing needs_shuffle? to be true" do
       @shoe.place_marker_card
-      @shoe.needs_shuffle?.must_equal(false)
+      expect(@shoe.needs_shuffle?).must_equal(false)
       @shoe.force_shuffle
-      @shoe.needs_shuffle?.must_equal(true)
+      expect(@shoe.needs_shuffle?).must_equal(true)
       @shoe.shuffle
       @shoe.place_marker_card
-      @shoe.needs_shuffle?.must_equal(false)
+      expect(@shoe.needs_shuffle?).must_equal(false)
     end
 
     it "should deal cards to hands one at a time face up" do
@@ -1796,7 +1794,7 @@ module Blackjack
       @shoe.place_marker_card
       @shoe.deal_one_up(@destination)
       @destination.verify
-      @shoe.remaining.must_equal num_cards-1
+      expect(@shoe.remaining).must_equal num_cards-1
     end
 
     it "should deal cards to hands one at a time face down" do
@@ -1807,7 +1805,7 @@ module Blackjack
       @destination.expect(:add, nil, [[top_card]])
       @shoe.deal_one_down(@destination)
       @destination.verify
-      @shoe.remaining.must_equal num_cards-1
+      expect(@shoe.remaining).must_equal num_cards-1
     end
 
     it "should support a new hand getter to deal cards to" do
@@ -1815,7 +1813,7 @@ module Blackjack
       hand = @shoe.new_player_hand
       num_cards = 3
       num_cards.times { @shoe.deal_one_up(hand)}
-      hand.length.must_equal num_cards
+      expect(hand.length).must_equal num_cards
     end
 
     it "should support a discard pile that is wired to the hand when it folds and back to deck when shuffling" do
@@ -1830,24 +1828,24 @@ module Blackjack
         3.times do |i|
           hand_counts.each_with_index do |c, i|
             c.times { @shoe.deal_one_up(hands[i])}
-            hands[i].length.must_equal(c)
+            expect(hands[i].length).must_equal(c)
           end
           total_cards_dealt += cards_dealt
-          @shoe.remaining.must_equal(start_count - total_cards_dealt)
+          expect(@shoe.remaining).must_equal(start_count - total_cards_dealt)
 
           hands.map(&:fold)
-          @shoe.discarded.must_equal(total_cards_dealt)
+          expect(@shoe.discarded).must_equal(total_cards_dealt)
 
-          hands.all? {|h| h.length == 0}.must_equal(true)
+          expect(hands.all? {|h| h.length == 0}).must_equal(true)
         end
 
-        @shoe.remaining.must_equal(start_count - total_cards_dealt)
-        @shoe.discarded.must_equal(total_cards_dealt)
+        expect(@shoe.remaining).must_equal(start_count - total_cards_dealt)
+        expect(@shoe.discarded).must_equal(total_cards_dealt)
 
         @shoe.shuffle
         @shoe.place_marker_card
-        @shoe.discarded.must_equal(0)
-        @shoe.remaining.must_equal(start_count)
+        expect(@shoe.discarded).must_equal(0)
+        expect(@shoe.remaining).must_equal(start_count)
       end
     end
 
@@ -1867,7 +1865,7 @@ module Blackjack
       @destination.expect(:add, nil, [[top_card]])
       @shoe.deal_one_up(@destination)
       @destination.verify
-      @shoe.needs_shuffle?.must_equal true
+      expect(@shoe.needs_shuffle?).must_equal true
     end
 
     it "should deal cards to hands one at a time face up and keep counter" do
@@ -1876,9 +1874,9 @@ module Blackjack
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
       @destination.expect(:add, nil, [[top_card]])
-      @shoe.cards_dealt.count.must_equal 0
+      expect(@shoe.cards_dealt.count).must_equal 0
       @shoe.deal_one_up(@destination)
-      @shoe.cards_dealt.count.must_equal 1
+      expect(@shoe.cards_dealt.count).must_equal 1
       @destination.verify
       @shoe.shuffle
       @shoe.place_marker_card
@@ -1887,35 +1885,35 @@ module Blackjack
       @destination.expect(:add, nil, [[top_card]])
       @shoe.deal_one_up(@destination)
       @destination.verify
-      @shoe.cards_dealt.count.must_equal 2
+      expect(@shoe.cards_dealt.count).must_equal 2
     end
 
     it "shuffle up should incr counter" do
-      @shoe.num_shuffles.count.must_equal 1
+      expect(@shoe.num_shuffles.count).must_equal 1
       @shuffs = 4
       @shuffs.times { @shoe.shuffle }
       @shoe.place_marker_card
-      @shoe.num_shuffles.count.must_equal 1 + @shuffs
+      expect(@shoe.num_shuffles.count).must_equal 1 + @shuffs
     end
 
     it "should allow resetting of all counters" do 
-      @shoe.num_shuffles.count.must_equal 1
+      expect(@shoe.num_shuffles.count).must_equal 1
       @shuffs = 4
       @shuffs.times { @shoe.shuffle }
       @shoe.place_marker_card
-      @shoe.num_shuffles.count.must_equal 1 + @shuffs
+      expect(@shoe.num_shuffles.count).must_equal 1 + @shuffs
       num_cards = @shoe.remaining
       @destination = MiniTest::Mock.new
       top_card = @shoe.decks.first
       @destination.expect(:add, nil, [[top_card]])
-      @shoe.cards_dealt.count.must_equal 0
+      expect(@shoe.cards_dealt.count).must_equal 0
       @shoe.deal_one_up(@destination)
-      @shoe.cards_dealt.count.must_equal 1
+      expect(@shoe.cards_dealt.count).must_equal 1
       @destination.verify
 
       @shoe.reset_counters
-      @shoe.cards_dealt.count.must_equal 0
-      @shoe.num_shuffles.count.must_equal 0
+      expect(@shoe.cards_dealt.count).must_equal 0
+      expect(@shoe.num_shuffles.count).must_equal 0
     end
   end
 
@@ -1933,7 +1931,7 @@ module Blackjack
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         ['A', *2..10].each do |dealer_up_card_val|
           up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
-          @basic_strategy.play(@bet_box, up_card).first.must_equal(Action::STAND)
+          expect(@basic_strategy.play(@bet_box, up_card).first).must_equal(Action::STAND)
         end
       end
     end
@@ -1943,7 +1941,7 @@ module Blackjack
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         [*7..10].each do |dealer_up_card_val|
           up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
-          @basic_strategy.play(@bet_box, up_card).first.must_equal(Action::HIT)
+          expect(@basic_strategy.play(@bet_box, up_card).first).must_equal(Action::HIT)
         end
       end
     end
@@ -1953,7 +1951,7 @@ module Blackjack
         @bet_box.hand.set(BlackjackCard.make("10D", c2))
         [*4..6].each do |dealer_up_card_val|
           up_card = BlackjackCard.from_s("#{dealer_up_card_val}H")
-          @basic_strategy.play(@bet_box, up_card).first.must_equal(Action::STAND)
+          expect(@basic_strategy.play(@bet_box, up_card).first).must_equal(Action::STAND)
         end
       end
     end
